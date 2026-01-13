@@ -65,7 +65,11 @@
 
 			// Success - reload bonds
 			targetCode = '';
-			successMessage = `Invite sent to ${result.targetNickname}!`;
+			if (result.autoAccepted) {
+				successMessage = `Bonded with ${result.targetNickname}! Check your prompt above.`;
+			} else {
+				successMessage = `Invite sent to ${result.targetNickname}!`;
+			}
 			bonds.load();
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to send invite';

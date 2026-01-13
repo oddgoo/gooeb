@@ -59,25 +59,31 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		// If there's a pending invite FROM target TO me, auto-accept it
 		// (Both players tapped each other = mutual interest)
 		if (existingBond.status === 'pending' && existingBond.guest_b_id === me.id) {
-			// Redirect to accept flow - call accept logic inline
-			const acceptResponse = await fetch(new URL('/api/bond/accept', request.url).href, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Cookie': `gooeb_code=${myCode}`
-				},
-				body: JSON.stringify({ bondId: existingBond.id })
-			});
+			try {
+				// Get full bond data for accept function
+				const { data: bondData } = await supabase
+					.from('bonds')
+					.select('id, guest_a_id, guest_b_id, status, event_id')
+					.eq('id', existingBond.id)
+					.single();
 
-			if (acceptResponse.ok) {
+				if (!bondData) {
+					error(404, { message: 'Bond not found' });
+				}
+
+				const bond = bondData as unknown as { id: string; guest_a_id: string; guest_b_id: string; status: string; event_id: string };
+
+				const prompt = await acceptBond(supabase, bond);
+
 				return json({
 					bondId: existingBond.id,
 					targetNickname: target.nickname,
-					autoAccepted: true
+					autoAccepted: true,
+					prompt
 				});
+			} catch (e) {
+				error(409, { message: e instanceof Error ? e.message : 'Failed to auto-accept' });
 			}
-			// If accept failed, fall through to error
-			error(409, { message: 'Failed to auto-accept the existing invite' });
 		}
 
 		// I already sent them an invite
