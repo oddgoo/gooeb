@@ -16,12 +16,20 @@ export type BondPrompt = {
 	category: 'character' | 'theme' | 'place';
 };
 
+export type ActivityPrompt = {
+	id: string;
+	description: string;
+};
+
 export type Bond = {
 	id: string;
 	status: 'pending' | 'accepted' | 'completed';
 	isInitiator: boolean;
 	partner: BondPartner;
-	prompt: BondPrompt | null;
+	prompt: BondPrompt | null; // Legacy single prompt
+	myPrompt: BondPrompt | null; // My individual prompt
+	partnerPrompt: BondPrompt | null; // Partner's individual prompt
+	activityPrompt: ActivityPrompt | null; // Shared activity
 	photo_url: string | null;
 	initiated_at: string;
 	accepted_at: string | null;
@@ -144,6 +152,9 @@ function createBondsStore() {
 						isInitiator: true,
 						partner,
 						prompt: null,
+						myPrompt: null,
+						partnerPrompt: null,
+						activityPrompt: null,
 						photo_url: null,
 						initiated_at: new Date().toISOString(),
 						accepted_at: null,

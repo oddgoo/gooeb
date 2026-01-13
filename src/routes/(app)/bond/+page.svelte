@@ -19,6 +19,7 @@
 	let error = $state('');
 	let isSubmitting = $state(false);
 	let successMessage = $state('');
+	let loadingBonds = $state<Record<string, 'accept' | 'reject'>>({}); // Track loading state per bond
 
 	// Load bonds on mount
 	onMount(() => {
@@ -79,6 +80,7 @@
 	}
 
 	async function acceptBond(bondId: string) {
+		loadingBonds = { ...loadingBonds, [bondId]: 'accept' };
 		try {
 			const response = await fetch('/api/bond/accept', {
 				method: 'POST',
@@ -94,10 +96,14 @@
 			bonds.load();
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to accept bond';
+		} finally {
+			const { [bondId]: _, ...rest } = loadingBonds;
+			loadingBonds = rest;
 		}
 	}
 
 	async function rejectBond(bondId: string) {
+		loadingBonds = { ...loadingBonds, [bondId]: 'reject' };
 		try {
 			const response = await fetch('/api/bond/reject', {
 				method: 'POST',
@@ -113,6 +119,9 @@
 			bonds.load();
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to reject bond';
+		} finally {
+			const { [bondId]: _, ...rest } = loadingBonds;
+			loadingBonds = rest;
 		}
 	}
 
@@ -186,21 +195,57 @@
 								</div>
 								<span class="font-bold">{bond.partner.nickname}</span>
 							</div>
-							{#if bond.prompt}
-								<div class="text-center py-3 bg-win-bg win-panel">
-									<div class="text-sm mb-1">Your prompt:</div>
-									<div class="text-2xl font-bold text-win-title">
-										{getCategoryEmoji(bond.prompt.category)} {bond.prompt.word}
+
+							<!-- Individual Prompts -->
+							<div class="grid grid-cols-2 gap-2 mb-3">
+								<!-- My Prompt -->
+								{#if bond.myPrompt}
+									<div class="text-center py-2 bg-win-bg win-panel">
+										<div class="text-xs mb-1">Your prompt:</div>
+										<div class="text-lg font-bold text-win-title">
+											{getCategoryEmoji(bond.myPrompt.category)} {bond.myPrompt.word}
+										</div>
+										<div class="text-xs uppercase">[{bond.myPrompt.category}]</div>
 									</div>
-									<div class="text-xs mt-1 uppercase">[{bond.prompt.category}]</div>
+								{:else if bond.prompt}
+									<!-- Legacy single prompt fallback -->
+									<div class="text-center py-2 bg-win-bg win-panel col-span-2">
+										<div class="text-xs mb-1">Your prompt:</div>
+										<div class="text-lg font-bold text-win-title">
+											{getCategoryEmoji(bond.prompt.category)} {bond.prompt.word}
+										</div>
+										<div class="text-xs uppercase">[{bond.prompt.category}]</div>
+									</div>
+								{/if}
+
+								<!-- Partner's Prompt -->
+								{#if bond.partnerPrompt}
+									<div class="text-center py-2 bg-win-bg win-panel">
+										<div class="text-xs mb-1">{bond.partner.nickname}'s:</div>
+										<div class="text-lg font-bold text-win-title">
+											{getCategoryEmoji(bond.partnerPrompt.category)} {bond.partnerPrompt.word}
+										</div>
+										<div class="text-xs uppercase">[{bond.partnerPrompt.category}]</div>
+									</div>
+								{/if}
+							</div>
+
+							<!-- Shared Activity -->
+							{#if bond.activityPrompt}
+								<div class="text-center py-3 bg-[#000080] text-white win-panel mb-3">
+									<div class="text-xs mb-1">Shared Activity:</div>
+									<div class="text-base font-bold">
+										{bond.activityPrompt.description}
+									</div>
 								</div>
-								<a
-									href="/bond/{bond.id}/complete"
-									class="win-btn bg-win-title text-white w-full block text-center mt-3 py-2"
-								>
-									Complete Bond
-								</a>
 							{/if}
+
+							<a
+								href="/bond/{bond.id}/complete"
+								class="win-btn bg-win-title text-white w-full block text-center py-2"
+							>
+								Complete Bond
+							</a>
 						</div>
 					{/each}
 				</div>
@@ -223,15 +268,17 @@
 								<span class="flex-1 font-bold">{bond.partner.nickname}</span>
 								<button
 									onclick={() => acceptBond(bond.id)}
+									disabled={!!loadingBonds[bond.id]}
 									class="win-btn text-sm py-0.5 min-w-0 px-2"
 								>
-									Accept
+									{loadingBonds[bond.id] === 'accept' ? '...' : 'Accept'}
 								</button>
 								<button
 									onclick={() => rejectBond(bond.id)}
+									disabled={!!loadingBonds[bond.id]}
 									class="win-btn text-sm py-0.5 min-w-0 px-2"
 								>
-									Decline
+									{loadingBonds[bond.id] === 'reject' ? '...' : 'Decline'}
 								</button>
 							</div>
 						{/each}

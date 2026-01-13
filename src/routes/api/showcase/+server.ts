@@ -27,7 +27,10 @@ export const GET: RequestHandler = async () => {
 			status,
 			photo_url,
 			completed_at,
-			prompt:prompts(word, category)
+			prompt:prompts!bonds_prompt_id_fkey(word, category),
+			prompt_a:prompts!bonds_prompt_a_id_fkey(word, category),
+			prompt_b:prompts!bonds_prompt_b_id_fkey(word, category),
+			activity_prompt:activity_prompts(description)
 		`)
 		.eq('status', 'completed')
 		.order('completed_at', { ascending: false });
@@ -40,6 +43,9 @@ export const GET: RequestHandler = async () => {
 		photo_url: string | null;
 		completed_at: string;
 		prompt: { word: string; category: string } | null;
+		prompt_a: { word: string; category: string } | null;
+		prompt_b: { word: string; category: string } | null;
+		activity_prompt: { description: string } | null;
 	}[];
 
 	// Calculate stats

@@ -19,6 +19,9 @@
 		photo_url: string | null;
 		completed_at: string;
 		prompt: { word: string; category: string } | null;
+		prompt_a: { word: string; category: string } | null;
+		prompt_b: { word: string; category: string } | null;
+		activity_prompt: { description: string } | null;
 	};
 
 	type Stats = {
@@ -261,18 +264,29 @@
 						{@const guestB = getGuestById(currentSlideshowBond.guest_b_id)}
 						<div class="win-inset p-2">
 							{#if currentSlideshowBond.photo_url}
-								<img
-									src={currentSlideshowBond.photo_url}
-									alt="Bond"
-									class="w-full h-32 object-cover mb-2"
-								/>
+								<div class="aspect-square w-full mb-2">
+									<img
+										src={currentSlideshowBond.photo_url}
+										alt="Bond"
+										class="w-full h-full object-cover"
+									/>
+								</div>
 							{/if}
 							<div class="flex items-center justify-between text-sm">
 								<span class="font-bold">{guestA?.nickname || '?'}</span>
 								<span>🤝</span>
 								<span class="font-bold">{guestB?.nickname || '?'}</span>
 							</div>
-							{#if currentSlideshowBond.prompt}
+							{#if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
+								<div class="flex justify-between text-xs mt-1 text-[#000080]">
+									{#if currentSlideshowBond.prompt_a}
+										<span>{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
+									{/if}
+									{#if currentSlideshowBond.prompt_b}
+										<span>{getCategoryEmoji(currentSlideshowBond.prompt_b.category)} {currentSlideshowBond.prompt_b.word}</span>
+									{/if}
+								</div>
+							{:else if currentSlideshowBond.prompt}
 								<div class="text-center text-xs mt-1 text-[#000080]">
 									{getCategoryEmoji(currentSlideshowBond.prompt.category)}
 									{currentSlideshowBond.prompt.word}
@@ -309,11 +323,13 @@
 			</div>
 			<div class="p-4">
 				{#if selectedBond.photo_url}
-					<img
-						src={selectedBond.photo_url}
-						alt="Bond"
-						class="w-full h-64 object-cover mb-4 win-inset"
-					/>
+					<div class="aspect-square w-full mb-4 win-inset">
+						<img
+							src={selectedBond.photo_url}
+							alt="Bond"
+							class="w-full h-full object-cover"
+						/>
+					</div>
 				{/if}
 				<div class="flex items-center justify-around mb-4">
 					<div class="text-center">
@@ -326,12 +342,39 @@
 						<div class="font-bold mt-1">{guestB?.nickname}</div>
 					</div>
 				</div>
-				{#if selectedBond.prompt}
+				<!-- Dual prompts display -->
+				{#if selectedBond.prompt_a || selectedBond.prompt_b}
+					<div class="grid grid-cols-2 gap-2 mb-3">
+						{#if selectedBond.prompt_a}
+							<div class="text-center win-inset p-2">
+								<div class="text-xs mb-1">{guestA?.nickname}</div>
+								<div class="text-lg font-bold text-[#000080]">
+									{getCategoryEmoji(selectedBond.prompt_a.category)} {selectedBond.prompt_a.word}
+								</div>
+							</div>
+						{/if}
+						{#if selectedBond.prompt_b}
+							<div class="text-center win-inset p-2">
+								<div class="text-xs mb-1">{guestB?.nickname}</div>
+								<div class="text-lg font-bold text-[#000080]">
+									{getCategoryEmoji(selectedBond.prompt_b.category)} {selectedBond.prompt_b.word}
+								</div>
+							</div>
+						{/if}
+					</div>
+				{:else if selectedBond.prompt}
+					<!-- Legacy single prompt -->
 					<div class="text-center win-inset p-3">
 						<div class="text-2xl font-bold text-[#000080]">
 							{getCategoryEmoji(selectedBond.prompt.category)} {selectedBond.prompt.word}
 						</div>
 						<div class="text-xs mt-1 uppercase">[{selectedBond.prompt.category}]</div>
+					</div>
+				{/if}
+				{#if selectedBond.activity_prompt}
+					<div class="text-center bg-[#000080] text-white p-2 mt-2">
+						<div class="text-xs">Activity:</div>
+						<div class="font-bold">{selectedBond.activity_prompt.description}</div>
 					</div>
 				{/if}
 			</div>

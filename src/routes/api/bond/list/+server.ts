@@ -30,7 +30,10 @@ export const GET: RequestHandler = async ({ cookies }) => {
 			photo_url,
 			guest_a:guests!bonds_guest_a_id_fkey(id, nickname, photo_url),
 			guest_b:guests!bonds_guest_b_id_fkey(id, nickname, photo_url),
-			prompt:prompts(id, word, category)
+			prompt:prompts!bonds_prompt_id_fkey(id, word, category),
+			prompt_a:prompts!bonds_prompt_a_id_fkey(id, word, category),
+			prompt_b:prompts!bonds_prompt_b_id_fkey(id, word, category),
+			activity_prompt:activity_prompts(id, description)
 		`)
 		.or(`guest_a_id.eq.${me.id},guest_b_id.eq.${me.id}`)
 		.in('status', ['pending', 'accepted', 'completed'])
@@ -41,10 +44,16 @@ export const GET: RequestHandler = async ({ cookies }) => {
 		error(500, { message: 'Failed to fetch bonds' });
 	}
 
-	// Transform bonds to include partner info
+	// Transform bonds to include partner info and map prompts correctly
 	const transformedBonds = (bonds || []).map((bond: any) => {
 		const isInitiator = bond.guest_a_id === me.id;
 		const partner = isInitiator ? bond.guest_b : bond.guest_a;
+
+		// Map prompts based on whether user is guest_a or guest_b
+		// If user is guest_a, their prompt is prompt_a
+		// If user is guest_b, their prompt is prompt_b
+		const myPrompt = isInitiator ? bond.prompt_a : bond.prompt_b;
+		const partnerPrompt = isInitiator ? bond.prompt_b : bond.prompt_a;
 
 		return {
 			id: bond.id,
@@ -55,7 +64,10 @@ export const GET: RequestHandler = async ({ cookies }) => {
 				nickname: partner.nickname,
 				photo_url: partner.photo_url
 			},
-			prompt: bond.prompt,
+			prompt: bond.prompt, // Legacy single prompt (backwards compatibility)
+			myPrompt: myPrompt || null,
+			partnerPrompt: partnerPrompt || null,
+			activityPrompt: bond.activity_prompt || null,
 			photo_url: bond.photo_url,
 			initiated_at: bond.initiated_at,
 			accepted_at: bond.accepted_at,

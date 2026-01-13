@@ -59,11 +59,12 @@
 				id: bond.id,
 				from: bond.guest_a_id,
 				to: bond.guest_b_id,
-				width: 3,
+				width: 4,
 				color: {
-					color: '#008080',
-					highlight: '#00BFBF',
-					hover: '#00BFBF'
+					color: '#FFD700',
+					highlight: '#FFFF00',
+					hover: '#FFFF00',
+					opacity: 1.0
 				},
 				smooth: {
 					enabled: true,

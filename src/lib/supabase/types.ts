@@ -3,6 +3,15 @@
 
 export type PromptCategory = 'character' | 'theme' | 'place';
 
+export type ActivityPrompt = {
+	id: string;
+	event_id: string;
+	description: string;
+	is_active: boolean;
+	times_used: number;
+	created_at: string;
+};
+
 export type Database = {
 	public: {
 		Tables: {
@@ -126,6 +135,9 @@ export type Database = {
 					guest_a_id: string;
 					guest_b_id: string;
 					prompt_id: string | null;
+					prompt_a_id: string | null;
+					prompt_b_id: string | null;
+					activity_prompt_id: string | null;
 					status: 'pending' | 'accepted' | 'completed' | 'rejected' | 'expired';
 					photo_url: string | null;
 					initiated_at: string;
@@ -138,6 +150,9 @@ export type Database = {
 					guest_a_id: string;
 					guest_b_id: string;
 					prompt_id?: string | null;
+					prompt_a_id?: string | null;
+					prompt_b_id?: string | null;
+					activity_prompt_id?: string | null;
 					status?: 'pending' | 'accepted' | 'completed' | 'rejected' | 'expired';
 					photo_url?: string | null;
 					initiated_at?: string;
@@ -150,6 +165,9 @@ export type Database = {
 					guest_a_id?: string;
 					guest_b_id?: string;
 					prompt_id?: string | null;
+					prompt_a_id?: string | null;
+					prompt_b_id?: string | null;
+					activity_prompt_id?: string | null;
 					status?: 'pending' | 'accepted' | 'completed' | 'rejected' | 'expired';
 					photo_url?: string | null;
 					initiated_at?: string;
@@ -176,6 +194,9 @@ export type GuestWithMaskCode = Guest & {
 
 export type BondWithDetails = Bond & {
 	prompt: Prompt | null;
+	prompt_a: Prompt | null;
+	prompt_b: Prompt | null;
+	activity_prompt: ActivityPrompt | null;
 	guest_a: Guest;
 	guest_b: Guest;
 };
