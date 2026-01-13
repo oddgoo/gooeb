@@ -117,99 +117,78 @@
 	}
 </script>
 
-<div class="relative aspect-square bg-gray-900 rounded-2xl overflow-hidden">
+<div class="win-inset aspect-square bg-black overflow-hidden">
 	{#if capturedPhoto}
 		<!-- Captured photo preview -->
-		<img src={capturedPhoto} alt="Captured" class="w-full h-full object-cover" />
-		<div class="absolute bottom-4 left-0 right-0 flex justify-center">
-			<button
-				type="button"
-				onclick={retake}
-				class="bg-white/90 backdrop-blur px-6 py-2 rounded-full font-medium text-gray-800
-				       hover:bg-white transition-colors"
-			>
-				Retake
-			</button>
+		<div class="relative w-full h-full">
+			<img src={capturedPhoto} alt="Captured" class="w-full h-full object-cover" />
+			<div class="absolute bottom-2 left-0 right-0 flex justify-center">
+				<button
+					type="button"
+					onclick={retake}
+					class="win-btn text-sm"
+				>
+					Retake
+				</button>
+			</div>
 		</div>
 	{:else if cameraError}
 		<!-- Camera error state -->
-		<div class="flex flex-col items-center justify-center h-full p-6 text-center">
-			<div class="text-5xl mb-4">📷</div>
-			<p class="text-white/80 mb-6 text-sm">{cameraError}</p>
-			<label
-				class="bg-gooeb-600 text-white px-6 py-3 rounded-xl cursor-pointer
-				       hover:bg-gooeb-700 transition-colors font-medium"
-			>
-				Upload Photo
+		<div class="flex flex-col items-center justify-center h-full p-4 text-center bg-win-bg">
+			<div class="text-4xl mb-3">📷</div>
+			<p class="text-win-text text-sm mb-4">{cameraError}</p>
+			<label class="win-btn bg-win-title text-white cursor-pointer">
+				Browse...
 				<input type="file" accept="image/*" class="hidden" onchange={handleFileSelect} />
 			</label>
 		</div>
 	{:else}
 		<!-- Camera view -->
-		<video
-			bind:this={videoElement}
-			autoplay
-			playsinline
-			muted
-			class="w-full h-full object-cover scale-x-[-1]"
-		></video>
+		<div class="relative w-full h-full">
+			<video
+				bind:this={videoElement}
+				autoplay
+				playsinline
+				muted
+				class="w-full h-full object-cover scale-x-[-1]"
+			></video>
 
-		<!-- Camera controls overlay -->
-		<div class="absolute bottom-4 left-0 right-0 flex justify-center items-center gap-4">
-			<!-- Switch camera button -->
-			<button
-				type="button"
-				onclick={switchCamera}
-				class="bg-black/30 backdrop-blur p-3 rounded-full text-white
-				       hover:bg-black/50 transition-colors"
-				aria-label="Switch camera"
-			>
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-					/>
-				</svg>
-			</button>
+			<!-- Camera controls -->
+			<div class="absolute bottom-2 left-0 right-0 flex justify-center items-center gap-2">
+				<button
+					type="button"
+					onclick={switchCamera}
+					class="win-btn text-xs px-2 min-w-0"
+					aria-label="Switch camera"
+				>
+					🔄
+				</button>
 
-			<!-- Capture button -->
-			<button
-				type="button"
-				onclick={capture}
-				disabled={isCapturing}
-				class="w-16 h-16 bg-white rounded-full border-4 border-gooeb-500
-				       hover:scale-105 active:scale-95 transition-transform
-				       disabled:opacity-50 disabled:cursor-not-allowed"
-				aria-label="Take photo"
-			></button>
+				<button
+					type="button"
+					onclick={capture}
+					disabled={isCapturing}
+					class="win-btn px-4 bg-win-title text-white"
+					aria-label="Take photo"
+				>
+					📸 Capture
+				</button>
 
-			<!-- Upload fallback -->
-			<label
-				class="bg-black/30 backdrop-blur p-3 rounded-full text-white cursor-pointer
-				       hover:bg-black/50 transition-colors"
-				aria-label="Upload photo"
-			>
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-					/>
-				</svg>
-				<input type="file" accept="image/*" class="hidden" onchange={handleFileSelect} />
-			</label>
-		</div>
-
-		<!-- Loading overlay -->
-		{#if isStartingCamera}
-			<div class="absolute inset-0 flex items-center justify-center bg-gray-900">
-				<div
-					class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"
-				></div>
+				<label class="win-btn text-xs px-2 min-w-0 cursor-pointer" aria-label="Upload photo">
+					📁
+					<input type="file" accept="image/*" class="hidden" onchange={handleFileSelect} />
+				</label>
 			</div>
-		{/if}
+
+			<!-- Loading overlay -->
+			{#if isStartingCamera}
+				<div class="absolute inset-0 flex items-center justify-center bg-win-bg">
+					<div class="text-center">
+						<div class="text-2xl animate-pulse">⏳</div>
+						<div class="text-sm mt-2">Starting camera...</div>
+					</div>
+				</div>
+			{/if}
+		</div>
 	{/if}
 </div>

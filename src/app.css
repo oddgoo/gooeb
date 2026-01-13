@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,7 +10,12 @@
 	}
 
 	body {
-		@apply bg-gray-50 text-gray-900 antialiased;
+		@apply bg-win-desktop text-win-text;
+		font-family: 'VT323', 'MS Sans Serif', Arial, sans-serif;
+		font-size: 16px;
+		/* Tiled diamond pattern background like Win3.1 */
+		background-color: #008080;
+		background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 0L16 8L8 16L0 8Z' fill='%23006666' fill-opacity='0.4'/%3E%3C/svg%3E");
 	}
 
 	/* Safe area insets for notched phones */
@@ -22,23 +29,138 @@
 }
 
 @layer components {
+	/* Windows 3.1 raised panel (outset) */
+	.win-panel {
+		@apply bg-win-bg;
+		box-shadow:
+			inset -1px -1px 0 #000000,
+			inset 1px 1px 0 #FFFFFF,
+			inset -2px -2px 0 #808080,
+			inset 2px 2px 0 #DFDFDF;
+	}
+
+	/* Windows 3.1 sunken panel (inset) */
+	.win-inset {
+		@apply bg-win-window;
+		box-shadow:
+			inset 1px 1px 0 #808080,
+			inset -1px -1px 0 #FFFFFF,
+			inset 2px 2px 0 #000000,
+			inset -2px -2px 0 #DFDFDF;
+	}
+
+	/* Windows 3.1 window frame */
+	.win-window {
+		@apply bg-win-bg;
+		border: 3px solid;
+		border-color: #DFDFDF #000000 #000000 #DFDFDF;
+		box-shadow:
+			inset 1px 1px 0 #FFFFFF,
+			inset -1px -1px 0 #808080;
+	}
+
+	/* Title bar */
+	.win-titlebar {
+		@apply bg-win-title text-white px-2 py-1 font-bold flex items-center justify-between;
+		background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+	}
+
+	.win-titlebar-inactive {
+		@apply bg-win-titleInactive text-white px-2 py-1 font-bold;
+	}
+
+	/* Windows 3.1 button */
+	.win-btn {
+		@apply bg-win-btnFace text-win-text px-4 py-1 font-bold cursor-pointer select-none;
+		box-shadow:
+			inset -1px -1px 0 #000000,
+			inset 1px 1px 0 #FFFFFF,
+			inset -2px -2px 0 #808080,
+			inset 2px 2px 0 #DFDFDF;
+		min-width: 75px;
+		text-align: center;
+	}
+
+	.win-btn:active, .win-btn-pressed {
+		box-shadow:
+			inset 1px 1px 0 #000000,
+			inset -1px -1px 0 #FFFFFF,
+			inset 2px 2px 0 #808080;
+		padding-top: 6px;
+		padding-bottom: 2px;
+	}
+
+	.win-btn:disabled {
+		@apply text-win-textDisabled cursor-not-allowed;
+	}
+
+	.win-btn-primary {
+		@apply win-btn bg-win-title text-white;
+	}
+
+	/* Windows 3.1 input field */
+	.win-input {
+		@apply bg-white text-win-text px-2 py-1;
+		box-shadow:
+			inset 1px 1px 0 #808080,
+			inset -1px -1px 0 #FFFFFF,
+			inset 2px 2px 0 #000000;
+		border: none;
+		outline: none;
+	}
+
+	.win-input:focus {
+		outline: none;
+	}
+
+	/* Group box (fieldset style) */
+	.win-groupbox {
+		@apply bg-win-bg p-3 pt-4 mt-2 relative;
+		border: 1px solid #808080;
+		box-shadow: 1px 1px 0 #FFFFFF;
+	}
+
+	.win-groupbox-label {
+		@apply absolute bg-win-bg px-1 text-win-text font-bold;
+		top: -8px;
+		left: 8px;
+		font-size: 14px;
+	}
+
+	/* Scrollbar styling */
+	::-webkit-scrollbar {
+		width: 16px;
+		height: 16px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: #C0C0C0;
+		background-image: url("data:image/svg+xml,%3Csvg width='2' height='2' viewBox='0 0 2 2' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23FFFFFF'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23FFFFFF'/%3E%3C/svg%3E");
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: #C0C0C0;
+		box-shadow:
+			inset -1px -1px 0 #000000,
+			inset 1px 1px 0 #FFFFFF,
+			inset -2px -2px 0 #808080,
+			inset 2px 2px 0 #DFDFDF;
+	}
+
+	/* Legacy aliases for compatibility */
 	.btn-primary {
-		@apply bg-gooeb-600 text-white px-6 py-3 rounded-xl font-semibold
-		       active:bg-gooeb-700 disabled:opacity-50 transition-colors;
+		@apply win-btn bg-win-title text-white;
 	}
 
 	.btn-secondary {
-		@apply bg-gray-200 text-gray-800 px-6 py-3 rounded-xl font-semibold
-		       active:bg-gray-300 disabled:opacity-50 transition-colors;
+		@apply win-btn;
 	}
 
 	.input-field {
-		@apply w-full p-4 border-2 border-gray-200 rounded-xl
-		       focus:border-gooeb-500 focus:outline-none transition-colors
-		       text-lg;
+		@apply win-input w-full p-2 text-lg;
 	}
 
 	.card {
-		@apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4;
+		@apply win-window p-0;
 	}
 }

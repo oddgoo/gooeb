@@ -82,80 +82,89 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gradient-to-b from-gooeb-50 to-white p-4 safe-area-pt">
-	<div class="max-w-md mx-auto pt-4">
-		<!-- Header -->
-		<div class="text-center mb-6">
-			<h1 class="text-2xl font-bold text-gray-900">Create Your Profile</h1>
-			{#if code}
-				<p class="text-gray-500 mt-1">
-					Mask code: <span class="font-mono font-bold text-gooeb-600">{code}</span>
-				</p>
-			{/if}
+<div class="min-h-screen flex flex-col items-center justify-center p-4">
+	<!-- Main Window -->
+	<div class="win-window w-full max-w-sm">
+		<!-- Title Bar -->
+		<div class="win-titlebar">
+			<span>New User Setup</span>
+			<div class="flex gap-1">
+				<button class="win-btn px-2 py-0 min-w-0 text-xs">?</button>
+			</div>
 		</div>
 
-		<form
-			onsubmit={(e) => {
-				e.preventDefault();
-				handleSubmit();
-			}}
-			class="space-y-6"
-		>
-			<!-- Photo capture -->
-			<div>
-				<p class="block text-sm font-medium text-gray-700 mb-2">Your Photo</p>
-				<PhotoCapture onCapture={handlePhotoCapture} />
-				<p class="text-xs text-gray-400 mt-2 text-center">
-					This will be shown on the network graph
-				</p>
-			</div>
-
-			<!-- Nickname input -->
-			<div>
-				<label for="nickname" class="block text-sm font-medium text-gray-700 mb-2">
-					Nickname
-				</label>
-				<input
-					id="nickname"
-					type="text"
-					bind:value={nickname}
-					placeholder="What should we call you?"
-					maxlength="20"
-					autocomplete="off"
-					class="input-field"
-				/>
-				<p class="text-xs text-gray-400 mt-1">Max 20 characters</p>
-			</div>
-
-			<!-- Error message -->
-			{#if error}
-				<div class="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center">
-					{error}
+		<!-- Window Content -->
+		<div class="p-4 space-y-4">
+			{#if code}
+				<div class="text-center">
+					<span class="text-sm">Registering code:</span>
+					<span class="font-mono font-bold text-win-title text-xl ml-2">{code}</span>
 				</div>
 			{/if}
 
-			<!-- Submit button -->
-			<button
-				type="submit"
-				disabled={isSubmitting || !nickname.trim() || !photoDataUrl}
-				class="btn-primary w-full text-lg"
+			<form
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleSubmit();
+				}}
+				class="space-y-4"
 			>
-				{#if isSubmitting}
-					<span class="inline-flex items-center gap-2">
-						<span
-							class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"
-						></span>
-						Joining...
-					</span>
-				{:else}
-					Join the Party!
-				{/if}
-			</button>
-		</form>
+				<!-- Photo capture -->
+				<div class="win-groupbox">
+					<span class="win-groupbox-label">Your Photo</span>
+					<PhotoCapture onCapture={handlePhotoCapture} />
+					<p class="text-xs text-win-textDisabled mt-2 text-center">
+						This will appear on the network graph
+					</p>
+				</div>
 
-		<!-- Back link -->
-		<div class="mt-6 text-center">
-			<a href="/" class="text-gray-500 hover:text-gray-700 text-sm"> ← Use a different code </a>
+				<!-- Nickname input -->
+				<div class="win-groupbox">
+					<span class="win-groupbox-label">Nickname</span>
+					<input
+						id="nickname"
+						type="text"
+						bind:value={nickname}
+						placeholder="What should we call you?"
+						maxlength="20"
+						autocomplete="off"
+						class="win-input w-full py-2 text-lg"
+					/>
+					<p class="text-xs text-win-textDisabled mt-1">Max 20 characters</p>
+				</div>
+
+				<!-- Error message -->
+				{#if error}
+					<div class="win-inset p-2 bg-red-100 text-red-800 text-sm">
+						{error}
+					</div>
+				{/if}
+
+				<!-- Submit button -->
+				<button
+					type="submit"
+					disabled={isSubmitting || !nickname.trim() || !photoDataUrl}
+					class="win-btn bg-win-title text-white w-full py-2 text-lg"
+				>
+					{#if isSubmitting}
+						Installing...
+					{:else}
+						Install
+					{/if}
+				</button>
+			</form>
+
+			<!-- Back link -->
+			<div class="text-center">
+				<a href="/" class="text-sm text-win-title underline">
+					&lt; Use different code
+				</a>
+			</div>
+		</div>
+
+		<!-- Status Bar -->
+		<div class="bg-win-bg border-t-2 border-win-btnHighlight px-2 py-1 text-sm">
+			<div class="win-inset px-2">Setup wizard</div>
 		</div>
 	</div>
 </div>
