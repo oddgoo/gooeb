@@ -149,11 +149,17 @@
 │   │   ├── register/                 # Registration (photo + nickname)
 │   │   ├── api/
 │   │   │   ├── register/             # Registration API
-│   │   │   └── bond/                 # Bond APIs (Session 2)
+│   │   │   └── bond/                 # Bond APIs
+│   │   │       ├── invite/           # Send bond invite
+│   │   │       ├── accept/           # Accept invite
+│   │   │       ├── reject/           # Reject invite
+│   │   │       ├── list/             # List user's bonds
+│   │   │       └── [id]/complete/    # Complete bond with photo
 │   │   ├── (app)/                    # Protected routes
 │   │   │   ├── +layout.server.ts     # Auth guard
 │   │   │   ├── +layout.svelte        # App shell
-│   │   │   └── bond/+page.svelte     # Main bonding interface
+│   │   │   ├── bond/+page.svelte     # Main bonding interface
+│   │   │   └── bond/[id]/complete/   # Bond completion page
 │   │   ├── showcase/                 # (Session 4)
 │   │   └── admin/                    # (Session 4)
 │   ├── lib/
@@ -163,11 +169,9 @@
 │   │   │   └── types.ts              # Database types
 │   │   ├── stores/
 │   │   │   ├── auth.ts               # Auth state
-│   │   │   ├── guest.ts              # (Session 2)
-│   │   │   └── realtime.ts           # (Session 2)
+│   │   │   └── bonds.ts              # Bonds state + realtime
 │   │   ├── components/
 │   │   │   ├── PhotoCapture.svelte   # Camera + upload
-│   │   │   ├── BondCard.svelte       # (Session 3)
 │   │   │   └── NetworkGraph.svelte   # (Session 4)
 │   │   └── utils/
 │   │       ├── codes.ts              # 4-digit code utilities
@@ -189,7 +193,7 @@
 |---------|-------|--------|
 | 1 | Project setup, DB schema, auth | ✅ COMPLETE |
 | 2 | Bonding mechanics (invite/accept/prompts) | ✅ COMPLETE |
-| 3 | Photo upload, completion flow | 🔲 NOT STARTED |
+| 3 | Photo upload, completion flow | ✅ COMPLETE |
 | 4 | Showcase + Admin views | 🔲 NOT STARTED |
 | 5 | Polish + Deploy | 🔲 NOT STARTED |
 
@@ -240,19 +244,20 @@
 - [x] Realtime updates via Supabase subscriptions
 - [x] 4-digit numeric codes (changed from alphanumeric)
 
-### Session 3 - NOT STARTED 🔲
+### Session 3 - COMPLETE ✅
 
-**Planned:**
-- [ ] Photo capture for bond completion
-- [ ] Bond completion API endpoint
-- [ ] BondCard component for completed bonds
-- [ ] Completed bonds list on Bond page
+**Completed:**
+- [x] Photo capture for bond completion (`/bond/[id]/complete` page)
+- [x] Bond completion API endpoint (`/api/bond/[id]/complete`)
+- [x] Bond completion page with Win3.1 retro styling
+- [x] Completed bonds list on Bond page (already in Session 2)
+- [x] Photo upload to Supabase Storage (`bonds/{id}.jpg`)
 
 ### Session 4 - NOT STARTED 🔲
 
 **Planned:**
 - [ ] NetworkGraph component with vis.js
-- [ ] Showcase page with graph, slideshow, leaderboard
+- [ ] Showcase page (optimised for 16 by 9) with graph, slideshow, leaderboard
 - [ ] Admin page with guest/bond/prompt management
 - [ ] Admin API endpoints
 
