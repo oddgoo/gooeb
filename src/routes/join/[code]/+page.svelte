@@ -16,11 +16,11 @@
 	});
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gooeb-50">
-	<div class="text-center">
+<div class="min-h-screen flex items-center justify-center">
+	<div class="win-window p-6 text-center">
 		<div
-			class="w-12 h-12 border-4 border-gooeb-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+			class="w-12 h-12 border-4 border-y2k-pink border-t-transparent rounded-full animate-spin mx-auto mb-4"
 		></div>
-		<p class="text-gray-600">Preparing your registration...</p>
+		<p class="text-win-text">Preparing your registration...</p>
 	</div>
 </div>

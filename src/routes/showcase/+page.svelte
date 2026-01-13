@@ -154,7 +154,7 @@
 	<title>The Gooeb - Showcase</title>
 </svelte:head>
 
-<!-- Confetti overlay -->
+<!-- Confetti overlay - Y2K colors -->
 {#if showConfetti}
 	<div class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
 		{#each Array(50) as _, i}
@@ -163,7 +163,7 @@
 				style="
 					left: {Math.random() * 100}%;
 					animation-delay: {Math.random() * 0.5}s;
-					background: {['#ff0', '#f0f', '#0ff', '#f00', '#0f0', '#00f'][i % 6]};
+					background: {['#FF69B4', '#FFD700', '#00D4AA', '#FF1493', '#87CEEB', '#FFA500'][i % 6]};
 				"
 			></div>
 		{/each}
@@ -171,10 +171,11 @@
 {/if}
 
 <!-- Main showcase layout - 16:9 optimized -->
-<div class="min-h-screen bg-[#008080] p-4 flex flex-col">
+<div class="min-h-screen p-4 flex flex-col">
 	<!-- Header -->
 	<div class="text-center mb-4">
-		<h1 class="text-4xl font-bold text-white font-['VT323'] tracking-wider drop-shadow-lg">
+		<h1 class="text-4xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
+			style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;">
 			THE GOOEB - LIVE BONDS
 		</h1>
 	</div>
@@ -209,12 +210,12 @@
 					</div>
 					<div class="mt-2">
 						<div class="text-sm mb-1">Progress:</div>
-						<div class="win-inset h-6 relative">
+						<div class="win-inset h-6 relative overflow-hidden">
 							<div
-								class="absolute inset-0 bg-[#000080] transition-all duration-500"
+								class="absolute inset-0 bg-gradient-to-r from-y2k-pink to-y2k-magenta transition-all duration-500"
 								style="width: {Math.min(stats.progress, 100)}%"
 							></div>
-							<div class="absolute inset-0 flex items-center justify-center text-xs font-bold">
+							<div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-win-text">
 								{stats.progress.toFixed(1)}%
 							</div>
 						</div>
@@ -245,7 +246,7 @@
 										class="w-6 h-6 object-cover"
 									/>
 									<span class="flex-1 truncate text-sm">{entry.nickname}</span>
-									<span class="font-bold text-[#000080]">{entry.bondCount}</span>
+									<span class="font-bold text-y2k-magenta">{entry.bondCount}</span>
 								</div>
 							{/each}
 						</div>
@@ -278,7 +279,7 @@
 								<span class="font-bold">{guestB?.nickname || '?'}</span>
 							</div>
 							{#if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
-								<div class="flex justify-between text-xs mt-1 text-[#000080]">
+								<div class="flex justify-between text-xs mt-1 text-y2k-magenta">
 									{#if currentSlideshowBond.prompt_a}
 										<span>{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
 									{/if}
@@ -287,7 +288,7 @@
 									{/if}
 								</div>
 							{:else if currentSlideshowBond.prompt}
-								<div class="text-center text-xs mt-1 text-[#000080]">
+								<div class="text-center text-xs mt-1 text-y2k-magenta">
 									{getCategoryEmoji(currentSlideshowBond.prompt.category)}
 									{currentSlideshowBond.prompt.word}
 								</div>
@@ -348,7 +349,7 @@
 						{#if selectedBond.prompt_a}
 							<div class="text-center win-inset p-2">
 								<div class="text-xs mb-1">{guestA?.nickname}</div>
-								<div class="text-lg font-bold text-[#000080]">
+								<div class="text-lg font-bold text-y2k-magenta">
 									{getCategoryEmoji(selectedBond.prompt_a.category)} {selectedBond.prompt_a.word}
 								</div>
 							</div>
@@ -356,7 +357,7 @@
 						{#if selectedBond.prompt_b}
 							<div class="text-center win-inset p-2">
 								<div class="text-xs mb-1">{guestB?.nickname}</div>
-								<div class="text-lg font-bold text-[#000080]">
+								<div class="text-lg font-bold text-y2k-magenta">
 									{getCategoryEmoji(selectedBond.prompt_b.category)} {selectedBond.prompt_b.word}
 								</div>
 							</div>
@@ -365,15 +366,15 @@
 				{:else if selectedBond.prompt}
 					<!-- Legacy single prompt -->
 					<div class="text-center win-inset p-3">
-						<div class="text-2xl font-bold text-[#000080]">
+						<div class="text-2xl font-bold text-y2k-magenta">
 							{getCategoryEmoji(selectedBond.prompt.category)} {selectedBond.prompt.word}
 						</div>
 						<div class="text-xs mt-1 uppercase">[{selectedBond.prompt.category}]</div>
 					</div>
 				{/if}
 				{#if selectedBond.activity_prompt}
-					<div class="text-center bg-[#000080] text-white p-2 mt-2">
-						<div class="text-xs">Activity:</div>
+					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-2 mt-2 rounded">
+						<div class="text-xs opacity-80">Activity:</div>
 						<div class="font-bold">{selectedBond.activity_prompt.description}</div>
 					</div>
 				{/if}

@@ -82,9 +82,9 @@
 	});
 </script>
 
-<div class="min-h-screen flex flex-col items-center justify-center p-4">
-	<!-- Main Window -->
-	<div class="win-window w-full max-w-sm">
+<div class="min-h-screen flex flex-col">
+	<!-- Main Window - fills screen on mobile -->
+	<div class="win-window flex-1 flex flex-col m-0 sm:m-auto sm:max-w-sm sm:flex-initial sm:my-8">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
 			<span>New User Setup</span>
@@ -93,8 +93,8 @@
 			</div>
 		</div>
 
-		<!-- Window Content -->
-		<div class="p-4 space-y-4">
+		<!-- Window Content - scrollable -->
+		<div class="p-4 space-y-4 flex-1 overflow-y-auto">
 			{#if code}
 				<div class="text-center">
 					<span class="text-sm">Registering code:</span>
@@ -144,7 +144,7 @@
 				<button
 					type="submit"
 					disabled={isSubmitting || !nickname.trim() || !photoDataUrl}
-					class="win-btn bg-win-title text-white w-full py-2 text-lg"
+					class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2 text-lg"
 				>
 					{#if isSubmitting}
 						Installing...

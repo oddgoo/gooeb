@@ -139,9 +139,9 @@
 	}
 </script>
 
-<div class="p-2 max-w-md mx-auto min-h-screen">
-	<!-- Main Window -->
-	<div class="win-window">
+<div class="min-h-screen flex flex-col">
+	<!-- Main Window - fills screen on mobile -->
+	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:flex-initial">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
 			<span>The Gooeb - Bond Manager</span>
@@ -158,8 +158,8 @@
 			<span class="underline">H</span>elp
 		</div>
 
-		<!-- Window Content -->
-		<div class="p-3 space-y-3">
+		<!-- Window Content - scrollable -->
+		<div class="p-3 space-y-3 flex-1 overflow-y-auto">
 
 			<!-- User Info Panel -->
 			<div class="win-groupbox">
@@ -232,8 +232,8 @@
 
 							<!-- Shared Activity -->
 							{#if bond.activityPrompt}
-								<div class="text-center py-3 bg-[#000080] text-white win-panel mb-3">
-									<div class="text-xs mb-1">Shared Activity:</div>
+								<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3">
+									<div class="text-xs mb-1 opacity-80">Shared Activity:</div>
 									<div class="text-base font-bold">
 										{bond.activityPrompt.description}
 									</div>
@@ -242,7 +242,7 @@
 
 							<a
 								href="/bond/{bond.id}/complete"
-								class="win-btn bg-win-title text-white w-full block text-center py-2"
+								class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white w-full block text-center py-2"
 							>
 								Complete Bond
 							</a>
@@ -327,7 +327,7 @@
 					<button
 						type="submit"
 						disabled={isSubmitting || targetCode.length !== 4}
-						class="win-btn bg-win-title text-white w-full py-2"
+						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2"
 					>
 						{isSubmitting ? 'Sending...' : 'Send Invite'}
 					</button>

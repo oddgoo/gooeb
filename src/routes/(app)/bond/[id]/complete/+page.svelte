@@ -67,9 +67,9 @@
 	}
 </script>
 
-<div class="p-2 max-w-md mx-auto min-h-screen">
-	<!-- Main Window -->
-	<div class="win-window">
+<div class="min-h-screen flex flex-col">
+	<!-- Main Window - fills screen on mobile -->
+	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:flex-initial">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
 			<span>Complete Bond</span>
@@ -78,8 +78,8 @@
 			</div>
 		</div>
 
-		<!-- Window Content -->
-		<div class="p-3 space-y-3">
+		<!-- Window Content - scrollable -->
+		<div class="p-3 space-y-3 flex-1 overflow-y-auto">
 
 			<!-- Partner Info -->
 			<div class="win-groupbox">
@@ -136,7 +136,7 @@
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSubmitting || !photoDataUrl}
-					class="win-btn bg-win-title text-white flex-1 py-2"
+					class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white flex-1 py-2"
 				>
 					{isSubmitting ? 'Uploading...' : 'Complete Bond'}
 				</button>

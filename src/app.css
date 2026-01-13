@@ -13,9 +13,10 @@
 		@apply bg-win-desktop text-win-text;
 		font-family: 'VT323', 'MS Sans Serif', Arial, sans-serif;
 		font-size: 16px;
-		/* Tiled diamond pattern background like Win3.1 */
-		background-color: #008080;
-		background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 0L16 8L8 16L0 8Z' fill='%23006666' fill-opacity='0.4'/%3E%3C/svg%3E");
+		/* Y2K gradient sky background */
+		background: linear-gradient(180deg, #B4E4FF 0%, #E8F4FF 50%, #FFE8F0 100%);
+		background-attachment: fixed;
+		min-height: 100vh;
 	}
 
 	/* Safe area insets for notched phones */
@@ -29,122 +30,133 @@
 }
 
 @layer components {
-	/* Windows 3.1 raised panel (outset) */
+	/* Y2K raised panel (outset) */
 	.win-panel {
 		@apply bg-win-bg;
 		box-shadow:
-			inset -1px -1px 0 #000000,
+			inset -1px -1px 0 #FF69B4,
 			inset 1px 1px 0 #FFFFFF,
-			inset -2px -2px 0 #808080,
-			inset 2px 2px 0 #DFDFDF;
+			inset -2px -2px 0 #FFB6C1,
+			inset 2px 2px 0 #FFF0F5;
 	}
 
-	/* Windows 3.1 sunken panel (inset) */
+	/* Y2K sunken panel (inset) */
 	.win-inset {
 		@apply bg-win-window;
 		box-shadow:
-			inset 1px 1px 0 #808080,
+			inset 1px 1px 0 #FFB6C1,
 			inset -1px -1px 0 #FFFFFF,
-			inset 2px 2px 0 #000000,
-			inset -2px -2px 0 #DFDFDF;
+			inset 2px 2px 0 #FF69B4,
+			inset -2px -2px 0 #FFF5F8;
 	}
 
-	/* Windows 3.1 window frame */
+	/* Y2K window frame */
 	.win-window {
 		@apply bg-win-bg;
 		border: 3px solid;
-		border-color: #DFDFDF #000000 #000000 #DFDFDF;
+		border-color: #FFF0F5 #FF69B4 #FF69B4 #FFF0F5;
 		box-shadow:
 			inset 1px 1px 0 #FFFFFF,
-			inset -1px -1px 0 #808080;
+			inset -1px -1px 0 #FFB6C1,
+			0 4px 20px rgba(255, 105, 180, 0.2);
 	}
 
-	/* Title bar */
+	/* Y2K Title bar - Yellow/Gold gradient */
 	.win-titlebar {
-		@apply bg-win-title text-white px-2 py-1 font-bold flex items-center justify-between;
-		background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+		@apply px-2 py-1 font-bold flex items-center justify-between;
+		background: linear-gradient(90deg, #FFB800 0%, #FFD700 50%, #FFA500 100%);
+		color: #4A154B;
+		text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
 	}
 
 	.win-titlebar-inactive {
-		@apply bg-win-titleInactive text-white px-2 py-1 font-bold;
+		@apply bg-win-titleInactive px-2 py-1 font-bold;
+		color: #666;
 	}
 
-	/* Windows 3.1 button */
+	/* Y2K button - pink themed */
 	.win-btn {
 		@apply bg-win-btnFace text-win-text px-4 py-1 font-bold cursor-pointer select-none;
 		box-shadow:
-			inset -1px -1px 0 #000000,
+			inset -1px -1px 0 #FF69B4,
 			inset 1px 1px 0 #FFFFFF,
-			inset -2px -2px 0 #808080,
-			inset 2px 2px 0 #DFDFDF;
+			inset -2px -2px 0 #FFB6C1,
+			inset 2px 2px 0 #FFF0F5;
 		min-width: 75px;
 		text-align: center;
 	}
 
 	.win-btn:active, .win-btn-pressed {
 		box-shadow:
-			inset 1px 1px 0 #000000,
+			inset 1px 1px 0 #FF69B4,
 			inset -1px -1px 0 #FFFFFF,
-			inset 2px 2px 0 #808080;
+			inset 2px 2px 0 #FFB6C1;
 		padding-top: 6px;
 		padding-bottom: 2px;
 	}
 
 	.win-btn:disabled {
 		@apply text-win-textDisabled cursor-not-allowed;
+		opacity: 0.6;
 	}
 
 	.win-btn-primary {
-		@apply win-btn bg-win-title text-white;
+		@apply win-btn;
+		background: linear-gradient(180deg, #FF69B4 0%, #FF1493 100%);
+		color: white;
+		text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
 	}
 
-	/* Windows 3.1 input field */
+	/* Y2K input field */
 	.win-input {
 		@apply bg-white text-win-text px-2 py-1;
 		box-shadow:
-			inset 1px 1px 0 #808080,
+			inset 1px 1px 0 #FFB6C1,
 			inset -1px -1px 0 #FFFFFF,
-			inset 2px 2px 0 #000000;
+			inset 2px 2px 0 #FF69B4;
 		border: none;
 		outline: none;
 	}
 
 	.win-input:focus {
-		outline: none;
+		outline: 2px solid #FF69B4;
+		outline-offset: 1px;
 	}
 
-	/* Group box (fieldset style) */
+	/* Y2K Group box (fieldset style) */
 	.win-groupbox {
 		@apply bg-win-bg p-3 pt-4 mt-2 relative;
-		border: 1px solid #808080;
-		box-shadow: 1px 1px 0 #FFFFFF;
+		border: 2px solid #FF69B4;
+		border-radius: 4px;
+		box-shadow: 2px 2px 0 #FFB6C1;
 	}
 
 	.win-groupbox-label {
-		@apply absolute bg-win-bg px-1 text-win-text font-bold;
-		top: -8px;
+		@apply absolute bg-win-bg px-2 font-bold;
+		color: #FF1493;
+		top: -10px;
 		left: 8px;
 		font-size: 14px;
 	}
 
-	/* Scrollbar styling */
+	/* Y2K Scrollbar styling */
 	::-webkit-scrollbar {
-		width: 16px;
-		height: 16px;
+		width: 14px;
+		height: 14px;
 	}
 
 	::-webkit-scrollbar-track {
-		background: #C0C0C0;
-		background-image: url("data:image/svg+xml,%3Csvg width='2' height='2' viewBox='0 0 2 2' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23FFFFFF'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23FFFFFF'/%3E%3C/svg%3E");
+		background: #FFE4EC;
 	}
 
 	::-webkit-scrollbar-thumb {
-		background: #C0C0C0;
-		box-shadow:
-			inset -1px -1px 0 #000000,
-			inset 1px 1px 0 #FFFFFF,
-			inset -2px -2px 0 #808080,
-			inset 2px 2px 0 #DFDFDF;
+		background: linear-gradient(180deg, #FF69B4 0%, #FF1493 100%);
+		border-radius: 7px;
+		border: 2px solid #FFE4EC;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: linear-gradient(180deg, #FF1493 0%, #C71585 100%);
 	}
 
 	/* Legacy aliases for compatibility */

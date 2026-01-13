@@ -5,24 +5,34 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				// Windows 3.1 color palette
+				// Y2K / Early 2000s color palette
 				win: {
-					bg: '#C0C0C0',        // Silver background
-					title: '#000080',     // Navy blue title bar
-					titleActive: '#000080',
-					titleInactive: '#808080',
-					btnFace: '#C0C0C0',
+					bg: '#FFF5F8',         // Light pink window background
+					title: '#FFB800',      // Yellow/gold title bar
+					titleActive: '#FFB800',
+					titleInactive: '#E0A000',
+					btnFace: '#FFE4EC',    // Light pink button face
 					btnHighlight: '#FFFFFF',
-					btnShadow: '#808080',
-					btnDkShadow: '#000000',
+					btnShadow: '#FFB6C1',  // Light pink shadow
+					btnDkShadow: '#FF69B4', // Hot pink dark shadow
 					window: '#FFFFFF',
-					desktop: '#008080',   // Teal desktop
-					text: '#000000',
-					textDisabled: '#808080',
-					highlight: '#000080',
+					desktop: '#B4E4FF',    // Light sky blue desktop
+					text: '#4A154B',       // Dark purple text
+					textDisabled: '#C0A0C0',
+					highlight: '#FF69B4',  // Hot pink highlight
 					highlightText: '#FFFFFF',
 				},
-				// Keep gooeb for accent
+				// Y2K accent colors
+				y2k: {
+					pink: '#FF69B4',       // Hot pink
+					magenta: '#FF1493',    // Deep pink
+					cyan: '#00D4AA',       // Turquoise
+					yellow: '#FFD700',     // Gold
+					orange: '#FFA500',     // Orange
+					sky: '#87CEEB',        // Sky blue
+					lavender: '#E6E6FA',   // Lavender
+				},
+				// Keep gooeb for fallback
 				gooeb: {
 					50: '#faf5ff',
 					100: '#f3e8ff',

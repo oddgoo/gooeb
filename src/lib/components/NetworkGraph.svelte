@@ -26,7 +26,7 @@
 	let container: HTMLDivElement;
 	let network: Network | null = null;
 
-	// Build network data from guests and bonds
+	// Build network data from guests and bonds - Y2K color theme
 	function buildNetworkData(): Data {
 		const nodes = guests.map((guest) => ({
 			id: guest.id,
@@ -35,7 +35,7 @@
 			image: guest.photo_url,
 			size: 30,
 			font: {
-				color: '#000080',
+				color: '#FF1493',
 				size: 14,
 				face: 'VT323, monospace',
 				strokeWidth: 3,
@@ -44,10 +44,10 @@
 			borderWidth: 3,
 			borderWidthSelected: 5,
 			color: {
-				border: '#000080',
-				background: '#C0C0C0',
+				border: '#FF69B4',
+				background: '#FFF5F8',
 				highlight: {
-					border: '#000080',
+					border: '#FF1493',
 					background: '#ffffff'
 				}
 			}
@@ -62,8 +62,8 @@
 				width: 4,
 				color: {
 					color: '#FFD700',
-					highlight: '#FFFF00',
-					hover: '#FFFF00',
+					highlight: '#FF69B4',
+					hover: '#FF69B4',
 					opacity: 1.0
 				},
 				smooth: {
@@ -157,7 +157,7 @@
 	});
 </script>
 
-<div bind:this={container} class="w-full h-full min-h-[400px] bg-[#008080]"></div>
+<div bind:this={container} class="w-full h-full min-h-[400px] bg-gradient-to-br from-[#E8F4FF] to-[#FFE8F0]"></div>
 
 <style>
 	:global(.vis-network) {

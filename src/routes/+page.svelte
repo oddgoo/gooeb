@@ -30,9 +30,9 @@
 	}
 </script>
 
-<div class="min-h-screen flex flex-col items-center justify-center p-4">
-	<!-- Main Window -->
-	<div class="win-window w-full max-w-sm">
+<div class="min-h-screen flex flex-col">
+	<!-- Main Window - fills screen on mobile -->
+	<div class="win-window flex-1 flex flex-col m-0 sm:m-auto sm:max-w-sm sm:flex-initial sm:my-8">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
 			<span>Welcome to The Gooeb</span>
@@ -42,7 +42,7 @@
 		</div>
 
 		<!-- Window Content -->
-		<div class="p-4 space-y-4">
+		<div class="p-4 space-y-4 flex-1 flex flex-col justify-center">
 			<!-- Logo/Title Area -->
 			<div class="text-center py-4">
 				<div class="text-4xl font-bold text-win-title mb-2">THE GOOEB</div>
@@ -79,7 +79,7 @@
 					<button
 						type="submit"
 						disabled={isSubmitting || code.length !== 4}
-						class="win-btn bg-win-title text-white w-full py-2 text-lg"
+						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2 text-lg"
 					>
 						{isSubmitting ? 'Loading...' : 'OK'}
 					</button>
@@ -101,8 +101,8 @@
 		</div>
 	</div>
 
-	<!-- Desktop Icons (decorative) -->
-	<div class="mt-8 flex gap-6 text-center text-white text-xs">
+	<!-- Desktop Icons (decorative) - hidden on mobile -->
+	<div class="hidden sm:flex mt-8 gap-6 text-center text-white text-xs justify-center">
 		<div class="flex flex-col items-center gap-1 opacity-70">
 			<div class="text-3xl">🎭</div>
 			<span>Masks</span>
