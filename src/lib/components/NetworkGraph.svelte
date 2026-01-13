@@ -54,24 +54,28 @@
 		}));
 
 		const edges = bonds
-			.filter((bond) => bond.status === 'completed')
-			.map((bond) => ({
-				id: bond.id,
-				from: bond.guest_a_id,
-				to: bond.guest_b_id,
-				width: 4,
-				color: {
-					color: '#FFD700',
-					highlight: '#FF69B4',
-					hover: '#FF69B4',
-					opacity: 1.0
-				},
-				smooth: {
-					enabled: true,
-					type: 'continuous',
-					roundness: 0.5
-				}
-			}));
+			.filter((bond) => bond.status === 'completed' || bond.status === 'accepted')
+			.map((bond) => {
+				const isCompleted = bond.status === 'completed';
+				return {
+					id: bond.id,
+					from: bond.guest_a_id,
+					to: bond.guest_b_id,
+					width: isCompleted ? 4 : 2,
+					dashes: isCompleted ? false : [5, 5], // Dashed line for in-progress bonds
+					color: {
+						color: isCompleted ? '#FFD700' : '#FF69B4', // Gold for completed, pink for in-progress
+						highlight: '#FF69B4',
+						hover: '#FF69B4',
+						opacity: isCompleted ? 1.0 : 0.7
+					},
+					smooth: {
+						enabled: true,
+						type: 'continuous',
+						roundness: 0.5
+					}
+				};
+			});
 
 		return { nodes, edges };
 	}
@@ -149,9 +153,13 @@
 		}
 	});
 
-	// Update when data changes
+	// Update when data changes - track array lengths for proper reactivity
 	$effect(() => {
-		if (guests && bonds && network) {
+		// Explicitly access array lengths to ensure Svelte tracks changes
+		const guestCount = guests.length;
+		const bondCount = bonds.length;
+
+		if (network && (guestCount >= 0 || bondCount >= 0)) {
 			updateNetwork();
 		}
 	});

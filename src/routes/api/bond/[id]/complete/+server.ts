@@ -33,11 +33,14 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 	}
 
 	// Get the bond
-	const { data: bondData } = await supabase
+	console.log('Looking for bond with ID:', bondId);
+	const { data: bondData, error: bondError } = await supabase
 		.from('bonds')
 		.select('id, status, guest_a_id, guest_b_id')
 		.eq('id', bondId)
 		.single();
+
+	console.log('Bond query result:', { bondData, bondError });
 
 	const bond = bondData as {
 		id: string;
@@ -47,6 +50,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 	} | null;
 
 	if (!bond) {
+		console.log('Bond not found for ID:', bondId);
 		error(404, { message: 'Bond not found' });
 	}
 

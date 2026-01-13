@@ -17,7 +17,7 @@ export const GET: RequestHandler = async () => {
 		photo_url: string;
 	}[];
 
-	// Get all completed bonds with photos
+	// Get all accepted and completed bonds (show edges as soon as bond is accepted)
 	const { data: bondsData } = await supabase
 		.from('bonds')
 		.select(`
@@ -27,13 +27,14 @@ export const GET: RequestHandler = async () => {
 			status,
 			photo_url,
 			completed_at,
+			accepted_at,
 			prompt:prompts!bonds_prompt_id_fkey(word, category),
 			prompt_a:prompts!bonds_prompt_a_id_fkey(word, category),
 			prompt_b:prompts!bonds_prompt_b_id_fkey(word, category),
 			activity_prompt:activity_prompts(description)
 		`)
-		.eq('status', 'completed')
-		.order('completed_at', { ascending: false });
+		.in('status', ['accepted', 'completed'])
+		.order('accepted_at', { ascending: false });
 
 	const bonds = (bondsData || []) as {
 		id: string;
