@@ -278,7 +278,7 @@ describe('Bond Integration Tests', () => {
 				.eq('id', bondId)
 				.single();
 
-			const usedCategory = (bond?.prompts as { category: string } | null)?.category;
+			const usedCategory = (bond?.prompts as unknown as { category: string } | null)?.category;
 			expect(usedCategory).toBeTruthy();
 
 			// Query to find all used categories between these two guests
@@ -292,7 +292,7 @@ describe('Bond Integration Tests', () => {
 				.in('status', ['accepted', 'completed']);
 
 			const usedCategories = existingBonds
-				?.map((b) => (b.prompts as { category: string } | null)?.category)
+				?.map((b) => (b.prompts as unknown as { category: string } | null)?.category)
 				.filter(Boolean);
 
 			expect(usedCategories).toContain(usedCategory);

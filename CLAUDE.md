@@ -160,8 +160,8 @@
 │   │   │   ├── +layout.svelte        # App shell
 │   │   │   ├── bond/+page.svelte     # Main bonding interface
 │   │   │   └── bond/[id]/complete/   # Bond completion page
-│   │   ├── showcase/                 # (Session 4)
-│   │   └── admin/                    # (Session 4)
+│   │   ├── showcase/+page.svelte     # Public display (16:9 optimized)
+│   │   └── admin/                    # Admin panel (guests/bonds/prompts)
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts             # Browser Supabase client
@@ -172,7 +172,7 @@
 │   │   │   └── bonds.ts              # Bonds state + realtime
 │   │   ├── components/
 │   │   │   ├── PhotoCapture.svelte   # Camera + upload
-│   │   │   └── NetworkGraph.svelte   # (Session 4)
+│   │   │   └── NetworkGraph.svelte   # vis.js network graph
 │   │   └── utils/
 │   │       ├── codes.ts              # 4-digit code utilities
 │   │       └── image.ts              # Client-side resize
@@ -194,7 +194,7 @@
 | 1 | Project setup, DB schema, auth | ✅ COMPLETE |
 | 2 | Bonding mechanics (invite/accept/prompts) | ✅ COMPLETE |
 | 3 | Photo upload, completion flow | ✅ COMPLETE |
-| 4 | Showcase + Admin views | 🔲 NOT STARTED |
+| 4 | Showcase + Admin views | ✅ COMPLETE |
 | 5 | Polish + Deploy | 🔲 NOT STARTED |
 
 ### Session 1 - COMPLETE ✅
@@ -253,13 +253,26 @@
 - [x] Completed bonds list on Bond page (already in Session 2)
 - [x] Photo upload to Supabase Storage (`bonds/{id}.jpg`)
 
-### Session 4 - NOT STARTED 🔲
+### Session 4 - COMPLETE ✅
 
-**Planned:**
-- [ ] NetworkGraph component with vis.js
-- [ ] Showcase page (optimised for 16 by 9) with graph, slideshow, leaderboard
-- [ ] Admin page with guest/bond/prompt management
-- [ ] Admin API endpoints
+**Completed:**
+- [x] NetworkGraph component with vis.js (`src/lib/components/NetworkGraph.svelte`)
+- [x] Showcase page with graph, slideshow, leaderboard (`/showcase`)
+  - Real-time network graph visualization
+  - Sliding photo carousel of recent bonds
+  - Live leaderboard (top 10 connectors)
+  - Stats panel with progress bar
+  - Confetti animation on new bonds
+- [x] Showcase API endpoint (`/api/showcase`)
+- [x] Admin page with guest/bond/prompt management (`/admin`)
+  - Tabbed interface: Guests, Bonds, Prompts
+  - Delete guests (cascades to bonds)
+  - Delete bonds
+  - Add/toggle/delete prompts by category
+- [x] Admin API endpoints
+  - `/api/admin/guests` - GET, DELETE
+  - `/api/admin/bonds` - GET, DELETE
+  - `/api/admin/prompts` - GET, POST, PATCH, DELETE
 
 ### Session 5 - NOT STARTED 🔲
 
