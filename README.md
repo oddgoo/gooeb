@@ -88,11 +88,35 @@ Open [http://localhost:5173](http://localhost:5173)
 ## Commands
 
 ```bash
-npm run dev      # Start dev server
-npm run check    # TypeScript check
-npm run build    # Production build
-npm run preview  # Preview production build
+npm run dev              # Start dev server
+npm run check            # TypeScript check
+npm run build            # Production build
+npm run preview          # Preview production build
+npm run test             # Run unit tests
+npm run test:watch       # Run unit tests in watch mode
+npm run test:integration # Run integration tests (requires Supabase)
 ```
+
+## Testing
+
+### Unit Tests
+Unit tests run without Supabase and test pure utility functions:
+
+```bash
+npm run test
+```
+
+### Integration Tests
+Integration tests run against your real Supabase database. Make sure your `.env` is configured with valid credentials and seed data exists:
+
+```bash
+npm run test:integration
+```
+
+Integration tests will:
+- Create temporary test guests and bonds
+- Test bond creation, status updates, and queries
+- Clean up test data after each test
 
 ## Tech Stack
 
