@@ -22,6 +22,9 @@
 	type NodeData = Node & { id: string };
 	type EdgeData = Edge & { id: string };
 
+	// Fallback placeholder image (1x1 pink pixel as data URL)
+	const PLACEHOLDER_IMAGE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+
 	let { guests = [], bonds = [], highlightedGuestId = null, onBondClick = (_bondId: string) => {} }: {
 		guests: Guest[];
 		bonds: Bond[];
@@ -59,7 +62,7 @@
 			id: guest.id,
 			label: guest.nickname,
 			shape: 'circularImage',
-			image: guest.photo_url,
+			image: guest.photo_url || PLACEHOLDER_IMAGE,
 			size: 30,
 			font: {
 				color: '#FF1493',
@@ -131,7 +134,8 @@
 			shapeProperties: {
 				useBorderWithImage: true,
 				interpolation: false
-			}
+			},
+			brokenImage: PLACEHOLDER_IMAGE
 		},
 		edges: {
 			smooth: {
