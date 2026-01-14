@@ -48,13 +48,15 @@
 	let showConfetti = $state(false);
 	let showGallery = $state(false);
 	let announcementBond = $state<Bond | null>(null);
+	let announcementQueue = $state<Bond[]>([]);
 	let searchQuery = $state('');
 	let highlightedGuestId = $state<string | null>(null);
-	let previousBondIds = $state<Set<string>>(new Set());
+	let previousCompletedBondIds = $state<Set<string>>(new Set());
 	let networkGraphRef: { fitAll: () => void } | undefined;
 
 	let channel: RealtimeChannel | null = null;
 	let slideshowInterval: ReturnType<typeof setInterval> | null = null;
+	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let confettiTimeout: ReturnType<typeof setTimeout> | null = null;
 	let announcementTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -67,27 +69,37 @@
 				throw new Error(data.message || 'Failed to load showcase data');
 			}
 
-			// Detect new completed bonds for announcement
-			const newCompletedBonds = data.bonds.filter(
-				(b: Bond) => b.status === 'completed' && !previousBondIds.has(b.id)
+			// Get current completed bonds
+			const currentCompletedBonds = data.bonds.filter((b: Bond) => b.status === 'completed');
+			const currentCompletedIds = new Set<string>(currentCompletedBonds.map((b: Bond) => b.id));
+
+			// Detect NEW completed bonds (not seen before as completed)
+			const newCompletedBonds = currentCompletedBonds.filter(
+				(b: Bond) => !previousCompletedBondIds.has(b.id)
 			);
 
-			// Update previous bond IDs
-			const currentBondIds = new Set<string>(data.bonds.map((b: Bond) => b.id));
+			console.log('loadData:', {
+				totalBonds: data.bonds.length,
+				completedBonds: currentCompletedBonds.length,
+				previousCompletedSize: previousCompletedBondIds.size,
+				newCompletedBonds: newCompletedBonds.length,
+				willAnnounce: previousCompletedBondIds.size > 0 && newCompletedBonds.length > 0
+			});
 
 			guests = data.guests;
 			bonds = data.bonds;
 			stats = data.stats;
 			leaderboard = data.leaderboard;
 
-			// Trigger confetti and announcement on new completed bond
-			if (previousBondIds.size > 0 && newCompletedBonds.length > 0) {
+			// Trigger confetti and announcements for all new completed bonds
+			if (previousCompletedBondIds.size > 0 && newCompletedBonds.length > 0) {
+				console.log('Triggering announcements for:', newCompletedBonds.map((b: Bond) => b.id));
 				triggerConfetti();
-				// Announce the most recent new bond
-				triggerAnnouncement(newCompletedBonds[newCompletedBonds.length - 1]);
+				// Queue all new bonds for announcement
+				queueAnnouncements(newCompletedBonds);
 			}
 
-			previousBondIds = currentBondIds;
+			previousCompletedBondIds = currentCompletedIds;
 		} catch (e) {
 			console.error('Failed to load showcase data:', e);
 		}
@@ -105,16 +117,36 @@
 		}, 3000);
 	}
 
-	function triggerAnnouncement(bond: Bond) {
+	function queueAnnouncements(bonds: Bond[]) {
+		// Add new bonds to the queue
+		announcementQueue = [...announcementQueue, ...bonds];
+		// Start processing if not already showing one
+		if (!announcementBond) {
+			showNextAnnouncement();
+		}
+	}
+
+	function showNextAnnouncement() {
+		if (announcementQueue.length === 0) {
+			announcementBond = null;
+			return;
+		}
+
+		// Get next bond from queue
+		const nextBond = announcementQueue[0];
+		announcementQueue = announcementQueue.slice(1);
+		announcementBond = nextBond;
+
 		// Clear any existing timeout
 		if (announcementTimeout) {
 			clearTimeout(announcementTimeout);
 		}
-		announcementBond = bond;
+
+		// Show for 3 seconds, then show next (or clear)
 		announcementTimeout = setTimeout(() => {
-			announcementBond = null;
 			announcementTimeout = null;
-		}, 4000);
+			showNextAnnouncement();
+		}, 3000);
 	}
 
 	function setupRealtime() {
@@ -128,14 +160,36 @@
 			.on(
 				'postgres_changes',
 				{ event: '*', schema: 'public', table: 'bonds' },
-				() => loadData()
+				(payload) => {
+					console.log('Realtime bonds change:', payload);
+					loadData();
+				}
 			)
 			.on(
 				'postgres_changes',
 				{ event: '*', schema: 'public', table: 'guests' },
-				() => loadData()
+				(payload) => {
+					console.log('Realtime guests change:', payload);
+					loadData();
+				}
 			)
-			.subscribe();
+			.subscribe((status, err) => {
+				console.log('Realtime subscription status:', status);
+				if (err) console.error('Realtime error:', err);
+
+				// If realtime fails, fall back to polling
+				if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+					console.log('Realtime failed, starting polling fallback');
+					startPolling();
+				}
+			});
+	}
+
+	function startPolling() {
+		if (pollInterval) return; // Already polling
+		pollInterval = setInterval(() => {
+			loadData();
+		}, 3000); // Poll every 3 seconds
 	}
 
 	function startSlideshow() {
@@ -173,6 +227,8 @@
 		loadData();
 		setupRealtime();
 		startSlideshow();
+		// Always poll as reliable fallback (realtime may not be configured)
+		startPolling();
 	});
 
 	onDestroy(() => {
@@ -181,6 +237,7 @@
 			if (supabase) supabase.removeChannel(channel);
 		}
 		if (slideshowInterval) clearInterval(slideshowInterval);
+		if (pollInterval) clearInterval(pollInterval);
 		if (confettiTimeout) clearTimeout(confettiTimeout);
 		if (announcementTimeout) clearTimeout(announcementTimeout);
 	});
@@ -232,6 +289,9 @@
 		<div class="win-window px-8 py-4 shadow-2xl">
 			<div class="win-titlebar mb-3">
 				<span>NEW BOND!</span>
+				{#if announcementQueue.length > 0}
+					<span class="text-xs ml-2 opacity-70">+{announcementQueue.length} more</span>
+				{/if}
 			</div>
 			<div class="flex items-center gap-6">
 				<!-- Guest A -->

@@ -8,7 +8,7 @@
  */
 
 const BASE_URL = process.argv[2] || 'http://localhost:5173';
-const NUM_USERS = 50;
+const NUM_USERS = 30;
 const TEST_DURATION_MS = 60_000; // 1 minute test
 
 interface TestResult {

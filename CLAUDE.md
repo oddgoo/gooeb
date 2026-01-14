@@ -295,6 +295,7 @@
 - [ ] Name changes
 - [ ] Fun gifs!
 - [ ] check admin controls
+- [ ] adjust ui, animation timings, etc.
 - [ ] maybe allow anyone to reclaim a sign-in/mask.
 
 ---

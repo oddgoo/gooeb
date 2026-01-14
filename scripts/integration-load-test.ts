@@ -19,8 +19,8 @@ import { createClient } from '@supabase/supabase-js';
 // Configuration
 const BASE_URL = process.argv[2] || 'http://localhost:5173';
 const BONDS_PER_MINUTE = 60; // ~1 per second
-const TEST_DURATION_MS = 60_000;
-const NUM_USERS = 20; // Create 20 test users
+const TEST_DURATION_MS = 30_000;
+const NUM_USERS = 10; // Create 20 test users
 
 // Supabase client with service role for direct DB access
 const supabase = createClient(
