@@ -195,7 +195,7 @@
 | 2 | Bonding mechanics (invite/accept/prompts) | ✅ COMPLETE |
 | 3 | Photo upload, completion flow | ✅ COMPLETE |
 | 4 | Showcase + Admin views | ✅ COMPLETE |
-| 5 | Polish + Deploy | 🔲 NOT STARTED |
+| 5 | Polish + Deploy | 🟡 IN PROGRESS |
 
 ### Session 1 - COMPLETE ✅
 
@@ -274,14 +274,21 @@
   - `/api/admin/bonds` - GET, DELETE
   - `/api/admin/prompts` - GET, POST, PATCH, DELETE
 
-### Session 5 - NOT STARTED 🔲
+### Session 5 - IN PROGRESS 🟡
 
-**Planned:**
-- [ ] Error handling polish
+**Completed:**
+- [x] Load testing script created (`scripts/load-test.ts`)
+- [x] Pre-party checklist created (`PRE-PARTY-CHECKLIST.md`)
+- [x] `tsx` installed for running TypeScript scripts
+- [x] `npm run load-test` command added
+
+**In Progress:**
 - [ ] Vercel deployment
 - [ ] Environment variables in Vercel
-- [ ] Load testing
-- [ ] Pre-party checklist completion
+
+**Remaining:**
+- [ ] Error handling polish (if needed)
+- [ ] Final testing after deployment
 
 ---
 
@@ -311,6 +318,10 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Load testing
+npm run load-test http://localhost:5173      # Local
+npm run load-test https://thegooeb.com       # Production
 ```
 
 ---
