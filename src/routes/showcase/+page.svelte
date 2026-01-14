@@ -227,8 +227,8 @@
 		loadData();
 		setupRealtime();
 		startSlideshow();
-		// Always poll as reliable fallback (realtime may not be configured)
-		startPolling();
+		// Polling disabled - realtime is working. Uncomment if needed as fallback:
+		// startPolling();
 	});
 
 	onDestroy(() => {
@@ -366,7 +366,7 @@
 							{#each filteredGuests as guest}
 								<button
 									class="w-full px-2 py-1 text-left text-sm hover:bg-y2k-pink hover:text-white flex items-center gap-2"
-									onclick={() => { highlightedGuestId = guest.id; searchQuery = ''; }}
+									onclick={() => { console.log('Selecting guest:', guest.id, guest.nickname); highlightedGuestId = guest.id; searchQuery = ''; }}
 								>
 									<img src={guest.photo_url} alt="" class="w-6 h-6 object-cover" />
 									<span class="truncate">{guest.nickname}</span>

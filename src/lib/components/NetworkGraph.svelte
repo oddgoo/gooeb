@@ -26,6 +26,14 @@
 
 	let container: HTMLDivElement;
 	let network: Network | null = null;
+	let lastDataHash = '';
+
+	// Create a simple hash of the data to detect actual changes
+	function getDataHash(): string {
+		const guestIds = guests.map(g => g.id).sort().join(',');
+		const bondData = bonds.map(b => `${b.id}:${b.status}`).sort().join(',');
+		return `${guestIds}|${bondData}`;
+	}
 
 	// Expose fitAll method for parent component
 	export function fitAll() {
@@ -165,26 +173,32 @@
 		}
 	});
 
-	// Update when data changes - track array lengths for proper reactivity
+	// Update when data changes - only if data actually changed
 	$effect(() => {
-		// Explicitly access array lengths to ensure Svelte tracks changes
-		const guestCount = guests.length;
-		const bondCount = bonds.length;
+		// Access data to ensure Svelte tracks changes
+		const currentHash = getDataHash();
 
-		if (network && (guestCount >= 0 || bondCount >= 0)) {
+		if (network && currentHash !== lastDataHash) {
+			console.log('NetworkGraph data changed, updating');
+			lastDataHash = currentHash;
 			updateNetwork();
 		}
 	});
 
 	// Handle highlighted guest - focus and select the node
 	$effect(() => {
-		if (!network || !highlightedGuestId) return;
+		// Access highlightedGuestId to ensure reactivity
+		const guestId = highlightedGuestId;
+
+		console.log('NetworkGraph highlight effect:', { guestId, hasNetwork: !!network });
+
+		if (!network || !guestId) return;
 
 		// Select the node
-		network.selectNodes([highlightedGuestId]);
+		network.selectNodes([guestId]);
 
 		// Focus on the node with animation
-		network.focus(highlightedGuestId, {
+		network.focus(guestId, {
 			scale: 1.5,
 			animation: {
 				duration: 500,
