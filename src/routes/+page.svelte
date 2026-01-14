@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { formatCode, validateCode } from '$lib/utils/codes';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	let code = $state('');
 	let error = $state('');
@@ -66,6 +67,7 @@
 							placeholder="0000"
 							maxlength="4"
 							autocomplete="off"
+							disabled={isSubmitting}
 							class="win-input w-full text-center text-3xl tracking-[0.4em] font-mono font-bold py-3"
 						/>
 					</div>
@@ -81,7 +83,11 @@
 						disabled={isSubmitting || code.length !== 4}
 						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2 text-lg"
 					>
-						{isSubmitting ? 'Loading...' : 'OK'}
+						{#if isSubmitting}
+							<LoadingSpinner size="sm" color="white" /> Loading...
+						{:else}
+							OK
+						{/if}
 					</button>
 				</form>
 			</div>

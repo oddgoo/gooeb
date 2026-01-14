@@ -23,6 +23,9 @@
 	let successMessage = $state('');
 	let loadingBonds = $state<Record<string, 'accept' | 'reject'>>({}); // Track loading state per bond
 
+	// Global processing state - true when ANY async operation is in progress
+	let isProcessing = $derived(isSubmitting || Object.keys(loadingBonds).length > 0);
+
 	// Load bonds on mount
 	onMount(() => {
 		bonds.load();
@@ -242,12 +245,18 @@
 								</div>
 							{/if}
 
-							<a
-								href="/bond/{bond.id}/complete"
-								class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white w-full block text-center py-2"
-							>
-								Complete Bond
-							</a>
+							{#if isProcessing}
+								<span class="win-btn bg-gray-400 text-gray-200 w-full block text-center py-2 cursor-not-allowed">
+									Complete Bond
+								</span>
+							{:else}
+								<a
+									href="/bond/{bond.id}/complete"
+									class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white w-full block text-center py-2"
+								>
+									Complete Bond
+								</a>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -270,7 +279,7 @@
 								<span class="flex-1 font-bold">{bond.partner.nickname}</span>
 								<button
 									onclick={() => acceptBond(bond.id)}
-									disabled={!!loadingBonds[bond.id]}
+									disabled={isProcessing}
 									class="win-btn text-sm py-0.5 min-w-0 px-2"
 								>
 									{#if loadingBonds[bond.id] === 'accept'}
@@ -281,7 +290,7 @@
 								</button>
 								<button
 									onclick={() => rejectBond(bond.id)}
-									disabled={!!loadingBonds[bond.id]}
+									disabled={isProcessing}
 									class="win-btn text-sm py-0.5 min-w-0 px-2"
 								>
 									{#if loadingBonds[bond.id] === 'reject'}
@@ -318,6 +327,7 @@
 							placeholder="0000"
 							maxlength="4"
 							autocomplete="off"
+							disabled={isProcessing}
 							class="win-input w-full text-center text-2xl tracking-[0.3em] font-mono font-bold py-2"
 						/>
 					</div>
@@ -336,7 +346,7 @@
 
 					<button
 						type="submit"
-						disabled={isSubmitting || targetCode.length !== 4}
+						disabled={isProcessing || targetCode.length !== 4}
 						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2"
 					>
 						{#if isSubmitting}

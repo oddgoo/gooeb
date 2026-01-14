@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth';
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	let nickname = $state('');
 	let photoDataUrl: string | null = $state(null);
@@ -128,6 +129,7 @@
 						placeholder="What should we call you?"
 						maxlength="20"
 						autocomplete="off"
+						disabled={isSubmitting}
 						class="win-input w-full py-2 text-lg"
 					/>
 					<p class="text-xs text-win-textDisabled mt-1">Max 20 characters</p>
@@ -147,7 +149,7 @@
 					class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2 text-lg"
 				>
 					{#if isSubmitting}
-						Installing...
+						<LoadingSpinner size="sm" color="white" /> Installing...
 					{:else}
 						Install
 					{/if}
@@ -156,9 +158,15 @@
 
 			<!-- Back link -->
 			<div class="text-center">
-				<a href="/" class="text-sm text-win-title underline">
-					&lt; Use different code
-				</a>
+				{#if isSubmitting}
+					<span class="text-sm text-win-textDisabled">
+						&lt; Use different code
+					</span>
+				{:else}
+					<a href="/" class="text-sm text-win-title underline">
+						&lt; Use different code
+					</a>
+				{/if}
 			</div>
 		</div>
 

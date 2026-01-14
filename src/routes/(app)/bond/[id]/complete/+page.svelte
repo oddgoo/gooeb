@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	let pageData = $derived($page.data as {
 		bond: {
@@ -76,7 +77,11 @@
 		<div class="win-titlebar">
 			<span>Complete Bond</span>
 			<div class="flex gap-1">
-				<a href="/bond" class="win-btn px-2 py-0 min-w-0 text-xs">X</a>
+				{#if isSubmitting}
+					<span class="win-btn px-2 py-0 min-w-0 text-xs opacity-50 cursor-not-allowed">X</span>
+				{:else}
+					<a href="/bond" class="win-btn px-2 py-0 min-w-0 text-xs">X</a>
+				{/if}
 			</div>
 		</div>
 
@@ -160,16 +165,26 @@
 
 			<!-- Actions -->
 			<div class="flex gap-2">
-				<a href="/bond" class="win-btn flex-1 text-center py-2">
-					Cancel
-				</a>
+				{#if isSubmitting}
+					<span class="win-btn flex-1 text-center py-2 opacity-50 cursor-not-allowed">
+						Cancel
+					</span>
+				{:else}
+					<a href="/bond" class="win-btn flex-1 text-center py-2">
+						Cancel
+					</a>
+				{/if}
 				<button
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSubmitting || !photoDataUrl}
 					class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white flex-1 py-2"
 				>
-					{isSubmitting ? 'Uploading...' : 'Complete Bond'}
+					{#if isSubmitting}
+						<LoadingSpinner size="sm" color="white" /> Uploading...
+					{:else}
+						Complete Bond
+					{/if}
 				</button>
 			</div>
 

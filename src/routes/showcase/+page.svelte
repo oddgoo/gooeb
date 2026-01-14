@@ -182,36 +182,36 @@
 	</div>
 {/if}
 
-<!-- Main showcase layout - 16:9 optimized -->
-<div class="min-h-screen p-4 flex flex-col">
-	<!-- Header -->
-	<div class="text-center mb-4">
-		<h1 class="text-4xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
+<!-- Main showcase layout - 16:9 optimized, no scrolling -->
+<div class="h-screen p-3 flex flex-col overflow-hidden">
+	<!-- Header - compact -->
+	<div class="text-center mb-2 shrink-0">
+		<h1 class="text-3xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
 			style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;">
 			THE GOOEB - LIVE BONDS
 		</h1>
 	</div>
 
-	<!-- Main content grid -->
-	<div class="flex-1 grid grid-cols-12 gap-4">
+	<!-- Main content grid - fills remaining space -->
+	<div class="flex-1 grid grid-cols-12 gap-3 min-h-0">
 		<!-- Network Graph - Main area -->
-		<div class="col-span-8 win-window flex flex-col">
-			<div class="win-titlebar">
+		<div class="col-span-8 win-window flex flex-col min-h-0">
+			<div class="win-titlebar shrink-0">
 				<span>Network.exe</span>
 			</div>
-			<div class="flex-1 p-1">
+			<div class="flex-1 p-1 min-h-0">
 				<NetworkGraph {guests} {bonds} onBondClick={handleBondClick} />
 			</div>
 		</div>
 
-		<!-- Right sidebar -->
-		<div class="col-span-4 flex flex-col gap-4">
-			<!-- Stats -->
-			<div class="win-window">
+		<!-- Right sidebar - fixed proportions -->
+		<div class="col-span-4 flex flex-col gap-3 min-h-0">
+			<!-- Stats - fixed height -->
+			<div class="win-window shrink-0">
 				<div class="win-titlebar">
 					<span>Statistics</span>
 				</div>
-				<div class="p-3 space-y-2">
+				<div class="p-2 space-y-1 text-sm">
 					<div class="flex justify-between">
 						<span>Guests:</span>
 						<span class="font-bold">{stats.totalGuests}</span>
@@ -220,9 +220,9 @@
 						<span>Bonds:</span>
 						<span class="font-bold">{stats.totalBonds}</span>
 					</div>
-					<div class="mt-2">
-						<div class="text-sm mb-1">Progress:</div>
-						<div class="win-inset h-6 relative overflow-hidden">
+					<div class="mt-1">
+						<div class="text-xs mb-1">Progress:</div>
+						<div class="win-inset h-5 relative overflow-hidden">
 							<div
 								class="absolute inset-0 bg-gradient-to-r from-y2k-pink to-y2k-magenta transition-all duration-500"
 								style="width: {Math.min(stats.progress, 100)}%"
@@ -235,30 +235,30 @@
 				</div>
 			</div>
 
-			<!-- Leaderboard -->
-			<div class="win-window flex-1">
+			<!-- Leaderboard - fixed height, always shows top 5 -->
+			<div class="win-window shrink-0" style="height: 180px;">
 				<div class="win-titlebar">
 					<span>Leaderboard</span>
 				</div>
-				<div class="p-2 overflow-y-auto max-h-[200px]">
+				<div class="p-2 h-[calc(100%-28px)] overflow-hidden">
 					{#if leaderboard.length === 0}
 						<div class="text-center text-win-textDisabled py-4">
 							No bonds yet
 						</div>
 					{:else}
 						<div class="space-y-1">
-							{#each leaderboard as entry, i}
+							{#each leaderboard.slice(0, 5) as entry, i}
 								<div class="win-inset p-1 flex items-center gap-2">
-									<span class="w-5 text-center font-bold">
+									<span class="w-5 text-center font-bold text-sm">
 										{#if i === 0}🥇{:else if i === 1}🥈{:else if i === 2}🥉{:else}{i + 1}{/if}
 									</span>
 									<img
 										src={entry.photo_url}
 										alt={entry.nickname}
-										class="w-6 h-6 object-cover"
+										class="w-5 h-5 object-cover"
 									/>
 									<span class="flex-1 truncate text-sm">{entry.nickname}</span>
-									<span class="font-bold text-y2k-magenta">{entry.bondCount}</span>
+									<span class="font-bold text-y2k-magenta text-sm">{entry.bondCount}</span>
 								</div>
 							{/each}
 						</div>
@@ -266,19 +266,19 @@
 				</div>
 			</div>
 
-			<!-- Slideshow -->
-			<div class="win-window flex-1">
-				<div class="win-titlebar">
+			<!-- Slideshow - takes remaining space -->
+			<div class="win-window flex-1 flex flex-col min-h-0">
+				<div class="win-titlebar shrink-0">
 					<span>Recent Bonds</span>
 				</div>
-				<div class="p-2 relative overflow-hidden">
+				<div class="flex-1 p-2 min-h-0 overflow-hidden">
 					{#if currentSlideshowBond}
 						{@const guestA = getGuestById(currentSlideshowBond.guest_a_id)}
 						{@const guestB = getGuestById(currentSlideshowBond.guest_b_id)}
 						{#key currentSlideshowBond.id}
-							<div class="win-inset p-2" transition:fade={{ duration: 400 }}>
+							<div class="win-inset p-2 h-full flex flex-col" transition:fade={{ duration: 400 }}>
 								{#if currentSlideshowBond.photo_url}
-									<div class="aspect-square w-full mb-2">
+									<div class="flex-1 min-h-0 mb-2">
 										<img
 											src={currentSlideshowBond.photo_url}
 											alt="Bond"
@@ -286,22 +286,22 @@
 										/>
 									</div>
 								{/if}
-								<div class="flex items-center justify-between text-sm">
-									<span class="font-bold">{guestA?.nickname || '?'}</span>
+								<div class="flex items-center justify-between text-sm shrink-0">
+									<span class="font-bold truncate">{guestA?.nickname || '?'}</span>
 									<span>🤝</span>
-									<span class="font-bold">{guestB?.nickname || '?'}</span>
+									<span class="font-bold truncate">{guestB?.nickname || '?'}</span>
 								</div>
 								{#if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
-									<div class="flex justify-between text-xs mt-1 text-y2k-magenta">
+									<div class="flex justify-between text-xs mt-1 text-y2k-magenta shrink-0">
 										{#if currentSlideshowBond.prompt_a}
-											<span>{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
+											<span class="truncate">{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
 										{/if}
 										{#if currentSlideshowBond.prompt_b}
-											<span>{getCategoryEmoji(currentSlideshowBond.prompt_b.category)} {currentSlideshowBond.prompt_b.word}</span>
+											<span class="truncate">{getCategoryEmoji(currentSlideshowBond.prompt_b.category)} {currentSlideshowBond.prompt_b.word}</span>
 										{/if}
 									</div>
 								{:else if currentSlideshowBond.prompt}
-									<div class="text-center text-xs mt-1 text-y2k-magenta">
+									<div class="text-center text-xs mt-1 text-y2k-magenta shrink-0">
 										{getCategoryEmoji(currentSlideshowBond.prompt.category)}
 										{currentSlideshowBond.prompt.word}
 									</div>
@@ -309,7 +309,7 @@
 							</div>
 						{/key}
 					{:else}
-						<div class="win-inset p-4 text-center text-win-textDisabled">
+						<div class="win-inset p-4 text-center text-win-textDisabled h-full flex flex-col items-center justify-center">
 							<div class="text-2xl mb-2">📸</div>
 							<div class="text-sm">Waiting for bonds...</div>
 						</div>
