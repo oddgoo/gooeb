@@ -46,6 +46,7 @@
 	let selectedBond = $state<Bond | null>(null);
 	let slideshowIndex = $state(0);
 	let showConfetti = $state(false);
+	let showGallery = $state(false);
 
 	let channel: RealtimeChannel | null = null;
 	let slideshowInterval: ReturnType<typeof setInterval> | null = null;
@@ -113,9 +114,9 @@
 		if (slideshowInterval) clearInterval(slideshowInterval);
 
 		slideshowInterval = setInterval(() => {
-			const bondsWithPhotos = bonds.filter((b) => b.photo_url);
-			if (bondsWithPhotos.length > 0) {
-				slideshowIndex = (slideshowIndex + 1) % bondsWithPhotos.length;
+			const photoBonds = bonds.filter((b) => b.photo_url);
+			if (photoBonds.length > 0) {
+				slideshowIndex = (slideshowIndex + 1) % photoBonds.length;
 			}
 		}, 5000);
 	}
@@ -155,9 +156,11 @@
 		if (confettiTimeout) clearTimeout(confettiTimeout);
 	});
 
+	// Bonds with photos for slideshow and gallery
+	let bondsWithPhotos = $derived(bonds.filter((b) => b.photo_url));
+
 	// Slideshow bond
 	let currentSlideshowBond = $derived.by(() => {
-		const bondsWithPhotos = bonds.filter((b) => b.photo_url);
 		return bondsWithPhotos[slideshowIndex] || null;
 	});
 </script>
@@ -266,10 +269,14 @@
 				</div>
 			</div>
 
-			<!-- Slideshow - takes remaining space -->
-			<div class="win-window flex-1 flex flex-col min-h-0">
+			<!-- Slideshow - takes remaining space, clickable to open gallery -->
+			<button
+				class="win-window flex-1 flex flex-col min-h-0 text-left cursor-pointer hover:shadow-lg transition-shadow"
+				onclick={() => showGallery = true}
+			>
 				<div class="win-titlebar shrink-0">
 					<span>Recent Bonds</span>
+					<span class="text-xs opacity-70 ml-2">({bondsWithPhotos.length} photos - click to view all)</span>
 				</div>
 				<div class="flex-1 p-2 min-h-0 overflow-hidden">
 					{#if currentSlideshowBond}
@@ -315,10 +322,72 @@
 						</div>
 					{/if}
 				</div>
-			</div>
+			</button>
 		</div>
 	</div>
 </div>
+
+<!-- Gallery modal -->
+{#if showGallery}
+	<div
+		class="fixed inset-0 bg-black/80 flex items-center justify-center z-40"
+		onclick={() => showGallery = false}
+		onkeydown={(e) => e.key === 'Escape' && (showGallery = false)}
+		role="dialog"
+		aria-modal="true"
+		aria-label="Photo gallery"
+		tabindex="-1"
+		transition:fade={{ duration: 200 }}
+	>
+		<div
+			class="win-window w-[95vw] h-[90vh] flex flex-col"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="presentation"
+			transition:scale={{ duration: 200, start: 0.95 }}
+		>
+			<div class="win-titlebar shrink-0">
+				<span>Bond Gallery - {bondsWithPhotos.length} Photos</span>
+				<button class="win-btn px-2 py-0 min-w-0 text-xs" onclick={() => showGallery = false}>X</button>
+			</div>
+			<div class="flex-1 p-4 overflow-y-auto">
+				{#if bondsWithPhotos.length === 0}
+					<div class="h-full flex items-center justify-center text-win-textDisabled">
+						<div class="text-center">
+							<div class="text-4xl mb-4">📸</div>
+							<div>No bond photos yet</div>
+						</div>
+					</div>
+				{:else}
+					<div class="grid grid-cols-6 gap-3">
+						{#each bondsWithPhotos as bond}
+							{@const guestA = getGuestById(bond.guest_a_id)}
+							{@const guestB = getGuestById(bond.guest_b_id)}
+							<button
+								class="aspect-square win-inset p-1 cursor-pointer hover:ring-2 hover:ring-y2k-magenta transition-all group"
+								onclick={(e) => { e.stopPropagation(); selectedBond = bond; showGallery = false; }}
+							>
+								<div class="relative w-full h-full">
+									<img
+										src={bond.photo_url}
+										alt="Bond between {guestA?.nickname} and {guestB?.nickname}"
+										class="w-full h-full object-cover"
+									/>
+									<!-- Overlay with names on hover -->
+									<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs p-1">
+										<span class="truncate w-full text-center font-bold">{guestA?.nickname}</span>
+										<span>🤝</span>
+										<span class="truncate w-full text-center font-bold">{guestB?.nickname}</span>
+									</div>
+								</div>
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Bond detail modal -->
 {#if selectedBond}
