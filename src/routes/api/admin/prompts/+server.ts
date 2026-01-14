@@ -27,11 +27,16 @@ export const GET: RequestHandler = async ({ cookies }) => {
 
 	const supabase = createServerClient();
 
-	const { data: prompts } = await supabase
+	const { data: prompts, error: queryError } = await supabase
 		.from('prompts')
 		.select('*')
 		.order('category', { ascending: true })
 		.order('word', { ascending: true });
+
+	if (queryError) {
+		console.error('Admin prompts query error:', queryError);
+		error(500, { message: 'Failed to load prompts' });
+	}
 
 	return json({ prompts: prompts || [] });
 };

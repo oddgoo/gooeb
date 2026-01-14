@@ -38,6 +38,9 @@
 	async function startCamera() {
 		if (!browser || isStartingCamera) return;
 
+		// Stop any existing stream first
+		stopCamera();
+
 		isStartingCamera = true;
 		cameraError = '';
 
@@ -69,6 +72,10 @@
 		if (stream) {
 			stream.getTracks().forEach((track) => track.stop());
 			stream = null;
+		}
+		// Clear video element source to fully release resources
+		if (videoElement) {
+			videoElement.srcObject = null;
 		}
 	}
 

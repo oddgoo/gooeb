@@ -27,13 +27,18 @@ export async function acceptBond(
 	bond: BondRow
 ): Promise<AcceptBondResult> {
 	// Find categories already used between these two
-	const { data: existingBondsData } = await supabase
+	const { data: existingBondsData, error: existingError } = await supabase
 		.from('bonds')
 		.select('prompt_a_id, prompt_b_id, prompts!bonds_prompt_a_id_fkey(category)')
 		.or(
 			`and(guest_a_id.eq.${bond.guest_a_id},guest_b_id.eq.${bond.guest_b_id}),and(guest_a_id.eq.${bond.guest_b_id},guest_b_id.eq.${bond.guest_a_id})`
 		)
 		.eq('status', 'completed');
+
+	if (existingError) {
+		console.error('Error fetching existing bonds:', existingError);
+		throw new Error('Failed to check existing bonds');
+	}
 
 	// Collect all used categories from both prompt_a and prompt_b
 	const usedCategories = new Set<string>();
@@ -59,19 +64,29 @@ export async function acceptBond(
 	const categoryB = shuffledCategories[1];
 
 	// Get prompts for both categories
-	const { data: promptsA } = await supabase
+	const { data: promptsA, error: promptsAError } = await supabase
 		.from('prompts')
 		.select('id, word, category')
 		.eq('event_id', bond.event_id)
 		.eq('category', categoryA)
 		.eq('is_active', true);
 
-	const { data: promptsB } = await supabase
+	if (promptsAError) {
+		console.error('Error fetching prompts for category A:', promptsAError);
+		throw new Error('Failed to fetch prompts');
+	}
+
+	const { data: promptsB, error: promptsBError } = await supabase
 		.from('prompts')
 		.select('id, word, category')
 		.eq('event_id', bond.event_id)
 		.eq('category', categoryB)
 		.eq('is_active', true);
+
+	if (promptsBError) {
+		console.error('Error fetching prompts for category B:', promptsBError);
+		throw new Error('Failed to fetch prompts');
+	}
 
 	if (!promptsA || promptsA.length === 0) {
 		throw new Error(`No prompts available for category: ${categoryA}`);
@@ -94,11 +109,16 @@ export async function acceptBond(
 	};
 
 	// Get a random activity prompt
-	const { data: activityPrompts } = await supabase
+	const { data: activityPrompts, error: activityError } = await supabase
 		.from('activity_prompts')
 		.select('id, description')
 		.eq('event_id', bond.event_id)
 		.eq('is_active', true);
+
+	if (activityError) {
+		console.error('Error fetching activity prompts:', activityError);
+		throw new Error('Failed to fetch activity prompts');
+	}
 
 	if (!activityPrompts || activityPrompts.length === 0) {
 		throw new Error('No activity prompts available');

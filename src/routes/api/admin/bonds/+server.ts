@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 
 	const supabase = createServerClient();
 
-	const { data: bonds } = await supabase
+	const { data: bonds, error: queryError } = await supabase
 		.from('bonds')
 		.select(`
 			id,
@@ -37,9 +37,16 @@ export const GET: RequestHandler = async ({ cookies }) => {
 			completed_at,
 			guest_a:guests!bonds_guest_a_id_fkey(id, nickname, photo_url),
 			guest_b:guests!bonds_guest_b_id_fkey(id, nickname, photo_url),
-			prompt:prompts(word, category)
+			prompt:prompts!bonds_prompt_id_fkey(word, category),
+			prompt_a:prompts!bonds_prompt_a_id_fkey(word, category),
+			prompt_b:prompts!bonds_prompt_b_id_fkey(word, category)
 		`)
 		.order('initiated_at', { ascending: false });
+
+	if (queryError) {
+		console.error('Admin bonds query error:', queryError);
+		error(500, { message: 'Failed to load bonds' });
+	}
 
 	return json({ bonds: bonds || [] });
 };
@@ -48,7 +55,14 @@ export const GET: RequestHandler = async ({ cookies }) => {
 export const DELETE: RequestHandler = async ({ cookies, request }) => {
 	await requireAdmin(cookies);
 
-	const { bondId } = await request.json();
+	let body: { bondId?: string };
+	try {
+		body = await request.json();
+	} catch {
+		error(400, { message: 'Invalid request body' });
+	}
+
+	const { bondId } = body;
 
 	if (!bondId) {
 		error(400, { message: 'Bond ID required' });
@@ -59,6 +73,7 @@ export const DELETE: RequestHandler = async ({ cookies, request }) => {
 	const { error: deleteError } = await supabase.from('bonds').delete().eq('id', bondId);
 
 	if (deleteError) {
+		console.error('Admin delete bond error:', deleteError);
 		error(500, { message: 'Failed to delete bond' });
 	}
 

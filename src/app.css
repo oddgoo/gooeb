@@ -84,15 +84,18 @@
 			inset 2px 2px 0 #FFF0F5;
 		min-width: 75px;
 		text-align: center;
+		/* Prevent layout shift on click */
+		transform: translateY(0);
+		transition: none;
 	}
 
-	.win-btn:active, .win-btn-pressed {
+	.win-btn:active:not(:disabled), .win-btn-pressed {
 		box-shadow:
 			inset 1px 1px 0 #FF69B4,
 			inset -1px -1px 0 #FFFFFF,
 			inset 2px 2px 0 #FFB6C1;
-		padding-top: 6px;
-		padding-bottom: 2px;
+		/* Use transform instead of padding to prevent layout shift */
+		transform: translateY(2px);
 	}
 
 	.win-btn:disabled {

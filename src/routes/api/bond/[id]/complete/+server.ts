@@ -77,12 +77,13 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 		error(400, { message: 'Photo is too large. Please try a smaller image.' });
 	}
 
-	const photoPath = `bonds/${bondId}.${imageType === 'jpeg' ? 'jpg' : imageType}`;
+	// Include guest ID in path to prevent race conditions when two users complete simultaneously
+	const photoPath = `bonds/${bondId}_${me.id}.${imageType === 'jpeg' ? 'jpg' : imageType}`;
 
 	// Upload photo to Supabase Storage
 	const { error: uploadError } = await supabase.storage.from('photos').upload(photoPath, photoBuffer, {
 		contentType: `image/${imageType}`,
-		upsert: true // Allow overwriting in case of retry
+		upsert: true // Allow overwriting in case of retry by same user
 	});
 
 	if (uploadError) {

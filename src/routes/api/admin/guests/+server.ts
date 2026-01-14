@@ -27,10 +27,15 @@ export const GET: RequestHandler = async ({ cookies }) => {
 
 	const supabase = createServerClient();
 
-	const { data: guests } = await supabase
+	const { data: guests, error: queryError } = await supabase
 		.from('guests')
 		.select('id, nickname, photo_url, is_admin, created_at, mask_codes(code)')
 		.order('created_at', { ascending: false });
+
+	if (queryError) {
+		console.error('Admin guests query error:', queryError);
+		error(500, { message: 'Failed to load guests' });
+	}
 
 	return json({ guests: guests || [] });
 };
@@ -39,7 +44,14 @@ export const GET: RequestHandler = async ({ cookies }) => {
 export const DELETE: RequestHandler = async ({ cookies, request }) => {
 	await requireAdmin(cookies);
 
-	const { guestId } = await request.json();
+	let body: { guestId?: string };
+	try {
+		body = await request.json();
+	} catch {
+		error(400, { message: 'Invalid request body' });
+	}
+
+	const { guestId } = body;
 
 	if (!guestId) {
 		error(400, { message: 'Guest ID required' });
@@ -48,12 +60,21 @@ export const DELETE: RequestHandler = async ({ cookies, request }) => {
 	const supabase = createServerClient();
 
 	// Delete bonds involving this guest
-	await supabase.from('bonds').delete().or(`guest_a_id.eq.${guestId},guest_b_id.eq.${guestId}`);
+	const { error: bondsError } = await supabase
+		.from('bonds')
+		.delete()
+		.or(`guest_a_id.eq.${guestId},guest_b_id.eq.${guestId}`);
+
+	if (bondsError) {
+		console.error('Admin delete guest bonds error:', bondsError);
+		// Continue anyway - we still want to delete the guest
+	}
 
 	// Delete the guest
 	const { error: deleteError } = await supabase.from('guests').delete().eq('id', guestId);
 
 	if (deleteError) {
+		console.error('Admin delete guest error:', deleteError);
 		error(500, { message: 'Failed to delete guest' });
 	}
 

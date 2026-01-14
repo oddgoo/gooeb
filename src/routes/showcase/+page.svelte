@@ -48,6 +48,7 @@
 
 	let channel: RealtimeChannel | null = null;
 	let slideshowInterval: ReturnType<typeof setInterval> | null = null;
+	let confettiTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	async function loadData() {
 		try {
@@ -75,9 +76,14 @@
 	}
 
 	function triggerConfetti() {
+		// Clear any existing timeout
+		if (confettiTimeout) {
+			clearTimeout(confettiTimeout);
+		}
 		showConfetti = true;
-		setTimeout(() => {
+		confettiTimeout = setTimeout(() => {
 			showConfetti = false;
+			confettiTimeout = null;
 		}, 3000);
 	}
 
@@ -145,6 +151,7 @@
 			if (supabase) supabase.removeChannel(channel);
 		}
 		if (slideshowInterval) clearInterval(slideshowInterval);
+		if (confettiTimeout) clearTimeout(confettiTimeout);
 	});
 
 	// Slideshow bond

@@ -152,11 +152,11 @@
 		</div>
 
 		<!-- Menu Bar -->
-		<div class="bg-win-bg px-2 py-1 border-b border-win-btnShadow flex gap-4 text-sm">
+		<!-- <div class="bg-win-bg px-2 py-1 border-b border-win-btnShadow flex gap-4 text-sm">
 			<span class="underline">F</span>ile
 			<span class="underline">B</span>ond
 			<span class="underline">H</span>elp
-		</div>
+		</div> -->
 
 		<!-- Window Content - scrollable -->
 		<div class="p-3 space-y-3 flex-1 overflow-y-auto">
