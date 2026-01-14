@@ -30,26 +30,16 @@ export type GuestWithCode = Guest & {
 	mask_codes: Pick<MaskCode, 'code'> | null;
 };
 
-// Look up a guest by their mask code
+// Look up a guest by their mask code (single optimized query)
 export async function getGuestByCode(code: string): Promise<GuestWithCode | null> {
 	const supabase = createServerClient();
 
-	// First find the mask code
-	const { data: maskCodeData } = await supabase
-		.from('mask_codes')
-		.select('id')
-		.eq('code', code.toUpperCase())
-		.eq('is_claimed', true)
-		.single();
-
-	const maskCode = maskCodeData as { id: string } | null;
-	if (!maskCode) return null;
-
-	// Then find the guest
+	// Single JOIN query instead of two sequential queries
 	const { data: guest } = await supabase
 		.from('guests')
-		.select('*, mask_codes(code)')
-		.eq('mask_code_id', maskCode.id)
+		.select('*, mask_codes!inner(code)')
+		.eq('mask_codes.code', code.toUpperCase())
+		.eq('mask_codes.is_claimed', true)
 		.single();
 
 	return guest as GuestWithCode | null;

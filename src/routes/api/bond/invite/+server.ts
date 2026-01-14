@@ -6,18 +6,13 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request, cookies }) => {
 	const supabase = createServerClient();
 
-	// Get current user from cookie
+	// Get current user code from cookie
 	const myCode = cookies.get('gooeb_code');
 	if (!myCode) {
 		error(401, { message: 'Not authenticated' });
 	}
 
-	const me = await getGuestByCode(myCode);
-	if (!me) {
-		error(401, { message: 'Invalid session' });
-	}
-
-	// Parse request body
+	// Parse request body first (before any DB calls)
 	let body: { targetCode?: string };
 	try {
 		body = await request.json();
@@ -30,13 +25,21 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		error(400, { message: 'Target code is required' });
 	}
 
-	// Can't invite yourself
+	// Can't invite yourself (quick string check before DB calls)
 	if (targetCode.toUpperCase() === myCode.toUpperCase()) {
 		error(400, { message: "You can't bond with yourself!" });
 	}
 
-	// Find target guest
-	const target = await getGuestByCode(targetCode);
+	// Parallelize both guest lookups for faster response
+	const [me, target] = await Promise.all([
+		getGuestByCode(myCode),
+		getGuestByCode(targetCode)
+	]);
+
+	if (!me) {
+		error(401, { message: 'Invalid session' });
+	}
+
 	if (!target) {
 		error(404, { message: 'No guest found with that code. Are they registered?' });
 	}
@@ -77,7 +80,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 				return json({
 					bondId: existingBond.id,
+					targetId: target.id,
 					targetNickname: target.nickname,
+					targetPhoto: target.photo_url,
 					autoAccepted: true,
 					prompt
 				});
@@ -122,6 +127,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 	return json({
 		bondId: (newBond as { id: string }).id,
-		targetNickname: target.nickname
+		targetId: target.id,
+		targetNickname: target.nickname,
+		targetPhoto: target.photo_url
 	});
 };

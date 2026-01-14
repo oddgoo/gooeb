@@ -54,6 +54,8 @@ function createBondsStore() {
 	let channel: RealtimeChannel | null = null;
 	let currentMyId: string | null = null;
 	let realtimeSetup = false;
+	let pollInterval: ReturnType<typeof setInterval> | null = null;
+	let visibilityCleanup: (() => void) | null = null;
 
 	// Fetch data only (called by realtime updates)
 	async function fetchData() {
@@ -97,6 +99,8 @@ function createBondsStore() {
 		// Set up realtime subscription only once
 		if (myId && !realtimeSetup) {
 			setupRealtime(myId);
+			setupVisibilityHandler();
+			startPolling();
 		}
 	}
 
@@ -139,13 +143,58 @@ function createBondsStore() {
 			.subscribe();
 	}
 
+	// Refetch when tab becomes visible (handles background tab issue)
+	function setupVisibilityHandler() {
+		if (!browser || visibilityCleanup) return;
+
+		const handleVisibilityChange = () => {
+			if (!document.hidden && currentMyId) {
+				fetchData();
+			}
+		};
+
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		visibilityCleanup = () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+		};
+	}
+
+	// Polling ensures recipients see invites quickly even if realtime is flaky
+	function startPolling() {
+		if (!browser || pollInterval) return;
+
+		pollInterval = setInterval(() => {
+			// Only poll when tab is visible to avoid wasted requests
+			if (!document.hidden && currentMyId) {
+				fetchData();
+			}
+		}, 2000); // Poll every 2 seconds for responsive party experience
+	}
+
+	function stopPolling() {
+		if (pollInterval) {
+			clearInterval(pollInterval);
+			pollInterval = null;
+		}
+	}
+
 	function cleanup() {
+		// Clean up realtime subscription
 		const supabase = getSupabase();
 		if (channel && supabase) {
 			supabase.removeChannel(channel);
 			channel = null;
 		}
 		realtimeSetup = false;
+
+		// Clean up visibility handler
+		if (visibilityCleanup) {
+			visibilityCleanup();
+			visibilityCleanup = null;
+		}
+
+		// Clean up polling
+		stopPolling();
 	}
 
 	return {

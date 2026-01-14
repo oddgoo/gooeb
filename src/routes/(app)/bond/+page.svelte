@@ -69,14 +69,22 @@
 				throw new Error(result.message || 'Failed to send invite');
 			}
 
-			// Success - reload bonds
+			// Success - optimistic update for instant feedback
 			targetCode = '';
 			if (result.autoAccepted) {
 				successMessage = `Bonded with ${result.targetNickname}! Check your prompt above.`;
+				// For auto-accept, we need full data so reload
+				bonds.load();
 			} else {
 				successMessage = `Invite sent to ${result.targetNickname}!`;
+				// Optimistic update - add pending bond immediately
+				bonds.addPendingBond(result.bondId, {
+					id: result.targetId,
+					nickname: result.targetNickname,
+					photo_url: result.targetPhoto
+				});
+				// Realtime/polling will sync eventual consistency
 			}
-			bonds.load();
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to send invite';
 		} finally {
