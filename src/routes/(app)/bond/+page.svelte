@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
+	import { fade, fly, slide } from 'svelte/transition';
 	import { formatCode, validateCode } from '$lib/utils/codes';
 	import {
 		bonds,
@@ -9,6 +10,7 @@
 		activeBonds,
 		completedBonds
 	} from '$lib/stores/bonds';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import type { LayoutData } from '../$types';
 
 	let layoutData = $derived($page.data as LayoutData);
@@ -181,10 +183,10 @@
 
 			<!-- Active Bonds -->
 			{#if $activeBonds.length > 0}
-				<div class="win-groupbox">
-					<span class="win-groupbox-label">!! Active Bond !!</span>
-					{#each $activeBonds as bond}
-						<div class="win-inset p-3">
+				<div class="win-groupbox" transition:slide={{ duration: 300 }}>
+					<span class="win-groupbox-label animate-pulse-glow">!! Active Bond !!</span>
+					{#each $activeBonds as bond (bond.id)}
+						<div class="win-inset p-3 animate-fade-in-scale">
 							<div class="flex items-center gap-3 mb-3">
 								<div class="win-inset p-1">
 									<img
@@ -253,11 +255,11 @@
 
 			<!-- Incoming Invites -->
 			{#if $pendingIncoming.length > 0}
-				<div class="win-groupbox">
+				<div class="win-groupbox" transition:slide={{ duration: 300 }}>
 					<span class="win-groupbox-label">Incoming ({$pendingIncoming.length})</span>
 					<div class="space-y-2">
-						{#each $pendingIncoming as bond}
-							<div class="win-inset p-2 flex items-center gap-2">
+						{#each $pendingIncoming as bond (bond.id)}
+							<div class="win-inset p-2 flex items-center gap-2" transition:fly={{ y: -20, duration: 250 }}>
 								<div class="win-inset p-0.5">
 									<img
 										src={bond.partner.photo_url}
@@ -271,14 +273,22 @@
 									disabled={!!loadingBonds[bond.id]}
 									class="win-btn text-sm py-0.5 min-w-0 px-2"
 								>
-									{loadingBonds[bond.id] === 'accept' ? '...' : 'Accept'}
+									{#if loadingBonds[bond.id] === 'accept'}
+										<LoadingSpinner size="sm" color="current" />
+									{:else}
+										Accept
+									{/if}
 								</button>
 								<button
 									onclick={() => rejectBond(bond.id)}
 									disabled={!!loadingBonds[bond.id]}
 									class="win-btn text-sm py-0.5 min-w-0 px-2"
 								>
-									{loadingBonds[bond.id] === 'reject' ? '...' : 'Decline'}
+									{#if loadingBonds[bond.id] === 'reject'}
+										<LoadingSpinner size="sm" color="current" />
+									{:else}
+										Decline
+									{/if}
 								</button>
 							</div>
 						{/each}
@@ -313,13 +323,13 @@
 					</div>
 
 					{#if error}
-						<div class="win-inset p-2 bg-red-100 text-red-800 text-sm">
+						<div class="win-inset p-2 bg-red-100 text-red-800 text-sm animate-shake" transition:slide={{ duration: 200 }}>
 							{error}
 						</div>
 					{/if}
 
 					{#if successMessage}
-						<div class="win-inset p-2 bg-green-100 text-green-800 text-sm">
+						<div class="win-inset p-2 bg-green-100 text-green-800 text-sm animate-bounce-in" transition:slide={{ duration: 200 }}>
 							{successMessage}
 						</div>
 					{/if}
@@ -329,18 +339,22 @@
 						disabled={isSubmitting || targetCode.length !== 4}
 						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2"
 					>
-						{isSubmitting ? 'Sending...' : 'Send Invite'}
+						{#if isSubmitting}
+							<LoadingSpinner size="sm" color="white" /> Sending...
+						{:else}
+							Send Invite
+						{/if}
 					</button>
 				</form>
 			</div>
 
 			<!-- Outgoing Invites -->
 			{#if $pendingOutgoing.length > 0}
-				<div class="win-groupbox">
+				<div class="win-groupbox" transition:slide={{ duration: 300 }}>
 					<span class="win-groupbox-label">Waiting...</span>
 					<div class="space-y-1">
-						{#each $pendingOutgoing as bond}
-							<div class="flex items-center gap-2 text-sm">
+						{#each $pendingOutgoing as bond (bond.id)}
+							<div class="flex items-center gap-2 text-sm" transition:fade={{ duration: 200 }}>
 								<span class="animate-pulse">⏳</span>
 								<span>{bond.partner.nickname}</span>
 							</div>
@@ -359,8 +373,8 @@
 					</div>
 				{:else}
 					<div class="win-inset p-2 max-h-40 overflow-y-auto">
-						{#each $completedBonds as bond}
-							<div class="flex items-center gap-2 py-1 border-b border-win-btnShadow last:border-0">
+						{#each $completedBonds as bond (bond.id)}
+							<div class="flex items-center gap-2 py-1 border-b border-win-btnShadow last:border-0" transition:fly={{ x: 20, duration: 250 }}>
 								<div class="win-inset p-0.5">
 									<img
 										src={bond.partner.photo_url}

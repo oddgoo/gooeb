@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { fade, scale } from 'svelte/transition';
 	import NetworkGraph from '$lib/components/NetworkGraph.svelte';
 	import { getSupabase } from '$lib/supabase/client';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -270,41 +271,43 @@
 				<div class="win-titlebar">
 					<span>Recent Bonds</span>
 				</div>
-				<div class="p-2">
+				<div class="p-2 relative overflow-hidden">
 					{#if currentSlideshowBond}
 						{@const guestA = getGuestById(currentSlideshowBond.guest_a_id)}
 						{@const guestB = getGuestById(currentSlideshowBond.guest_b_id)}
-						<div class="win-inset p-2">
-							{#if currentSlideshowBond.photo_url}
-								<div class="aspect-square w-full mb-2">
-									<img
-										src={currentSlideshowBond.photo_url}
-										alt="Bond"
-										class="w-full h-full object-cover"
-									/>
+						{#key currentSlideshowBond.id}
+							<div class="win-inset p-2" transition:fade={{ duration: 400 }}>
+								{#if currentSlideshowBond.photo_url}
+									<div class="aspect-square w-full mb-2">
+										<img
+											src={currentSlideshowBond.photo_url}
+											alt="Bond"
+											class="w-full h-full object-cover"
+										/>
+									</div>
+								{/if}
+								<div class="flex items-center justify-between text-sm">
+									<span class="font-bold">{guestA?.nickname || '?'}</span>
+									<span>🤝</span>
+									<span class="font-bold">{guestB?.nickname || '?'}</span>
 								</div>
-							{/if}
-							<div class="flex items-center justify-between text-sm">
-								<span class="font-bold">{guestA?.nickname || '?'}</span>
-								<span>🤝</span>
-								<span class="font-bold">{guestB?.nickname || '?'}</span>
+								{#if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
+									<div class="flex justify-between text-xs mt-1 text-y2k-magenta">
+										{#if currentSlideshowBond.prompt_a}
+											<span>{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
+										{/if}
+										{#if currentSlideshowBond.prompt_b}
+											<span>{getCategoryEmoji(currentSlideshowBond.prompt_b.category)} {currentSlideshowBond.prompt_b.word}</span>
+										{/if}
+									</div>
+								{:else if currentSlideshowBond.prompt}
+									<div class="text-center text-xs mt-1 text-y2k-magenta">
+										{getCategoryEmoji(currentSlideshowBond.prompt.category)}
+										{currentSlideshowBond.prompt.word}
+									</div>
+								{/if}
 							</div>
-							{#if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
-								<div class="flex justify-between text-xs mt-1 text-y2k-magenta">
-									{#if currentSlideshowBond.prompt_a}
-										<span>{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
-									{/if}
-									{#if currentSlideshowBond.prompt_b}
-										<span>{getCategoryEmoji(currentSlideshowBond.prompt_b.category)} {currentSlideshowBond.prompt_b.word}</span>
-									{/if}
-								</div>
-							{:else if currentSlideshowBond.prompt}
-								<div class="text-center text-xs mt-1 text-y2k-magenta">
-									{getCategoryEmoji(currentSlideshowBond.prompt.category)}
-									{currentSlideshowBond.prompt.word}
-								</div>
-							{/if}
-						</div>
+						{/key}
 					{:else}
 						<div class="win-inset p-4 text-center text-win-textDisabled">
 							<div class="text-2xl mb-2">📸</div>
@@ -326,9 +329,18 @@
 		onclick={() => selectedBond = null}
 		onkeydown={(e) => e.key === 'Escape' && (selectedBond = null)}
 		role="dialog"
+		aria-modal="true"
+		aria-label="Bond details"
 		tabindex="-1"
+		transition:fade={{ duration: 200 }}
 	>
-		<div class="win-window max-w-lg w-full mx-4" onclick={(e) => e.stopPropagation()}>
+		<div
+			class="win-window max-w-lg w-full mx-4"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="presentation"
+			transition:scale={{ duration: 200, start: 0.9 }}
+		>
 			<div class="win-titlebar">
 				<span>Bond Details</span>
 				<button class="win-btn px-2 py-0 min-w-0 text-xs" onclick={() => selectedBond = null}>X</button>
