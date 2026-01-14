@@ -51,14 +51,31 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	}
 
 	if (maskCodeResult.is_claimed) {
-		error(400, {
-			message: 'This code has already been claimed. Ask for help at the registration desk.'
-		});
+		// Code is claimed - fetch guest data for "Is this you?" confirmation
+		const claimedGuest = await getGuestByCode(code);
+
+		if (!claimedGuest) {
+			// Data inconsistency - code claimed but no guest found
+			error(500, {
+				message: 'Something went wrong. Please try again or ask for help.'
+			});
+		}
+
+		return {
+			code,
+			isClaimed: true as const,
+			claimedGuest: {
+				id: claimedGuest.id,
+				nickname: claimedGuest.nickname,
+				photo_url: claimedGuest.photo_url
+			}
+		};
 	}
 
 	// Valid unclaimed code - proceed to registration
 	return {
 		code,
+		isClaimed: false as const,
 		maskCodeId: maskCodeResult.id,
 		eventId: maskCodeResult.event_id
 	};

@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { formatCode, validateCode } from '$lib/utils/codes';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	let code = $state('');
 	let error = $state('');
 	let isSubmitting = $state(false);
+
+	let message = $derived($page.url.searchParams.get('message'));
 
 	function handleInput(e: Event) {
 		const input = e.target as HTMLInputElement;
@@ -75,6 +78,12 @@
 					{#if error}
 						<div class="win-inset p-2 bg-red-100 text-red-800 text-sm">
 							{error}
+						</div>
+					{/if}
+
+					{#if message === 'reclaim_declined'}
+						<div class="win-inset p-2 bg-yellow-100 text-yellow-800 text-sm">
+							That code belongs to someone else. Please find your own mask or ask a host for help.
 						</div>
 					{/if}
 
