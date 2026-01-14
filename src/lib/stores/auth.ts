@@ -21,7 +21,9 @@ function getCookie(name: string): string | null {
 function setCookie(name: string, value: string, days: number) {
 	if (!browser) return;
 	const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-	document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Strict`;
+	const isSecure = window.location.protocol === 'https:';
+	const secureFlag = isSecure ? '; Secure' : '';
+	document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax${secureFlag}`;
 }
 
 // Helper to delete cookie

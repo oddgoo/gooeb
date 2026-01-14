@@ -140,7 +140,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		path: '/',
 		maxAge: 60 * 60 * 24 * 7, // 1 week
 		httpOnly: false, // Allow JS access for client-side checks
-		sameSite: 'strict',
+		sameSite: 'lax', // Lax allows cookies on top-level navigations (page refresh, address bar)
 		secure: process.env.NODE_ENV === 'production'
 	});
 
