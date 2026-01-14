@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
-	import type { Network, Options, Data } from 'vis-network';
+	import type { Network, Options, Node, Edge } from 'vis-network';
+	import type { DataSet } from 'vis-data';
 
 	type Guest = {
 		id: string;
@@ -17,6 +18,10 @@
 		photo_url: string | null;
 	};
 
+	// Using 'any' for DataSet to avoid complex vis-network type compatibility issues
+	type NodeData = Node & { id: string };
+	type EdgeData = Edge & { id: string };
+
 	let { guests = [], bonds = [], highlightedGuestId = null, onBondClick = (_bondId: string) => {} }: {
 		guests: Guest[];
 		bonds: Bond[];
@@ -26,6 +31,8 @@
 
 	let container: HTMLDivElement;
 	let network: Network | null = null;
+	let nodesDataSet: DataSet<NodeData> | null = null;
+	let edgesDataSet: DataSet<EdgeData> | null = null;
 	let lastDataHash = '';
 
 	// Create a simple hash of the data to detect actual changes
@@ -46,9 +53,9 @@
 		});
 	}
 
-	// Build network data from guests and bonds - Y2K color theme
-	function buildNetworkData(): Data {
-		const nodes = guests.map((guest) => ({
+	// Build node data for a guest
+	function buildNodeData(guest: Guest): NodeData {
+		return {
 			id: guest.id,
 			label: guest.nickname,
 			shape: 'circularImage',
@@ -71,33 +78,30 @@
 					background: '#ffffff'
 				}
 			}
-		}));
+		};
+	}
 
-		const edges = bonds
-			.filter((bond) => bond.status === 'completed' || bond.status === 'accepted')
-			.map((bond) => {
-				const isCompleted = bond.status === 'completed';
-				return {
-					id: bond.id,
-					from: bond.guest_a_id,
-					to: bond.guest_b_id,
-					width: isCompleted ? 4 : 2,
-					dashes: isCompleted ? false : [5, 5], // Dashed line for in-progress bonds
-					color: {
-						color: isCompleted ? '#FFD700' : '#FF69B4', // Gold for completed, pink for in-progress
-						highlight: '#FF69B4',
-						hover: '#FF69B4',
-						opacity: isCompleted ? 1.0 : 0.7
-					},
-					smooth: {
-						enabled: true,
-						type: 'continuous',
-						roundness: 0.5
-					}
-				};
-			});
-
-		return { nodes, edges };
+	// Build edge data for a bond
+	function buildEdgeData(bond: Bond): EdgeData {
+		const isCompleted = bond.status === 'completed';
+		return {
+			id: bond.id,
+			from: bond.guest_a_id,
+			to: bond.guest_b_id,
+			width: isCompleted ? 4 : 2,
+			dashes: isCompleted ? false : [5, 5],
+			color: {
+				color: isCompleted ? '#FFD700' : '#FF69B4',
+				highlight: '#FF69B4',
+				hover: '#FF69B4',
+				opacity: isCompleted ? 1.0 : 0.7
+			},
+			smooth: {
+				enabled: true,
+				type: 'continuous',
+				roundness: 0.5
+			}
+		};
 	}
 
 	const options: Options = {
@@ -138,28 +142,111 @@
 		}
 	};
 
-	function initNetwork() {
+	async function initNetwork() {
 		if (!browser || !container) return;
 
-		import('vis-network').then(({ Network }) => {
-			const data = buildNetworkData();
-			network = new Network(container, data, options);
+		const { Network } = await import('vis-network');
+		const { DataSet } = await import('vis-data');
 
-			// Handle edge clicks
-			network.on('click', (params) => {
-				if (params.edges.length > 0) {
-					const bondId = params.edges[0];
-					onBondClick(bondId);
-				}
-			});
+		// Create DataSets
+		nodesDataSet = new DataSet<NodeData>(guests.map(buildNodeData));
+		edgesDataSet = new DataSet<EdgeData>(
+			bonds
+				.filter((b) => b.status === 'completed' || b.status === 'accepted')
+				.map(buildEdgeData)
+		);
+
+		// Create network with DataSets
+		network = new Network(container, { nodes: nodesDataSet, edges: edgesDataSet }, options);
+
+		// Handle edge clicks
+		network.on('click', (params) => {
+			if (params.edges.length > 0) {
+				const bondId = params.edges[0];
+				onBondClick(bondId);
+			}
 		});
+
+		// Set initial hash
+		lastDataHash = getDataHash();
 	}
 
 	function updateNetwork() {
-		if (!network) return;
+		if (!network || !nodesDataSet || !edgesDataSet) return;
 
-		const data = buildNetworkData();
-		network.setData(data);
+		// Get current IDs in DataSets
+		const existingNodeIds = new Set(nodesDataSet.getIds());
+		const existingEdgeIds = new Set(edgesDataSet.getIds());
+
+		// Build new data
+		const newNodeIds = new Set(guests.map(g => g.id));
+		const validBonds = bonds.filter((b) => b.status === 'completed' || b.status === 'accepted');
+		const newEdgeIds = new Set(validBonds.map(b => b.id));
+
+		// Nodes: Add new, remove old
+		const nodesToAdd: NodeData[] = [];
+		const nodesToRemove: string[] = [];
+
+		for (const guest of guests) {
+			if (!existingNodeIds.has(guest.id)) {
+				nodesToAdd.push(buildNodeData(guest));
+			}
+		}
+
+		for (const id of existingNodeIds) {
+			if (!newNodeIds.has(id as string)) {
+				nodesToRemove.push(id as string);
+			}
+		}
+
+		// Edges: Add new, update changed, remove old
+		const edgesToAdd: EdgeData[] = [];
+		const edgesToUpdate: EdgeData[] = [];
+		const edgesToRemove: string[] = [];
+
+		for (const bond of validBonds) {
+			if (!existingEdgeIds.has(bond.id)) {
+				edgesToAdd.push(buildEdgeData(bond));
+			} else {
+				// Check if edge needs update (status might have changed)
+				const existingEdge = edgesDataSet.get(bond.id);
+				const newEdge = buildEdgeData(bond);
+				if (existingEdge && existingEdge.width !== newEdge.width) {
+					edgesToUpdate.push(newEdge);
+				}
+			}
+		}
+
+		for (const id of existingEdgeIds) {
+			if (!newEdgeIds.has(id as string)) {
+				edgesToRemove.push(id as string);
+			}
+		}
+
+		// Apply changes
+		if (nodesToRemove.length > 0) {
+			nodesDataSet.remove(nodesToRemove);
+		}
+		if (nodesToAdd.length > 0) {
+			nodesDataSet.add(nodesToAdd);
+		}
+		if (edgesToRemove.length > 0) {
+			edgesDataSet.remove(edgesToRemove);
+		}
+		if (edgesToAdd.length > 0) {
+			edgesDataSet.add(edgesToAdd);
+		}
+		if (edgesToUpdate.length > 0) {
+			edgesDataSet.update(edgesToUpdate);
+		}
+
+		console.log('NetworkGraph incremental update:', {
+			nodesAdded: nodesToAdd.length,
+			nodesRemoved: nodesToRemove.length,
+			edgesAdded: edgesToAdd.length,
+			edgesRemoved: edgesToRemove.length,
+			edgesUpdated: edgesToUpdate.length
+		});
 	}
 
 	onMount(() => {
@@ -171,6 +258,8 @@
 			network.destroy();
 			network = null;
 		}
+		nodesDataSet = null;
+		edgesDataSet = null;
 	});
 
 	// Update when data changes - only if data actually changed
@@ -179,7 +268,7 @@
 		const currentHash = getDataHash();
 
 		if (network && currentHash !== lastDataHash) {
-			console.log('NetworkGraph data changed, updating');
+			console.log('NetworkGraph data changed, updating incrementally');
 			lastDataHash = currentHash;
 			updateNetwork();
 		}
