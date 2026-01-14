@@ -53,11 +53,11 @@ function createBondsStore() {
 
 	let channel: RealtimeChannel | null = null;
 	let currentMyId: string | null = null;
+	let realtimeSetup = false;
 
-	async function load() {
-		if (!browser) return;
-
-		update((s) => ({ ...s, loading: true, error: null }));
+	// Fetch data only (called by realtime updates)
+	async function fetchData() {
+		if (!browser) return null;
 
 		try {
 			const response = await fetch('/api/bond/list');
@@ -75,27 +75,38 @@ function createBondsStore() {
 				error: null
 			});
 
-			// Set up realtime subscription
-			setupRealtime(data.myId);
+			return data.myId;
 		} catch (e) {
 			update((s) => ({
 				...s,
 				loading: false,
 				error: e instanceof Error ? e.message : 'Failed to load bonds'
 			}));
+			return null;
+		}
+	}
+
+	// Initial load - fetches data and sets up realtime (only once)
+	async function load() {
+		if (!browser) return;
+
+		update((s) => ({ ...s, loading: true, error: null }));
+
+		const myId = await fetchData();
+
+		// Set up realtime subscription only once
+		if (myId && !realtimeSetup) {
+			setupRealtime(myId);
 		}
 	}
 
 	function setupRealtime(myId: string) {
-		if (!browser || !myId) return;
+		if (!browser || !myId || realtimeSetup) return;
 
 		const supabase = getSupabase();
 		if (!supabase) return;
 
-		// Clean up existing subscription
-		if (channel) {
-			supabase.removeChannel(channel);
-		}
+		realtimeSetup = true;
 
 		// Subscribe to bond changes involving this user
 		channel = supabase
@@ -109,8 +120,8 @@ function createBondsStore() {
 					filter: `guest_a_id=eq.${myId}`
 				},
 				() => {
-					// Reload all bonds on any change (simpler than partial updates)
-					load();
+					// Reload data only (don't re-setup realtime)
+					fetchData();
 				}
 			)
 			.on(
@@ -122,7 +133,7 @@ function createBondsStore() {
 					filter: `guest_b_id=eq.${myId}`
 				},
 				() => {
-					load();
+					fetchData();
 				}
 			)
 			.subscribe();
@@ -134,6 +145,7 @@ function createBondsStore() {
 			supabase.removeChannel(channel);
 			channel = null;
 		}
+		realtimeSetup = false;
 	}
 
 	return {

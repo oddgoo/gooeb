@@ -54,6 +54,10 @@
 			const response = await fetch('/api/showcase');
 			const data = await response.json();
 
+			if (!response.ok) {
+				throw new Error(data.message || 'Failed to load showcase data');
+			}
+
 			const prevBondCount = bonds.length;
 
 			guests = data.guests;

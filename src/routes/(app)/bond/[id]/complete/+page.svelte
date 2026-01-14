@@ -7,6 +7,8 @@
 		bond: {
 			id: string;
 			prompt: { id: string; word: string; category: string } | null;
+			myPrompt: { id: string; word: string; category: string } | null;
+			partnerPrompt: { id: string; word: string; category: string } | null;
 			partner: { id: string; nickname: string; photo_url: string };
 		};
 	});
@@ -96,8 +98,37 @@
 				</div>
 			</div>
 
-			<!-- Prompt Display -->
-			{#if bond.prompt}
+			<!-- Dual Prompts Display -->
+			{#if bond.myPrompt || bond.partnerPrompt}
+				<div class="win-groupbox">
+					<span class="win-groupbox-label">Your Prompts</span>
+					<div class="grid grid-cols-2 gap-2">
+						{#if bond.myPrompt}
+							<div class="text-center py-3 win-inset">
+								<div class="text-xs mb-1">Your prompt:</div>
+								<div class="text-xl font-bold text-win-title">
+									{getCategoryEmoji(bond.myPrompt.category)} {bond.myPrompt.word}
+								</div>
+								<div class="text-xs mt-1 uppercase text-win-textDisabled">
+									[{bond.myPrompt.category}]
+								</div>
+							</div>
+						{/if}
+						{#if bond.partnerPrompt}
+							<div class="text-center py-3 win-inset">
+								<div class="text-xs mb-1">{bond.partner.nickname}'s:</div>
+								<div class="text-xl font-bold text-win-title">
+									{getCategoryEmoji(bond.partnerPrompt.category)} {bond.partnerPrompt.word}
+								</div>
+								<div class="text-xs mt-1 uppercase text-win-textDisabled">
+									[{bond.partnerPrompt.category}]
+								</div>
+							</div>
+						{/if}
+					</div>
+				</div>
+			{:else if bond.prompt}
+				<!-- Legacy single prompt fallback -->
 				<div class="win-groupbox">
 					<span class="win-groupbox-label">Your Prompt</span>
 					<div class="text-center py-4 win-inset">

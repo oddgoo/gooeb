@@ -1,4 +1,4 @@
-import { json } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 import { createServerClient } from '$lib/supabase/server';
 import type { RequestHandler } from './$types';
 
@@ -6,10 +6,15 @@ export const GET: RequestHandler = async () => {
 	const supabase = createServerClient();
 
 	// Get all guests with photos
-	const { data: guestsData } = await supabase
+	const { data: guestsData, error: guestsError } = await supabase
 		.from('guests')
 		.select('id, nickname, photo_url')
 		.order('created_at', { ascending: true });
+
+	if (guestsError) {
+		console.error('Showcase guests query error:', guestsError);
+		error(500, { message: 'Failed to load guests' });
+	}
 
 	const guests = (guestsData || []) as {
 		id: string;
@@ -18,7 +23,7 @@ export const GET: RequestHandler = async () => {
 	}[];
 
 	// Get all accepted and completed bonds (show edges as soon as bond is accepted)
-	const { data: bondsData } = await supabase
+	const { data: bondsData, error: bondsError } = await supabase
 		.from('bonds')
 		.select(`
 			id,
@@ -35,6 +40,11 @@ export const GET: RequestHandler = async () => {
 		`)
 		.in('status', ['accepted', 'completed'])
 		.order('accepted_at', { ascending: false });
+
+	if (bondsError) {
+		console.error('Showcase bonds query error:', bondsError);
+		error(500, { message: 'Failed to load bonds' });
+	}
 
 	const bonds = (bondsData || []) as {
 		id: string;
