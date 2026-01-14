@@ -258,11 +258,11 @@
 **Completed:**
 - [x] NetworkGraph component with vis.js (`src/lib/components/NetworkGraph.svelte`)
 - [x] Showcase page with graph, slideshow, leaderboard (`/showcase`)
-  - Real-time network graph visualization
-  - Sliding photo carousel of recent bonds
+  - Real-time network graph visualization with guest search
+  - Sliding photo carousel of recent bonds (click for gallery view)
   - Live leaderboard (top 10 connectors)
   - Stats panel with progress bar
-  - Confetti animation on new bonds
+  - Confetti animation + slide-in announcement on new bonds
 - [x] Showcase API endpoint (`/api/showcase`)
 - [x] Admin page with guest/bond/prompt management (`/admin`)
   - Tabbed interface: Guests, Bonds, Prompts
@@ -281,6 +281,9 @@
 - [x] Pre-party checklist created (`PRE-PARTY-CHECKLIST.md`)
 - [x] `tsx` installed for running TypeScript scripts
 - [x] `npm run load-test` command added
+- [x] Showcase gallery view (click slideshow to see all bond photos in 6-column grid)
+- [x] New Bond Announcement (slide-in/out notification when bonds complete)
+- [x] Guest Search in showcase (search input in Network.exe, highlights & zooms to guest)
 
 **In Progress:**
 - [ ] Vercel deployment
@@ -289,6 +292,10 @@
 **Remaining:**
 - [ ] Error handling polish (if needed)
 - [ ] Final testing after deployment
+- [ ] Name changes
+- [ ] Fun gifs!
+- [ ] check admin controls
+- [ ] maybe allow anyone to reclaim a sign-in/mask.
 
 ---
 

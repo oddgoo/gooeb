@@ -118,6 +118,44 @@ Integration tests will:
 - Test bond creation, status updates, and queries
 - Clean up test data after each test
 
+### Load Testing
+
+Two load testing scripts are available to verify the system can handle party-scale traffic:
+
+#### Basic Load Test (HTTP only)
+Simulates 30 concurrent users making requests to various endpoints. Doesn't create real data - just tests endpoint responsiveness.
+
+```bash
+# Local
+npx tsx scripts/load-test.ts http://localhost:5173
+
+# Production
+npx tsx scripts/load-test.ts https://thegooeb.com
+```
+
+#### Integration Load Test (Full flow)
+Creates real users and bonds in the database to test the complete flow. Requires unclaimed mask codes in the database. Cleans up after itself.
+
+```bash
+# Local
+npx tsx scripts/integration-load-test.ts http://localhost:5173
+
+# Production
+npx tsx scripts/integration-load-test.ts https://thegooeb.com
+```
+
+**Prerequisites for integration load test:**
+- At least 10 unclaimed mask codes in the database
+- Valid `.env` with `SUPABASE_SERVICE_ROLE_KEY`
+- An active event
+
+**What it does:**
+1. Finds unclaimed mask codes
+2. Registers test users (`LoadTest0`, `LoadTest1`, etc.)
+3. Creates and completes bonds between users (~1/second for 30s)
+4. Reports success rates and response times
+5. Cleans up all test data (guests, bonds, photos, resets mask codes)
+
 ## Tech Stack
 
 - SvelteKit 5 + TypeScript

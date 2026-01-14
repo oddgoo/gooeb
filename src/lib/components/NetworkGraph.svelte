@@ -17,14 +17,26 @@
 		photo_url: string | null;
 	};
 
-	let { guests = [], bonds = [], onBondClick = (_bondId: string) => {} }: {
+	let { guests = [], bonds = [], highlightedGuestId = null, onBondClick = (_bondId: string) => {} }: {
 		guests: Guest[];
 		bonds: Bond[];
+		highlightedGuestId?: string | null;
 		onBondClick?: (bondId: string) => void;
 	} = $props();
 
 	let container: HTMLDivElement;
 	let network: Network | null = null;
+
+	// Expose fitAll method for parent component
+	export function fitAll() {
+		if (!network) return;
+		network.fit({
+			animation: {
+				duration: 500,
+				easingFunction: 'easeInOutQuad'
+			}
+		});
+	}
 
 	// Build network data from guests and bonds - Y2K color theme
 	function buildNetworkData(): Data {
@@ -162,6 +174,23 @@
 		if (network && (guestCount >= 0 || bondCount >= 0)) {
 			updateNetwork();
 		}
+	});
+
+	// Handle highlighted guest - focus and select the node
+	$effect(() => {
+		if (!network || !highlightedGuestId) return;
+
+		// Select the node
+		network.selectNodes([highlightedGuestId]);
+
+		// Focus on the node with animation
+		network.focus(highlightedGuestId, {
+			scale: 1.5,
+			animation: {
+				duration: 500,
+				easingFunction: 'easeInOutQuad'
+			}
+		});
 	});
 </script>
 

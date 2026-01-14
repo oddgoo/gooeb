@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
-	import { fade, scale } from 'svelte/transition';
+	import { fade, scale, fly } from 'svelte/transition';
 	import NetworkGraph from '$lib/components/NetworkGraph.svelte';
 	import { getSupabase } from '$lib/supabase/client';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -47,10 +47,16 @@
 	let slideshowIndex = $state(0);
 	let showConfetti = $state(false);
 	let showGallery = $state(false);
+	let announcementBond = $state<Bond | null>(null);
+	let searchQuery = $state('');
+	let highlightedGuestId = $state<string | null>(null);
+	let previousBondIds = $state<Set<string>>(new Set());
+	let networkGraphRef: { fitAll: () => void } | undefined;
 
 	let channel: RealtimeChannel | null = null;
 	let slideshowInterval: ReturnType<typeof setInterval> | null = null;
 	let confettiTimeout: ReturnType<typeof setTimeout> | null = null;
+	let announcementTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	async function loadData() {
 		try {
@@ -61,17 +67,27 @@
 				throw new Error(data.message || 'Failed to load showcase data');
 			}
 
-			const prevBondCount = bonds.length;
+			// Detect new completed bonds for announcement
+			const newCompletedBonds = data.bonds.filter(
+				(b: Bond) => b.status === 'completed' && !previousBondIds.has(b.id)
+			);
+
+			// Update previous bond IDs
+			const currentBondIds = new Set<string>(data.bonds.map((b: Bond) => b.id));
 
 			guests = data.guests;
 			bonds = data.bonds;
 			stats = data.stats;
 			leaderboard = data.leaderboard;
 
-			// Trigger confetti on new bond
-			if (prevBondCount > 0 && data.bonds.length > prevBondCount) {
+			// Trigger confetti and announcement on new completed bond
+			if (previousBondIds.size > 0 && newCompletedBonds.length > 0) {
 				triggerConfetti();
+				// Announce the most recent new bond
+				triggerAnnouncement(newCompletedBonds[newCompletedBonds.length - 1]);
 			}
+
+			previousBondIds = currentBondIds;
 		} catch (e) {
 			console.error('Failed to load showcase data:', e);
 		}
@@ -87,6 +103,18 @@
 			showConfetti = false;
 			confettiTimeout = null;
 		}, 3000);
+	}
+
+	function triggerAnnouncement(bond: Bond) {
+		// Clear any existing timeout
+		if (announcementTimeout) {
+			clearTimeout(announcementTimeout);
+		}
+		announcementBond = bond;
+		announcementTimeout = setTimeout(() => {
+			announcementBond = null;
+			announcementTimeout = null;
+		}, 4000);
 	}
 
 	function setupRealtime() {
@@ -154,6 +182,7 @@
 		}
 		if (slideshowInterval) clearInterval(slideshowInterval);
 		if (confettiTimeout) clearTimeout(confettiTimeout);
+		if (announcementTimeout) clearTimeout(announcementTimeout);
 	});
 
 	// Bonds with photos for slideshow and gallery
@@ -162,6 +191,13 @@
 	// Slideshow bond
 	let currentSlideshowBond = $derived.by(() => {
 		return bondsWithPhotos[slideshowIndex] || null;
+	});
+
+	// Filtered guests for search
+	let filteredGuests = $derived.by(() => {
+		if (!searchQuery.trim()) return [];
+		const query = searchQuery.toLowerCase();
+		return guests.filter((g) => g.nickname.toLowerCase().includes(query)).slice(0, 5);
 	});
 </script>
 
@@ -185,6 +221,48 @@
 	</div>
 {/if}
 
+<!-- New Bond Announcement - slides in from bottom -->
+{#if announcementBond}
+	{@const guestA = getGuestById(announcementBond.guest_a_id)}
+	{@const guestB = getGuestById(announcementBond.guest_b_id)}
+	<div
+		class="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+		transition:fly={{ y: 100, duration: 400 }}
+	>
+		<div class="win-window px-8 py-4 shadow-2xl">
+			<div class="win-titlebar mb-3">
+				<span>NEW BOND!</span>
+			</div>
+			<div class="flex items-center gap-6">
+				<!-- Guest A -->
+				<div class="text-center">
+					<img
+						src={guestA?.photo_url}
+						alt={guestA?.nickname}
+						class="w-20 h-20 object-cover win-inset p-1 mx-auto"
+					/>
+					<div class="text-2xl font-bold mt-2 text-y2k-magenta font-['VT323']">
+						{guestA?.nickname || '?'}
+					</div>
+				</div>
+				<!-- Handshake -->
+				<div class="text-5xl">🤝</div>
+				<!-- Guest B -->
+				<div class="text-center">
+					<img
+						src={guestB?.photo_url}
+						alt={guestB?.nickname}
+						class="w-20 h-20 object-cover win-inset p-1 mx-auto"
+					/>
+					<div class="text-2xl font-bold mt-2 text-y2k-magenta font-['VT323']">
+						{guestB?.nickname || '?'}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
+
 <!-- Main showcase layout - 16:9 optimized, no scrolling -->
 <div class="h-screen p-3 flex flex-col overflow-hidden">
 	<!-- Header - compact -->
@@ -199,11 +277,47 @@
 	<div class="flex-1 grid grid-cols-12 gap-3 min-h-0">
 		<!-- Network Graph - Main area -->
 		<div class="col-span-8 win-window flex flex-col min-h-0">
-			<div class="win-titlebar shrink-0">
+			<div class="win-titlebar shrink-0 flex justify-between items-center">
 				<span>Network.exe</span>
+				<!-- Guest Search + Fit All -->
+				<div class="relative flex items-center gap-2">
+					<button
+						class="win-btn px-2 py-0.5 text-xs"
+						onclick={() => { networkGraphRef?.fitAll(); highlightedGuestId = null; }}
+						title="Zoom to fit all"
+					>Fit All</button>
+					<div class="flex items-center gap-1">
+						<input
+							type="text"
+							placeholder="Search guest..."
+							bind:value={searchQuery}
+							class="px-2 py-0.5 text-xs w-32 bg-white border border-win-borderDark text-win-text"
+						/>
+						{#if searchQuery}
+							<button
+								class="win-btn px-1 py-0 min-w-0 text-xs"
+								onclick={() => { searchQuery = ''; highlightedGuestId = null; }}
+							>X</button>
+						{/if}
+					</div>
+					<!-- Search dropdown -->
+					{#if filteredGuests.length > 0}
+						<div class="absolute top-full right-0 mt-1 w-48 bg-win-bg border-2 border-win-borderLight shadow-lg z-50">
+							{#each filteredGuests as guest}
+								<button
+									class="w-full px-2 py-1 text-left text-sm hover:bg-y2k-pink hover:text-white flex items-center gap-2"
+									onclick={() => { highlightedGuestId = guest.id; searchQuery = ''; }}
+								>
+									<img src={guest.photo_url} alt="" class="w-6 h-6 object-cover" />
+									<span class="truncate">{guest.nickname}</span>
+								</button>
+							{/each}
+						</div>
+					{/if}
+				</div>
 			</div>
 			<div class="flex-1 p-1 min-h-0">
-				<NetworkGraph {guests} {bonds} onBondClick={handleBondClick} />
+				<NetworkGraph {guests} {bonds} {highlightedGuestId} onBondClick={handleBondClick} bind:this={networkGraphRef} />
 			</div>
 		</div>
 
