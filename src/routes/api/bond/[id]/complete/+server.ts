@@ -60,7 +60,17 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 
 	// Bond must be in accepted status to complete
 	if (bond.status !== 'accepted') {
-		error(400, { message: 'This bond cannot be completed' });
+		if (bond.status === 'completed') {
+			error(400, { message: 'This meld is already completed!' });
+		} else if (bond.status === 'pending') {
+			error(400, { message: 'This meld is still pending - waiting for acceptance' });
+		} else if (bond.status === 'rejected') {
+			error(400, { message: 'This meld was declined' });
+		} else if (bond.status === 'expired') {
+			error(400, { message: 'This meld has expired' });
+		} else {
+			error(400, { message: 'This meld cannot be completed' });
+		}
 	}
 
 	// Extract base64 data from data URL

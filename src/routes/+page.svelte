@@ -83,7 +83,7 @@
 
 					{#if message === 'reclaim_declined'}
 						<div class="win-inset p-2 bg-yellow-100 text-yellow-800 text-sm">
-							That code belongs to someone else. Please find your own mask or ask a host for help.
+							That code belongs to someone else. Please find your own mask or ask Cuauh for help.
 						</div>
 					{/if}
 
