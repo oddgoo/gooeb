@@ -158,9 +158,10 @@
 		<!-- Title Bar -->
 		<div class="win-titlebar">
 			<span>Mind Meld Manager</span>
-			<div class="flex gap-1">
-				<button class="win-btn px-2 py-0 min-w-0 text-xs">_</button>
-				<button class="win-btn px-2 py-0 min-w-0 text-xs">□</button>
+			<div class="flex items-center gap-2">
+				<span class="text-sm font-normal opacity-90">{guest.nickname}</span>
+				<span class="text-xs font-mono bg-black/20 px-1.5 py-0.5 rounded">{maskCode}</span>
+				<a href="/bond/profile" class="win-btn px-2 py-0 min-w-0 text-xs">👤</a>
 			</div>
 		</div>
 
@@ -171,26 +172,16 @@
 			<span class="underline">H</span>elp
 		</div> -->
 
-		<!-- Window Content - scrollable -->
-		<div class="p-3 space-y-3 flex-1 overflow-y-auto">
+		<!-- Window Content - scrollable with profile background -->
+		<div class="p-3 space-y-3 flex-1 overflow-y-auto relative">
+			<!-- Profile picture background -->
+			<div
+				class="absolute inset-0 bg-cover bg-center opacity-10 pointer-events-none"
+				style="background-image: url({guest.photo_url});"
+			></div>
 
-			<!-- User Info Panel -->
-			<div class="win-groupbox">
-				<span class="win-groupbox-label">Your Profile</span>
-				<div class="flex items-center gap-3">
-					<div class="win-inset p-1">
-						<img
-							src={guest.photo_url}
-							alt={guest.nickname}
-							class="w-12 h-12 object-cover"
-						/>
-					</div>
-					<div>
-						<div class="font-bold text-lg">{guest.nickname}</div>
-						<div class="text-sm">Code: <span class="font-mono bg-win-window px-2">{maskCode}</span></div>
-					</div>
-				</div>
-			</div>
+			<!-- Content layer -->
+			<div class="relative space-y-3">
 
 			<!-- Active Melds -->
 			{#if $activeBonds.length > 0}
@@ -423,6 +414,7 @@
 				{/if}
 			</div>
 
+			</div><!-- End content layer -->
 		</div>
 
 		<!-- Status Bar -->
