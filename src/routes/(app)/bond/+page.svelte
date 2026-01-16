@@ -21,10 +21,13 @@
 	let error = $state('');
 	let isSubmitting = $state(false);
 	let successMessage = $state('');
-	let loadingBonds = $state<Record<string, 'accept' | 'reject'>>({}); // Track loading state per bond
+	let loadingBonds = $state<Record<string, 'accept' | 'reject'>>({});
+	let completingBondId = $state<string | null>(null); // Track which bond is being navigated to complete
+	let cancellingBondId = $state<string | null>(null); // Track which bond is being cancelled
+	let confirmCancelBondId = $state<string | null>(null); // Track which bond has cancel confirmation dialog open
 
 	// Global processing state - true when ANY async operation is in progress
-	let isProcessing = $derived(isSubmitting || Object.keys(loadingBonds).length > 0);
+	let isProcessing = $derived(isSubmitting || Object.keys(loadingBonds).length > 0 || completingBondId !== null || cancellingBondId !== null);
 
 	// Load bonds on mount
 	onMount(() => {
@@ -150,6 +153,42 @@
 				return '✨';
 		}
 	}
+
+	function handleCompleteMeld(bondId: string) {
+		completingBondId = bondId;
+		// Navigation happens via the href - the loading state provides visual feedback
+	}
+
+	function showCancelConfirm(bondId: string) {
+		confirmCancelBondId = bondId;
+	}
+
+	function hideCancelConfirm() {
+		confirmCancelBondId = null;
+	}
+
+	async function cancelBond(bondId: string) {
+		confirmCancelBondId = null;
+		cancellingBondId = bondId;
+		try {
+			const response = await fetch('/api/bond/cancel', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ bondId })
+			});
+
+			if (!response.ok) {
+				const result = await response.json();
+				throw new Error(result.message || 'Failed to cancel meld');
+			}
+
+			bonds.load();
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Failed to cancel meld';
+		} finally {
+			cancellingBondId = null;
+		}
+	}
 </script>
 
 <div class="min-h-screen flex flex-col">
@@ -188,8 +227,27 @@
 				<div class="win-groupbox" transition:slide={{ duration: 300 }}>
 					<span class="win-groupbox-label animate-pulse-glow">!! Active Meld !!</span>
 					{#each $activeBonds as bond (bond.id)}
-						<div class="win-inset p-3 animate-fade-in-scale">
-							<div class="flex items-center gap-3 mb-3">
+						<div class="win-inset p-3 animate-fade-in-scale relative">
+							<!-- Cancel button -->
+							{#if cancellingBondId === bond.id}
+								<button
+									disabled
+									class="absolute top-2 right-2 win-btn px-2 py-0.5 min-w-0 text-xs cursor-wait"
+								>
+									<LoadingSpinner size="sm" color="current" />
+								</button>
+							{:else}
+								<button
+									onclick={() => showCancelConfirm(bond.id)}
+									disabled={isProcessing}
+									class="absolute top-2 right-2 win-btn px-2 py-0.5 min-w-0 text-xs hover:bg-red-100"
+									title="Cancel this meld"
+								>
+									✕
+								</button>
+							{/if}
+
+							<div class="flex items-center gap-3 mb-3 pr-8">
 								<div class="win-inset p-1">
 									<img
 										src={bond.partner.photo_url}
@@ -244,13 +302,19 @@
 								</div>
 							{/if}
 
-							{#if isProcessing}
+							{#if completingBondId === bond.id}
+								<span class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white w-full flex items-center justify-center gap-2 py-2 cursor-wait">
+									<LoadingSpinner size="sm" color="white" />
+									<span>Loading...</span>
+								</span>
+							{:else if isProcessing}
 								<span class="win-btn bg-gray-400 text-gray-200 w-full block text-center py-2 cursor-not-allowed">
 									Complete Meld
 								</span>
 							{:else}
 								<a
 									href="/bond/{bond.id}/complete"
+									onclick={() => handleCompleteMeld(bond.id)}
 									class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white w-full block text-center py-2"
 								>
 									Complete Meld
@@ -375,7 +439,12 @@
 			<!-- Completed Melds -->
 			<div class="win-groupbox">
 				<span class="win-groupbox-label">Completed ({$completedBonds.length})</span>
-				{#if $completedBonds.length === 0}
+				{#if $bonds.loading}
+					<div class="text-center py-4">
+						<LoadingSpinner size="lg" color="pink" />
+						<div class="text-sm mt-2 text-win-textDisabled">Loading melds...</div>
+					</div>
+				{:else if $completedBonds.length === 0}
 					<div class="text-center py-3 text-win-textDisabled">
 						<div class="text-2xl mb-1">🧠</div>
 						<div class="text-sm">No melds yet</div>
@@ -419,8 +488,68 @@
 
 		<!-- Status Bar -->
 		<div class="bg-win-bg border-t-2 border-win-btnHighlight px-2 py-1 text-sm flex">
-			<div class="win-inset px-2 flex-1">Ready</div>
+			<div class="win-inset px-2 flex-1 flex items-center gap-2">
+				{#if $bonds.loading}
+					<LoadingSpinner size="sm" color="current" />
+					<span>Loading...</span>
+				{:else}
+					Ready
+				{/if}
+			</div>
 			<div class="win-inset px-2 ml-1">{$completedBonds.length} melds</div>
 		</div>
 	</div>
 </div>
+
+<!-- Cancel Confirmation Dialog -->
+{#if confirmCancelBondId}
+	{@const bondToCancel = $activeBonds.find(b => b.id === confirmCancelBondId)}
+	<div
+		class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+		onclick={hideCancelConfirm}
+		onkeydown={(e) => e.key === 'Escape' && hideCancelConfirm()}
+		role="dialog"
+		aria-modal="true"
+		tabindex="-1"
+		transition:fade={{ duration: 150 }}
+	>
+		<div
+			class="win-window max-w-sm w-full"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="document"
+		>
+			<div class="win-titlebar">
+				<span>Cancel Meld</span>
+				<button onclick={hideCancelConfirm} class="win-btn px-2 py-0 min-w-0 text-xs">✕</button>
+			</div>
+			<div class="p-4 space-y-4">
+				<div class="flex items-center gap-3">
+					<span class="text-3xl">⚠️</span>
+					<div>
+						<div class="font-bold">Cancel this meld?</div>
+						{#if bondToCancel}
+							<div class="text-sm text-win-textDisabled">
+								Your meld with <strong>{bondToCancel.partner.nickname}</strong> will be cancelled.
+							</div>
+						{/if}
+					</div>
+				</div>
+				<div class="flex gap-2 justify-end">
+					<button
+						onclick={hideCancelConfirm}
+						class="win-btn px-4 py-1"
+					>
+						Keep Meld
+					</button>
+					<button
+						onclick={() => confirmCancelBondId && cancelBond(confirmCancelBondId)}
+						class="win-btn px-4 py-1 bg-red-500 text-white hover:bg-red-600"
+					>
+						Cancel Meld
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
