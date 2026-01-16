@@ -62,7 +62,7 @@
 			const data = await res.json();
 			bonds = data.bonds;
 		} catch (e) {
-			error = 'Failed to load bonds';
+			error = 'Failed to load melds';
 		} finally {
 			loading = false;
 		}
@@ -82,7 +82,7 @@
 	}
 
 	async function deleteGuest(guestId: string) {
-		if (!confirm('Delete this guest and all their bonds?')) return;
+		if (!confirm('Delete this guest and all their melds?')) return;
 
 		try {
 			await fetch('/api/admin/guests', {
@@ -97,7 +97,7 @@
 	}
 
 	async function deleteBond(bondId: string) {
-		if (!confirm('Delete this bond?')) return;
+		if (!confirm('Delete this meld?')) return;
 
 		try {
 			await fetch('/api/admin/bonds', {
@@ -107,7 +107,7 @@
 			});
 			loadBonds();
 		} catch (e) {
-			error = 'Failed to delete bond';
+			error = 'Failed to delete meld';
 		}
 	}
 
@@ -213,7 +213,7 @@
 				class:bg-white={activeTab === 'bonds'}
 				onclick={() => activeTab = 'bonds'}
 			>
-				Bonds
+				Melds
 			</button>
 			<button
 				class="win-btn px-3 py-1 text-sm"
@@ -279,12 +279,12 @@
 				</div>
 
 			{:else if activeTab === 'bonds'}
-				<!-- Bonds Tab -->
+				<!-- Melds Tab -->
 				<div class="win-groupbox">
-					<span class="win-groupbox-label">Bonds ({bonds.length})</span>
+					<span class="win-groupbox-label">Melds ({bonds.length})</span>
 					<div class="win-inset p-2 max-h-[60vh] overflow-y-auto">
 						{#if bonds.length === 0}
-							<div class="text-center py-4 text-win-textDisabled">No bonds yet</div>
+							<div class="text-center py-4 text-win-textDisabled">No melds yet</div>
 						{:else}
 							<div class="space-y-2">
 								{#each bonds as bond}
@@ -390,7 +390,7 @@
 				{#if activeTab === 'guests'}
 					{guests.length} guests registered
 				{:else if activeTab === 'bonds'}
-					{bonds.length} bonds total
+					{bonds.length} melds total
 				{:else}
 					{prompts.length} prompts configured
 				{/if}

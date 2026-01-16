@@ -72,11 +72,11 @@
 			// Success - optimistic update for instant feedback
 			targetCode = '';
 			if (result.autoAccepted) {
-				successMessage = `Bonded with ${result.targetNickname}! Check your prompt above.`;
+				successMessage = `Melded with ${result.targetNickname}! Check your prompt above.`;
 				// For auto-accept, we need full data so reload
 				bonds.load();
 			} else {
-				successMessage = `Invite sent to ${result.targetNickname}!`;
+				successMessage = `Meld invite sent to ${result.targetNickname}!`;
 				// Optimistic update - add pending bond immediately
 				bonds.addPendingBond(result.bondId, {
 					id: result.targetId,
@@ -108,7 +108,7 @@
 
 			bonds.load();
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to accept bond';
+			error = e instanceof Error ? e.message : 'Failed to accept meld';
 		} finally {
 			const { [bondId]: _, ...rest } = loadingBonds;
 			loadingBonds = rest;
@@ -131,7 +131,7 @@
 
 			bonds.load();
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to reject bond';
+			error = e instanceof Error ? e.message : 'Failed to reject meld';
 		} finally {
 			const { [bondId]: _, ...rest } = loadingBonds;
 			loadingBonds = rest;
@@ -157,7 +157,7 @@
 	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:flex-initial">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
-			<span>The Gooeb - Bond Manager</span>
+			<span>Mind Meld Manager</span>
 			<div class="flex gap-1">
 				<button class="win-btn px-2 py-0 min-w-0 text-xs">_</button>
 				<button class="win-btn px-2 py-0 min-w-0 text-xs">□</button>
@@ -192,10 +192,10 @@
 				</div>
 			</div>
 
-			<!-- Active Bonds -->
+			<!-- Active Melds -->
 			{#if $activeBonds.length > 0}
 				<div class="win-groupbox" transition:slide={{ duration: 300 }}>
-					<span class="win-groupbox-label animate-pulse-glow">!! Active Bond !!</span>
+					<span class="win-groupbox-label animate-pulse-glow">!! Active Meld !!</span>
 					{#each $activeBonds as bond (bond.id)}
 						<div class="win-inset p-3 animate-fade-in-scale">
 							<div class="flex items-center gap-3 mb-3">
@@ -255,14 +255,14 @@
 
 							{#if isProcessing}
 								<span class="win-btn bg-gray-400 text-gray-200 w-full block text-center py-2 cursor-not-allowed">
-									Complete Bond
+									Complete Meld
 								</span>
 							{:else}
 								<a
 									href="/bond/{bond.id}/complete"
 									class="win-btn bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white w-full block text-center py-2"
 								>
-									Complete Bond
+									Complete Meld
 								</a>
 							{/if}
 						</div>
@@ -315,7 +315,7 @@
 
 			<!-- Send Invite -->
 			<div class="win-groupbox">
-				<span class="win-groupbox-label">New Bond</span>
+				<span class="win-groupbox-label">New Meld</span>
 				<form
 					onsubmit={(e) => {
 						e.preventDefault();
@@ -381,13 +381,13 @@
 				</div>
 			{/if}
 
-			<!-- Completed Bonds -->
+			<!-- Completed Melds -->
 			<div class="win-groupbox">
 				<span class="win-groupbox-label">Completed ({$completedBonds.length})</span>
 				{#if $completedBonds.length === 0}
 					<div class="text-center py-3 text-win-textDisabled">
-						<div class="text-2xl mb-1">🤝</div>
-						<div class="text-sm">No bonds yet</div>
+						<div class="text-2xl mb-1">🧠</div>
+						<div class="text-sm">No melds yet</div>
 					</div>
 				{:else}
 					<div class="win-inset p-2 max-h-40 overflow-y-auto">
@@ -428,7 +428,7 @@
 		<!-- Status Bar -->
 		<div class="bg-win-bg border-t-2 border-win-btnHighlight px-2 py-1 text-sm flex">
 			<div class="win-inset px-2 flex-1">Ready</div>
-			<div class="win-inset px-2 ml-1">{$completedBonds.length} bonds</div>
+			<div class="win-inset px-2 ml-1">{$completedBonds.length} melds</div>
 		</div>
 	</div>
 </div>

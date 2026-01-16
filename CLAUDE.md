@@ -1,4 +1,4 @@
-# CLAUDE.md - The Gooeb Project Guide
+# CLAUDE.md - Cuauh's Mega Mind Meld Imaginarium OS
 
 > **IMPORTANT**: Always check this file at the START and END of every session. Update the status section when completing tasks.
 
@@ -17,13 +17,13 @@
 
 ## Project Overview
 
-**The Gooeb** is a real-time multiplayer party game about bonding creatively. Played on guests' phones during a ~3 hour birthday party with 40-55 guests.
+**Cuauh's Mega Mind Meld Imaginarium OS** is a real-time multiplayer party game about melding minds creatively. Played on guests' phones during a ~3 hour birthday party with 40-55 guests.
 
 ### Core Concept
 - Guests wear masks with NFC tags pre-programmed with unique 4-digit codes
 - Guests register via NFC tap, QR code, or manual code entry
-- The game has phases where guests bond with each other through prompts
-- A showcase display shows a real-time network graph of all bonds
+- The game has phases where guests meld with each other through prompts
+- A showcase display shows a real-time network graph of all melds
 
 ---
 
@@ -36,10 +36,10 @@
 - **Deployment**: Vercel
 
 ### App Structure
-**Simplified single-page app** - The Bond page is the main experience. No tabs.
+**Simplified single-page app** - The Meld page is the main experience. No tabs.
 
 - `/` - Landing page (unauthenticated) → redirects to `/bond` if authenticated
-- `/bond` - Main bonding interface (authenticated)
+- `/bond` - Main melding interface (authenticated)
 - `/showcase` - Big screen display (public)
 - `/admin` - Moderation panel (admin only)
 
@@ -58,13 +58,13 @@
 - API routes can use the mask code for identification - server looks up guest by code
 - No strict security needed - it's a party game!
 
-### Phase 1 - Bonding
+### Phase 1 - Melding
 - Goal: Connect with others by tapping each other's NFC tags or entering codes
 - **Invite Flow**:
   1. Player A taps Player B's tag (or enters code)
   2. Server checks if code is registered
-  3. Creates "bond invitation" (pending state)
-  4. Player B sees invite on Bond page
+  3. Creates "meld invitation" (pending state)
+  4. Player B sees invite on Meld page
   5. Player B taps Player A's tag to confirm
 - **Word Prompt System**:
   - On confirmation, both players receive a random **word prompt**
@@ -73,27 +73,27 @@
     - **Theme**: Concepts/emotions (Chaos, Love, Mystery, etc.)
     - **Place**: Locations/settings (Underwater, Moon, Disco, etc.)
   - **Category non-repetition**: Between any two people, categories cannot repeat
-    - If A & B already did a "character" prompt, their next bond uses "theme" or "place"
-    - Max 3 bonds possible between same pair (one per category)
+    - If A & B already did a "character" prompt, their next meld uses "theme" or "place"
+    - Max 3 melds possible between same pair (one per category)
 - Any player submits photo of completion, other confirms
 - Server stores: completion photo, prompt word + category, participants
 
 ### Phase 2 - Remix (Future)
-- System assigns groups instead of 1:1 bonding
+- System assigns groups instead of 1:1 melding
 - Groups remix/reinterpret results from Phase 1 prompts
 - **Not implemented yet - focus on Phase 1 first**
 
 ### Admin View
 - Manipulate and moderate the game
-- Manage guests, bonds, prompts
+- Manage guests, melds, prompts
 - Override/delete problematic content
 
 ### Showcase View (Big Screen Display)
-- Real-time vis.js network graph showing all bonds
+- Real-time vis.js network graph showing all melds
 - Slideshow of submitted photos
 - Confetti when new connections appear
-- Leaderboard of most bonds
-- Collaborative goal tracker (bonds done / all possible combinations)
+- Leaderboard of most melds
+- Collaborative goal tracker (melds done / all possible combinations)
 
 ---
 
@@ -118,7 +118,7 @@
 - **prompts** - id, event_id, **word**, **category** (character|theme|place), is_active, times_used
 - **bonds** - id, event_id, guest_a_id, guest_b_id, prompt_id, status, photo_url, timestamps
 
-### Bond Statuses
+### Meld Statuses (DB column: status)
 - `pending` - Invite sent, awaiting acceptance
 - `accepted` - Both confirmed, prompt assigned
 - `completed` - Photo submitted and confirmed
@@ -131,9 +131,9 @@
 - `place` - Locations/settings (15 words seeded)
 
 ### Key Constraints
-- Multiple bonds allowed between same pair (up to 3, one per category)
+- Multiple melds allowed between same pair (up to 3, one per category)
 - Category non-repetition enforced in application logic when assigning prompts
-- Supabase Realtime enabled on `bonds` and `guests` tables
+- Supabase Realtime enabled on `bonds` and `guests` tables (DB table name unchanged)
 
 ---
 
@@ -149,19 +149,19 @@
 │   │   ├── register/                 # Registration (photo + nickname)
 │   │   ├── api/
 │   │   │   ├── register/             # Registration API
-│   │   │   └── bond/                 # Bond APIs
-│   │   │       ├── invite/           # Send bond invite
+│   │   │   └── bond/                 # Meld APIs (route path unchanged)
+│   │   │       ├── invite/           # Send meld invite
 │   │   │       ├── accept/           # Accept invite
 │   │   │       ├── reject/           # Reject invite
-│   │   │       ├── list/             # List user's bonds
-│   │   │       └── [id]/complete/    # Complete bond with photo
+│   │   │       ├── list/             # List user's melds
+│   │   │       └── [id]/complete/    # Complete meld with photo
 │   │   ├── (app)/                    # Protected routes
 │   │   │   ├── +layout.server.ts     # Auth guard
 │   │   │   ├── +layout.svelte        # App shell
-│   │   │   ├── bond/+page.svelte     # Main bonding interface
-│   │   │   └── bond/[id]/complete/   # Bond completion page
+│   │   │   ├── bond/+page.svelte     # Main melding interface
+│   │   │   └── bond/[id]/complete/   # Meld completion page
 │   │   ├── showcase/+page.svelte     # Public display (16:9 optimized)
-│   │   └── admin/                    # Admin panel (guests/bonds/prompts)
+│   │   └── admin/                    # Admin panel (guests/melds/prompts)
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts             # Browser Supabase client
@@ -169,7 +169,7 @@
 │   │   │   └── types.ts              # Database types
 │   │   ├── stores/
 │   │   │   ├── auth.ts               # Auth state
-│   │   │   └── bonds.ts              # Bonds state + realtime
+│   │   │   └── bonds.ts              # Melds state + realtime
 │   │   ├── components/
 │   │   │   ├── PhotoCapture.svelte   # Camera + upload
 │   │   │   └── NetworkGraph.svelte   # vis.js network graph
@@ -192,7 +192,7 @@
 | Session | Focus | Status |
 |---------|-------|--------|
 | 1 | Project setup, DB schema, auth | ✅ COMPLETE |
-| 2 | Bonding mechanics (invite/accept/prompts) | ✅ COMPLETE |
+| 2 | Melding mechanics (invite/accept/prompts) | ✅ COMPLETE |
 | 3 | Photo upload, completion flow | ✅ COMPLETE |
 | 4 | Showcase + Admin views | ✅ COMPLETE |
 | 5 | Polish + Deploy | 🟡 IN PROGRESS |
@@ -212,13 +212,13 @@
 - [x] Client-side image resize utility
 - [x] Register API endpoint with race condition protection
 - [x] Protected app routes with auth guard
-- [x] Bond page with user info header + invite form
+- [x] Meld page with user info header + invite form
 - [x] Authenticated users redirect from `/` to `/bond`
 - [x] Build passing, types checking
 
 **Simplified (removed/changed):**
-- ~~Tab navigation (Me, Bond, Web)~~ → Single Bond page is the main experience
-- ~~Me page~~ → User info shown in Bond page header
+- ~~Tab navigation (Me, Bond, Web)~~ → Single Meld page is the main experience
+- ~~Me page~~ → User info shown in Meld page header
 - ~~Web page~~ → Network graph only in Showcase view
 - ~~Auth tokens~~ → Using mask codes directly (stored in cookie + localStorage)
 
@@ -231,26 +231,26 @@
 ### Session 2 - COMPLETE ✅
 
 **Completed:**
-- [x] Bonds store with realtime Supabase subscriptions (`src/lib/stores/bonds.ts`)
-- [x] Bond invite API endpoint (`/api/bond/invite`)
-- [x] Bond accept API with prompt assignment (`/api/bond/accept`)
-- [x] Bond reject API endpoint (`/api/bond/reject`)
-- [x] Bond list API endpoint (`/api/bond/list`)
-- [x] Prompt assignment with category non-repetition (max 3 bonds per pair)
+- [x] Melds store with realtime Supabase subscriptions (`src/lib/stores/bonds.ts`)
+- [x] Meld invite API endpoint (`/api/bond/invite`)
+- [x] Meld accept API with prompt assignment (`/api/bond/accept`)
+- [x] Meld reject API endpoint (`/api/bond/reject`)
+- [x] Meld list API endpoint (`/api/bond/list`)
+- [x] Prompt assignment with category non-repetition (max 3 melds per pair)
 - [x] Pending incoming invites with Accept/Decline buttons
 - [x] Pending outgoing invites display
-- [x] Active bond prompt view with emoji + word display
-- [x] Completed bonds list
+- [x] Active meld prompt view with emoji + word display
+- [x] Completed melds list
 - [x] Realtime updates via Supabase subscriptions
 - [x] 4-digit numeric codes (changed from alphanumeric)
 
 ### Session 3 - COMPLETE ✅
 
 **Completed:**
-- [x] Photo capture for bond completion (`/bond/[id]/complete` page)
-- [x] Bond completion API endpoint (`/api/bond/[id]/complete`)
-- [x] Bond completion page with Win3.1 retro styling
-- [x] Completed bonds list on Bond page (already in Session 2)
+- [x] Photo capture for meld completion (`/bond/[id]/complete` page)
+- [x] Meld completion API endpoint (`/api/bond/[id]/complete`)
+- [x] Meld completion page with Win3.1 retro styling
+- [x] Completed melds list on Meld page (already in Session 2)
 - [x] Photo upload to Supabase Storage (`bonds/{id}.jpg`)
 
 ### Session 4 - COMPLETE ✅
@@ -259,15 +259,15 @@
 - [x] NetworkGraph component with vis.js (`src/lib/components/NetworkGraph.svelte`)
 - [x] Showcase page with graph, slideshow, leaderboard (`/showcase`)
   - Real-time network graph visualization with guest search
-  - Sliding photo carousel of recent bonds (click for gallery view)
+  - Sliding photo carousel of recent melds (click for gallery view)
   - Live leaderboard (top 10 connectors)
   - Stats panel with progress bar
-  - Confetti animation + slide-in announcement on new bonds
+  - Confetti animation + slide-in announcement on new melds
 - [x] Showcase API endpoint (`/api/showcase`)
-- [x] Admin page with guest/bond/prompt management (`/admin`)
-  - Tabbed interface: Guests, Bonds, Prompts
-  - Delete guests (cascades to bonds)
-  - Delete bonds
+- [x] Admin page with guest/meld/prompt management (`/admin`)
+  - Tabbed interface: Guests, Melds, Prompts
+  - Delete guests (cascades to melds)
+  - Delete melds
   - Add/toggle/delete prompts by category
 - [x] Admin API endpoints
   - `/api/admin/guests` - GET, DELETE
@@ -281,9 +281,11 @@
 - [x] Pre-party checklist created (`PRE-PARTY-CHECKLIST.md`)
 - [x] `tsx` installed for running TypeScript scripts
 - [x] `npm run load-test` command added
-- [x] Showcase gallery view (click slideshow to see all bond photos in 6-column grid)
-- [x] New Bond Announcement (slide-in/out notification when bonds complete)
+- [x] Showcase gallery view (click slideshow to see all meld photos in 6-column grid)
+- [x] New Meld Announcement (slide-in/out notification when melds complete)
 - [x] Guest Search in showcase (search input in Network.exe, highlights & zooms to guest)
+- [x] Rename: "Gooeb" → "Cuauh's Mega Mind Meld Imaginarium OS"
+- [x] Rename: "Bond/Bonding" → "Meld/Melding" throughout UI
 
 **In Progress:**
 - [ ] Vercel deployment
@@ -292,7 +294,6 @@
 **Remaining:**
 - [ ] Error handling polish (if needed)
 - [ ] Final testing after deployment
-- [ ] Name changes
 - [ ] Fun gifs!
 - [ ] check admin controls
 - [ ] adjust ui, animation timings, etc.
@@ -341,4 +342,5 @@ npm run load-test https://thegooeb.com       # Production
 - Guest count: 40-55 expected
 - NFC tags will be pre-programmed with unique URLs
 - Consider QR code fallbacks for phones without NFC
-- **Simplified UI**: No tabs - Bond page is the single main experience
+- **Simplified UI**: No tabs - Meld page is the single main experience
+- **Naming**: UI uses "Meld/Melding" but internal code/DB still uses "bond/bonds" for stability

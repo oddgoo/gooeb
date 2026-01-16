@@ -259,7 +259,7 @@
 </script>
 
 <svelte:head>
-	<title>The Gooeb - Showcase</title>
+	<title>Cuauh's Mind Meld Imaginarium OS - Showcase</title>
 </svelte:head>
 
 <!-- Confetti overlay - Y2K colors -->
@@ -278,7 +278,7 @@
 	</div>
 {/if}
 
-<!-- New Bond Announcement - slides in from bottom -->
+<!-- New Meld Announcement - slides in from bottom -->
 {#if announcementBond}
 	{@const guestA = getGuestById(announcementBond.guest_a_id)}
 	{@const guestB = getGuestById(announcementBond.guest_b_id)}
@@ -288,7 +288,7 @@
 	>
 		<div class="win-window px-8 py-4 shadow-2xl">
 			<div class="win-titlebar mb-3">
-				<span>NEW BOND!</span>
+				<span>NEW MELD!</span>
 				{#if announcementQueue.length > 0}
 					<span class="text-xs ml-2 opacity-70">+{announcementQueue.length} more</span>
 				{/if}
@@ -329,7 +329,7 @@
 	<div class="text-center mb-2 shrink-0">
 		<h1 class="text-3xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
 			style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;">
-			THE GOOEB - LIVE BONDS
+			MEGA MIND MELD IMAGINARIUM - LIVE
 		</h1>
 	</div>
 
@@ -394,7 +394,7 @@
 						<span class="font-bold">{stats.totalGuests}</span>
 					</div>
 					<div class="flex justify-between">
-						<span>Bonds:</span>
+						<span>Melds:</span>
 						<span class="font-bold">{stats.totalBonds}</span>
 					</div>
 					<div class="mt-1">
@@ -420,7 +420,7 @@
 				<div class="p-2 h-[calc(100%-28px)] overflow-hidden">
 					{#if leaderboard.length === 0}
 						<div class="text-center text-win-textDisabled py-4">
-							No bonds yet
+							No melds yet
 						</div>
 					{:else}
 						<div class="space-y-1">
@@ -449,7 +449,7 @@
 				onclick={() => showGallery = true}
 			>
 				<div class="win-titlebar shrink-0">
-					<span>Recent Bonds</span>
+					<span>Recent Melds</span>
 					<span class="text-xs opacity-70 ml-2">({bondsWithPhotos.length} photos - click to view all)</span>
 				</div>
 				<div class="flex-1 p-2 min-h-0 overflow-hidden">
@@ -492,7 +492,7 @@
 					{:else}
 						<div class="win-inset p-4 text-center text-win-textDisabled h-full flex flex-col items-center justify-center">
 							<div class="text-2xl mb-2">📸</div>
-							<div class="text-sm">Waiting for bonds...</div>
+							<div class="text-sm">Waiting for melds...</div>
 						</div>
 					{/if}
 				</div>
@@ -521,7 +521,7 @@
 			transition:scale={{ duration: 200, start: 0.95 }}
 		>
 			<div class="win-titlebar shrink-0">
-				<span>Bond Gallery - {bondsWithPhotos.length} Photos</span>
+				<span>Meld Gallery - {bondsWithPhotos.length} Photos</span>
 				<button class="win-btn px-2 py-0 min-w-0 text-xs" onclick={() => showGallery = false}>X</button>
 			</div>
 			<div class="flex-1 p-4 overflow-y-auto">
@@ -529,7 +529,7 @@
 					<div class="h-full flex items-center justify-center text-win-textDisabled">
 						<div class="text-center">
 							<div class="text-4xl mb-4">📸</div>
-							<div>No bond photos yet</div>
+							<div>No meld photos yet</div>
 						</div>
 					</div>
 				{:else}
@@ -585,7 +585,7 @@
 			transition:scale={{ duration: 200, start: 0.9 }}
 		>
 			<div class="win-titlebar">
-				<span>Bond Details</span>
+				<span>Meld Details</span>
 				<button class="win-btn px-2 py-0 min-w-0 text-xs" onclick={() => selectedBond = null}>X</button>
 			</div>
 			<div class="p-4">

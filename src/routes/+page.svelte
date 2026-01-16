@@ -39,7 +39,7 @@
 	<div class="win-window flex-1 flex flex-col m-0 sm:m-auto sm:max-w-sm sm:flex-initial sm:my-8">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
-			<span>Welcome to The Gooeb</span>
+			<span>Cuauh's Mega Mind Meld Imaginarium OS</span>
 			<div class="flex gap-1">
 				<button class="win-btn px-2 py-0 min-w-0 text-xs">?</button>
 			</div>
@@ -49,8 +49,8 @@
 		<div class="p-4 space-y-4 flex-1 flex flex-col justify-center">
 			<!-- Logo/Title Area -->
 			<div class="text-center py-4">
-				<div class="text-4xl font-bold text-win-title mb-2">THE GOOEB</div>
-				<div class="text-sm text-win-textDisabled">Bond with friends at the party</div>
+				<div class="text-2xl font-bold text-win-title mb-2">MEGA MIND MELD IMAGINARIUM</div>
+				<div class="text-sm text-win-textDisabled">Mind meld with friends at the party</div>
 			</div>
 
 			<!-- Code Entry Group -->
@@ -123,8 +123,8 @@
 			<span>Masks</span>
 		</div>
 		<div class="flex flex-col items-center gap-1 opacity-70">
-			<div class="text-3xl">🤝</div>
-			<span>Bonds</span>
+			<div class="text-3xl">🧠</div>
+			<span>Melds</span>
 		</div>
 		<div class="flex flex-col items-center gap-1 opacity-70">
 			<div class="text-3xl">📸</div>

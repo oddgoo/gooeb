@@ -27,7 +27,7 @@
 
 	async function handleSubmit() {
 		if (!photoDataUrl) {
-			error = 'Please take a photo to complete the bond';
+			error = 'Please take a photo to complete the meld';
 			return;
 		}
 
@@ -50,7 +50,7 @@
 			// Success! Go back to bond page
 			goto('/bond');
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to complete bond';
+			error = e instanceof Error ? e.message : 'Failed to complete meld';
 		} finally {
 			isSubmitting = false;
 		}
@@ -75,7 +75,7 @@
 	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:flex-initial">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
-			<span>Complete Bond</span>
+			<span>Complete Meld</span>
 			<div class="flex gap-1">
 				{#if isSubmitting}
 					<span class="win-btn px-2 py-0 min-w-0 text-xs opacity-50 cursor-not-allowed">X</span>
@@ -90,7 +90,7 @@
 
 			<!-- Partner Info -->
 			<div class="win-groupbox">
-				<span class="win-groupbox-label">Bonding with</span>
+				<span class="win-groupbox-label">Melding with</span>
 				<div class="flex items-center gap-3">
 					<div class="win-inset p-1">
 						<img
@@ -183,7 +183,7 @@
 					{#if isSubmitting}
 						<LoadingSpinner size="sm" color="white" /> Uploading...
 					{:else}
-						Complete Bond
+						Complete Meld
 					{/if}
 				</button>
 			</div>
