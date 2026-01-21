@@ -2,6 +2,15 @@
 // These match the schema in supabase/migrations/001_initial_schema.sql
 
 export type PromptCategory = 'character' | 'theme' | 'place';
+export type ActivityCategory = 'general' | 'drawing' | 'acting' | 'photo' | 'music' | 'physical';
+
+export type Phase = {
+	id: string;
+	event_id: string;
+	phase_number: number;
+	name: string;
+	created_at: string;
+};
 
 export type ActivityPrompt = {
 	id: string;
@@ -9,6 +18,8 @@ export type ActivityPrompt = {
 	description: string;
 	is_active: boolean;
 	times_used: number;
+	phase_numbers: number[];
+	activity_category: ActivityCategory;
 	created_at: string;
 };
 
@@ -21,6 +32,7 @@ export type Database = {
 					name: string;
 					slug: string;
 					is_active: boolean;
+					current_phase_id: string | null;
 					created_at: string;
 				};
 				Insert: {
@@ -28,6 +40,7 @@ export type Database = {
 					name: string;
 					slug: string;
 					is_active?: boolean;
+					current_phase_id?: string | null;
 					created_at?: string;
 				};
 				Update: {
@@ -35,6 +48,62 @@ export type Database = {
 					name?: string;
 					slug?: string;
 					is_active?: boolean;
+					current_phase_id?: string | null;
+					created_at?: string;
+				};
+			};
+			phases: {
+				Row: {
+					id: string;
+					event_id: string;
+					phase_number: number;
+					name: string;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					event_id: string;
+					phase_number: number;
+					name: string;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					event_id?: string;
+					phase_number?: number;
+					name?: string;
+					created_at?: string;
+				};
+			};
+			activity_prompts: {
+				Row: {
+					id: string;
+					event_id: string;
+					description: string;
+					is_active: boolean;
+					times_used: number;
+					phase_numbers: number[];
+					activity_category: string;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					event_id: string;
+					description: string;
+					is_active?: boolean;
+					times_used?: number;
+					phase_numbers?: number[];
+					activity_category?: string;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					event_id?: string;
+					description?: string;
+					is_active?: boolean;
+					times_used?: number;
+					phase_numbers?: number[];
+					activity_category?: string;
 					created_at?: string;
 				};
 			};
@@ -186,6 +255,8 @@ export type Guest = Database['public']['Tables']['guests']['Row'];
 export type Prompt = Database['public']['Tables']['prompts']['Row'];
 export type Bond = Database['public']['Tables']['bonds']['Row'];
 export type BondStatus = Bond['status'];
+export type PhaseRow = Database['public']['Tables']['phases']['Row'];
+export type ActivityPromptRow = Database['public']['Tables']['activity_prompts']['Row'];
 
 // Extended types with relations
 export type GuestWithMaskCode = Guest & {

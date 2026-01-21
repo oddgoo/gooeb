@@ -108,10 +108,37 @@ export async function acceptBond(
 		category: PromptCategory;
 	};
 
-	// Get a random activity prompt
+	// Get the current phase for the event
+	const { data: eventData, error: eventError } = await supabase
+		.from('events')
+		.select('current_phase_id')
+		.eq('id', bond.event_id)
+		.single();
+
+	if (eventError) {
+		console.error('Error fetching event:', eventError);
+		throw new Error('Failed to fetch event');
+	}
+
+	const eventWithPhase = eventData as { current_phase_id: string | null } | null;
+
+	let currentPhaseNumber = 1; // Default to phase 1
+	if (eventWithPhase?.current_phase_id) {
+		const { data: phaseData } = await supabase
+			.from('phases')
+			.select('phase_number')
+			.eq('id', eventWithPhase.current_phase_id)
+			.single();
+		const phase = phaseData as { phase_number: number } | null;
+		if (phase) {
+			currentPhaseNumber = phase.phase_number;
+		}
+	}
+
+	// Get a random activity prompt that's valid for the current phase
 	const { data: activityPrompts, error: activityError } = await supabase
 		.from('activity_prompts')
-		.select('id, description')
+		.select('id, description, phase_numbers')
 		.eq('event_id', bond.event_id)
 		.eq('is_active', true);
 
@@ -120,11 +147,20 @@ export async function acceptBond(
 		throw new Error('Failed to fetch activity prompts');
 	}
 
-	if (!activityPrompts || activityPrompts.length === 0) {
-		throw new Error('No activity prompts available');
+	// Filter activity prompts by current phase
+	type ActivityPromptWithPhases = { id: string; description: string; phase_numbers: number[] | null };
+	const phaseFilteredPrompts = ((activityPrompts || []) as ActivityPromptWithPhases[]).filter((p) => {
+		const phaseNumbers = p.phase_numbers || [1];
+		return phaseNumbers.includes(currentPhaseNumber);
+	});
+
+	if (phaseFilteredPrompts.length === 0) {
+		throw new Error(`No activity prompts available for phase ${currentPhaseNumber}`);
 	}
 
-	const selectedActivity = activityPrompts[Math.floor(Math.random() * activityPrompts.length)] as {
+	const selectedActivity = phaseFilteredPrompts[
+		Math.floor(Math.random() * phaseFilteredPrompts.length)
+	] as {
 		id: string;
 		description: string;
 	};

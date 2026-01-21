@@ -29,18 +29,44 @@
 		times_used: number;
 	};
 
+	type Phase = {
+		id: string;
+		event_id: string;
+		phase_number: number;
+		name: string;
+	};
+
+	type ActivityPrompt = {
+		id: string;
+		description: string;
+		is_active: boolean;
+		times_used: number;
+		phase_numbers: number[];
+		activity_category: string;
+	};
+
 	let pageData = $derived($page.data as { guest: { id: string; nickname: string }; eventId: string | null });
 
-	let activeTab = $state<'guests' | 'bonds' | 'prompts'>('guests');
+	let activeTab = $state<'guests' | 'bonds' | 'prompts' | 'phases' | 'activities'>('guests');
 	let guests = $state<Guest[]>([]);
 	let bonds = $state<Bond[]>([]);
 	let prompts = $state<Prompt[]>([]);
+	let phases = $state<Phase[]>([]);
+	let currentPhaseId = $state<string | null>(null);
+	let activityPrompts = $state<ActivityPrompt[]>([]);
 	let loading = $state(false);
 	let error = $state('');
 
 	// New prompt form
 	let newPromptWord = $state('');
 	let newPromptCategory = $state<'character' | 'theme' | 'place'>('character');
+
+	// New activity prompt form
+	let newActivityDescription = $state('');
+	let newActivityCategory = $state('general');
+	let newActivityPhases = $state<number[]>([1]);
+
+	const activityCategories = ['general', 'drawing', 'acting', 'photo', 'music', 'physical'];
 
 	async function loadGuests() {
 		loading = true;
@@ -76,6 +102,40 @@
 			prompts = data.prompts;
 		} catch (e) {
 			error = 'Failed to load prompts';
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function loadPhases() {
+		loading = true;
+		try {
+			const res = await fetch('/api/admin/phases');
+			const data = await res.json();
+			phases = data.phases;
+			currentPhaseId = data.currentPhaseId;
+		} catch (e) {
+			error = 'Failed to load phases';
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function loadActivityPrompts() {
+		loading = true;
+		try {
+			// Load phases first (needed for the checkboxes)
+			const phasesRes = await fetch('/api/admin/phases');
+			const phasesData = await phasesRes.json();
+			phases = phasesData.phases;
+			currentPhaseId = phasesData.currentPhaseId;
+
+			// Then load activity prompts
+			const res = await fetch('/api/admin/activity-prompts');
+			const data = await res.json();
+			activityPrompts = data.activityPrompts;
+		} catch (e) {
+			error = 'Failed to load activity prompts';
 		} finally {
 			loading = false;
 		}
@@ -159,6 +219,88 @@
 		}
 	}
 
+	async function setCurrentPhase(phaseId: string | null) {
+		if (!pageData.eventId) return;
+
+		try {
+			await fetch('/api/admin/phases', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					phaseId,
+					eventId: pageData.eventId
+				})
+			});
+			currentPhaseId = phaseId;
+		} catch (e) {
+			error = 'Failed to update phase';
+		}
+	}
+
+	async function addActivityPrompt() {
+		if (!newActivityDescription.trim() || !pageData.eventId) return;
+
+		try {
+			await fetch('/api/admin/activity-prompts', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					description: newActivityDescription.trim(),
+					phaseNumbers: newActivityPhases,
+					activityCategory: newActivityCategory,
+					eventId: pageData.eventId
+				})
+			});
+			newActivityDescription = '';
+			newActivityPhases = [1];
+			newActivityCategory = 'general';
+			loadActivityPrompts();
+		} catch (e) {
+			error = 'Failed to add activity prompt';
+		}
+	}
+
+	async function toggleActivityPrompt(activityPromptId: string, isActive: boolean) {
+		try {
+			await fetch('/api/admin/activity-prompts', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ activityPromptId, isActive: !isActive })
+			});
+			loadActivityPrompts();
+		} catch (e) {
+			error = 'Failed to update activity prompt';
+		}
+	}
+
+	async function updateActivityPromptPhases(activityPromptId: string, phaseNumbers: number[]) {
+		try {
+			await fetch('/api/admin/activity-prompts', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ activityPromptId, phaseNumbers })
+			});
+			loadActivityPrompts();
+		} catch (e) {
+			error = 'Failed to update activity prompt phases';
+		}
+	}
+
+	async function deleteActivityPrompt(activityPromptId: string) {
+		if (!confirm('Delete this activity prompt?')) return;
+
+		try {
+			await fetch('/api/admin/activity-prompts', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ activityPromptId })
+			});
+			loadActivityPrompts();
+		} catch (e) {
+			error = 'Failed to delete activity prompt';
+		}
+	}
+
 	function getCategoryEmoji(category: string): string {
 		switch (category) {
 			case 'character': return '👤';
@@ -187,6 +329,8 @@
 		if (activeTab === 'guests') loadGuests();
 		else if (activeTab === 'bonds') loadBonds();
 		else if (activeTab === 'prompts') loadPrompts();
+		else if (activeTab === 'phases') loadPhases();
+		else if (activeTab === 'activities') loadActivityPrompts();
 	});
 </script>
 
@@ -200,7 +344,7 @@
 		</div>
 
 		<!-- Tabs -->
-		<div class="bg-win-bg px-2 py-1 border-b border-win-btnShadow flex gap-1">
+		<div class="bg-win-bg px-2 py-1 border-b border-win-btnShadow flex gap-1 flex-wrap">
 			<button
 				class="win-btn px-3 py-1 text-sm"
 				class:bg-white={activeTab === 'guests'}
@@ -221,6 +365,20 @@
 				onclick={() => activeTab = 'prompts'}
 			>
 				Prompts
+			</button>
+			<button
+				class="win-btn px-3 py-1 text-sm"
+				class:bg-white={activeTab === 'phases'}
+				onclick={() => activeTab = 'phases'}
+			>
+				Phases
+			</button>
+			<button
+				class="win-btn px-3 py-1 text-sm"
+				class:bg-white={activeTab === 'activities'}
+				onclick={() => activeTab = 'activities'}
+			>
+				Activities
 			</button>
 		</div>
 
@@ -381,6 +539,162 @@
 						</div>
 					{/each}
 				</div>
+
+			{:else if activeTab === 'phases'}
+				<!-- Phases Tab -->
+				<div class="space-y-3">
+					<!-- Current Phase Selector -->
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">Current Phase</span>
+						<div class="flex gap-2 flex-wrap">
+							{#each phases as phase}
+								<button
+									onclick={() => setCurrentPhase(phase.id)}
+									class="win-btn px-4 py-2"
+									class:bg-gradient-to-r={currentPhaseId === phase.id}
+									class:from-y2k-cyan={currentPhaseId === phase.id}
+									class:to-y2k-pink={currentPhaseId === phase.id}
+									class:text-white={currentPhaseId === phase.id}
+								>
+									{phase.phase_number}. {phase.name}
+									{#if currentPhaseId === phase.id}
+										<span class="ml-1">✓</span>
+									{/if}
+								</button>
+							{/each}
+						</div>
+						{#if phases.length === 0}
+							<div class="text-center py-4 text-win-textDisabled">No phases configured</div>
+						{/if}
+					</div>
+
+					<!-- Phases List -->
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">All Phases ({phases.length})</span>
+						<div class="win-inset p-2">
+							{#if phases.length === 0}
+								<div class="text-center py-4 text-win-textDisabled">No phases yet</div>
+							{:else}
+								<table class="w-full text-sm">
+									<thead>
+										<tr class="border-b border-win-btnShadow">
+											<th class="text-left p-1">#</th>
+											<th class="text-left p-1">Name</th>
+											<th class="text-left p-1">Status</th>
+										</tr>
+									</thead>
+									<tbody>
+										{#each phases as phase}
+											<tr class="border-b border-win-btnHighlight">
+												<td class="p-1 font-mono">{phase.phase_number}</td>
+												<td class="p-1 font-bold">{phase.name}</td>
+												<td class="p-1">
+													{#if currentPhaseId === phase.id}
+														<span class="text-green-600 font-bold">ACTIVE</span>
+													{:else}
+														<span class="text-win-textDisabled">-</span>
+													{/if}
+												</td>
+											</tr>
+										{/each}
+									</tbody>
+								</table>
+							{/if}
+						</div>
+					</div>
+				</div>
+
+			{:else if activeTab === 'activities'}
+				<!-- Activity Prompts Tab -->
+				<div class="space-y-3">
+					<!-- Add Activity Prompt Form -->
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">Add Activity Prompt</span>
+						<div class="space-y-2">
+							<input
+								type="text"
+								bind:value={newActivityDescription}
+								placeholder="Activity description..."
+								class="win-input w-full"
+							/>
+							<div class="flex gap-2 flex-wrap items-center">
+								<label class="text-sm">Category:</label>
+								<select bind:value={newActivityCategory} class="win-input">
+									{#each activityCategories as cat}
+										<option value={cat}>{cat}</option>
+									{/each}
+								</select>
+								<label class="text-sm ml-2">Phases:</label>
+								{#each phases as phase}
+									<label class="inline-flex items-center gap-1 text-sm">
+										<input
+											type="checkbox"
+											checked={newActivityPhases.includes(phase.phase_number)}
+											onchange={(e) => {
+												const target = e.target as HTMLInputElement;
+												if (target.checked) {
+													newActivityPhases = [...newActivityPhases, phase.phase_number];
+												} else {
+													newActivityPhases = newActivityPhases.filter(p => p !== phase.phase_number);
+												}
+											}}
+										/>
+										{phase.phase_number}
+									</label>
+								{/each}
+								<button onclick={addActivityPrompt} class="win-btn px-4 ml-auto" disabled={!newActivityDescription.trim()}>
+									Add
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<!-- Activity Prompts List -->
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">Activity Prompts ({activityPrompts.length})</span>
+						<div class="win-inset p-2 max-h-[50vh] overflow-y-auto">
+							{#if activityPrompts.length === 0}
+								<div class="text-center py-4 text-win-textDisabled">No activity prompts yet</div>
+							{:else}
+								<div class="space-y-2">
+									{#each activityPrompts as activity}
+										<div
+											class="win-inset p-2"
+											class:bg-white={activity.is_active}
+											class:bg-gray-200={!activity.is_active}
+											class:opacity-50={!activity.is_active}
+										>
+											<div class="flex items-start gap-2">
+												<div class="flex-1">
+													<div class="font-bold text-sm">{activity.description}</div>
+													<div class="text-xs text-win-textDisabled mt-1 flex gap-2 flex-wrap">
+														<span class="bg-win-bg px-1 rounded">{activity.activity_category}</span>
+														<span>Phases: {activity.phase_numbers?.join(', ') || '1'}</span>
+														<span>Used: {activity.times_used}x</span>
+													</div>
+												</div>
+												<div class="flex gap-1">
+													<button
+														onclick={() => toggleActivityPrompt(activity.id, activity.is_active)}
+														class="win-btn px-2 py-0 text-xs"
+													>
+														{activity.is_active ? 'disable' : 'enable'}
+													</button>
+													<button
+														onclick={() => deleteActivityPrompt(activity.id)}
+														class="win-btn px-2 py-0 text-xs text-red-600"
+													>
+														x
+													</button>
+												</div>
+											</div>
+										</div>
+									{/each}
+								</div>
+							{/if}
+						</div>
+					</div>
+				</div>
 			{/if}
 		</div>
 
@@ -391,8 +705,12 @@
 					{guests.length} guests registered
 				{:else if activeTab === 'bonds'}
 					{bonds.length} melds total
-				{:else}
+				{:else if activeTab === 'prompts'}
 					{prompts.length} prompts configured
+				{:else if activeTab === 'phases'}
+					{phases.length} phases | Current: {phases.find(p => p.id === currentPhaseId)?.name || 'None'}
+				{:else if activeTab === 'activities'}
+					{activityPrompts.length} activity prompts
 				{/if}
 			</div>
 			<div class="win-inset px-2 ml-1">
