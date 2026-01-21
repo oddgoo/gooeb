@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { onMount, onDestroy } from 'svelte';
+	import { fly } from 'svelte/transition';
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import { bonds, completedBonds } from '$lib/stores/bonds';
 	import type { LayoutData } from '../../$types';
 
 	let layoutData = $derived($page.data as LayoutData);
@@ -21,6 +24,28 @@
 			nickname = guest.nickname;
 		}
 	});
+
+	// Load bonds on mount
+	onMount(() => {
+		bonds.load();
+	});
+
+	onDestroy(() => {
+		bonds.cleanup();
+	});
+
+	function getCategoryEmoji(category: string): string {
+		switch (category) {
+			case 'character':
+				return '👤';
+			case 'theme':
+				return '💭';
+			case 'place':
+				return '📍';
+			default:
+				return '✨';
+		}
+	}
 
 	function handlePhotoCapture(dataUrl: string) {
 		photoData = dataUrl;
@@ -114,6 +139,53 @@
 					maxlength="20"
 					class="win-input w-full text-lg py-2"
 				/>
+			</div>
+
+			<!-- Completed Melds -->
+			<div class="win-groupbox">
+				<span class="win-groupbox-label">Completed Melds ({$completedBonds.length})</span>
+				{#if $bonds.loading}
+					<div class="text-center py-4">
+						<LoadingSpinner size="lg" color="pink" />
+						<div class="text-sm mt-2 text-win-textDisabled">Loading melds...</div>
+					</div>
+				{:else if $completedBonds.length === 0}
+					<div class="text-center py-3 text-win-textDisabled">
+						<div class="text-2xl mb-1">🧠</div>
+						<div class="text-sm">No melds yet</div>
+					</div>
+				{:else}
+					<div class="win-inset p-2 max-h-60 overflow-y-auto">
+						{#each $completedBonds as bond (bond.id)}
+							<div class="flex items-center gap-2 py-2 border-b border-win-btnShadow last:border-0" transition:fly={{ x: 20, duration: 250 }}>
+								<div class="win-inset p-0.5">
+									<img
+										src={bond.partner.photo_url}
+										alt={bond.partner.nickname}
+										class="w-8 h-8 object-cover"
+									/>
+								</div>
+								<div class="flex-1 min-w-0">
+									<div class="font-bold text-sm truncate">{bond.partner.nickname}</div>
+									{#if bond.prompt}
+										<div class="text-xs text-win-textDisabled">
+											{getCategoryEmoji(bond.prompt.category)} {bond.prompt.word}
+										</div>
+									{/if}
+								</div>
+								{#if bond.photo_url}
+									<div class="win-inset p-0.5 flex-shrink-0">
+										<img
+											src={bond.photo_url}
+											alt="Meld photo"
+											class="w-10 h-10 object-cover"
+										/>
+									</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
 			</div>
 
 			{#if error}

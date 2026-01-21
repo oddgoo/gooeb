@@ -436,54 +436,7 @@
 				</div>
 			{/if}
 
-			<!-- Completed Melds -->
-			<div class="win-groupbox">
-				<span class="win-groupbox-label">Completed ({$completedBonds.length})</span>
-				{#if $bonds.loading}
-					<div class="text-center py-4">
-						<LoadingSpinner size="lg" color="pink" />
-						<div class="text-sm mt-2 text-win-textDisabled">Loading melds...</div>
-					</div>
-				{:else if $completedBonds.length === 0}
-					<div class="text-center py-3 text-win-textDisabled">
-						<div class="text-2xl mb-1">🧠</div>
-						<div class="text-sm">No melds yet</div>
-					</div>
-				{:else}
-					<div class="win-inset p-2 max-h-40 overflow-y-auto">
-						{#each $completedBonds as bond (bond.id)}
-							<div class="flex items-center gap-2 py-1 border-b border-win-btnShadow last:border-0" transition:fly={{ x: 20, duration: 250 }}>
-								<div class="win-inset p-0.5">
-									<img
-										src={bond.partner.photo_url}
-										alt={bond.partner.nickname}
-										class="w-6 h-6 object-cover"
-									/>
-								</div>
-								<div class="flex-1">
-									<span class="font-bold text-sm">{bond.partner.nickname}</span>
-									{#if bond.prompt}
-										<span class="text-xs ml-2">
-											{getCategoryEmoji(bond.prompt.category)} {bond.prompt.word}
-										</span>
-									{/if}
-								</div>
-								{#if bond.photo_url}
-									<div class="win-inset p-0.5">
-										<img
-											src={bond.photo_url}
-											alt="Done"
-											class="w-8 h-8 object-cover"
-										/>
-									</div>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/if}
-			</div>
-
-			</div><!-- End content layer -->
+				</div><!-- End content layer -->
 		</div>
 
 		<!-- Status Bar -->

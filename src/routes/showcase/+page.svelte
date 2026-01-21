@@ -398,7 +398,7 @@
 						<span class="font-bold">{stats.totalBonds}</span>
 					</div>
 					<div class="mt-1">
-						<div class="text-xs mb-1">Progress:</div>
+						<div class="text-xs mb-1">Progress: {stats.totalBonds} out of {stats.maxPossibleBonds} Melds</div>
 						<div class="win-inset h-5 relative overflow-hidden">
 							<div
 								class="absolute inset-0 bg-gradient-to-r from-y2k-pink to-y2k-magenta transition-all duration-500"
