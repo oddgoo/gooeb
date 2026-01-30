@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { createServerClient, getGuestByCode } from '$lib/supabase/server';
-import { calculateGuestPoints, deduplicateBonds } from '$lib/scoring';
+import { calculateGuestPoints, deduplicateBonds, applyLedgerPoints } from '$lib/scoring';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {
@@ -76,6 +76,12 @@ export const GET: RequestHandler = async ({ cookies }) => {
 		};
 	});
 
+	// Fetch ledger entries for this user
+	const { data: ledgerEntries } = await supabase
+		.from('point_ledger' as any)
+		.select('id, guest_id, points, reason, created_at')
+		.eq('guest_id', me.id);
+
 	// Calculate points from deduplicated bonds (one per pair, prefer best status)
 	const pointsMap = calculateGuestPoints(
 		deduplicateBonds(
@@ -86,6 +92,9 @@ export const GET: RequestHandler = async ({ cookies }) => {
 			}))
 		)
 	);
+	if (ledgerEntries && ledgerEntries.length > 0) {
+		applyLedgerPoints(pointsMap, ledgerEntries);
+	}
 	const myPoints = pointsMap.get(me.id)?.totalPoints ?? 0;
 
 	return json({

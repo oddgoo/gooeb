@@ -64,6 +64,13 @@ export const GET: RequestHandler = async () => {
 	// Keep only one bond per pair (prefer completed, then earliest)
 	const bonds = deduplicateBonds(allBonds);
 
+	// Fetch all ledger entries for leaderboard scoring
+	const { data: ledgerData } = await supabase
+		.from('point_ledger' as any)
+		.select('id, guest_id, points, reason, created_at');
+
+	const ledgerEntries = (ledgerData || []) as { id: string; guest_id: string; points: number; reason: string; created_at: string }[];
+
 	// Calculate stats
 	const totalGuests = guests.length;
 	const totalBonds = bonds.length;
@@ -73,8 +80,8 @@ export const GET: RequestHandler = async () => {
 		? (totalGuests * (totalGuests - 1)) / 2
 		: 0;
 
-	// Leaderboard with points
-	const leaderboard = buildLeaderboard(guests, bonds);
+	// Leaderboard with points (including manual ledger adjustments)
+	const leaderboard = buildLeaderboard(guests, bonds, 10, ledgerEntries);
 
 	return json({
 		guests,

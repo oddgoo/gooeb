@@ -25,3 +25,11 @@ export type LeaderboardEntry = {
 	points: number;
 	bondCount: number;
 };
+
+export type LedgerEntry = {
+	id: string;
+	guest_id: string;
+	points: number;
+	reason: string;
+	created_at: string;
+};

@@ -48,7 +48,7 @@
 
 	let pageData = $derived($page.data as { guest: { id: string; nickname: string }; eventId: string | null });
 
-	let activeTab = $state<'guests' | 'bonds' | 'prompts' | 'phases' | 'activities' | 'teams'>('guests');
+	let activeTab = $state<'guests' | 'bonds' | 'prompts' | 'phases' | 'activities' | 'teams' | 'points'>('guests');
 	let guests = $state<Guest[]>([]);
 	let bonds = $state<Bond[]>([]);
 	let prompts = $state<Prompt[]>([]);
@@ -73,6 +73,19 @@
 	let teamSize = $state(4);
 	let currentTeams = $state<{ emoji: string; members: string[] }[]>([]);
 	let teamsLoading = $state(false);
+
+	// Points ledger
+	type LedgerDisplayEntry = {
+		id: string;
+		guest_id: string;
+		points: number;
+		reason: string;
+		created_at: string;
+		guest: { nickname: string } | null;
+	};
+	let ledgerEntries = $state<LedgerDisplayEntry[]>([]);
+	let selectedGuestId = $state('');
+	let pointsReason = $state('');
 
 	// Bulk upload
 	let bulkCsvFile = $state<File | null>(null);
@@ -409,6 +422,59 @@
 		}
 	}
 
+	async function loadPoints() {
+		loading = true;
+		try {
+			// Load guests too (for the dropdown)
+			const guestsRes = await fetch('/api/admin/guests');
+			const guestsData = await guestsRes.json();
+			guests = guestsData.guests;
+
+			const res = await fetch('/api/admin/points');
+			const data = await res.json();
+			ledgerEntries = data.entries;
+		} catch (e) {
+			error = 'Failed to load points';
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function addPoints(amount: number) {
+		if (!selectedGuestId) return;
+
+		try {
+			await fetch('/api/admin/points', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					guest_id: selectedGuestId,
+					points: amount,
+					reason: pointsReason.trim()
+				})
+			});
+			pointsReason = '';
+			loadPoints();
+		} catch (e) {
+			error = 'Failed to add points';
+		}
+	}
+
+	async function deleteLedgerEntry(entryId: string) {
+		if (!confirm('Delete this points entry?')) return;
+
+		try {
+			await fetch('/api/admin/points', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ entryId })
+			});
+			loadPoints();
+		} catch (e) {
+			error = 'Failed to delete points entry';
+		}
+	}
+
 	function getCategoryEmoji(category: string): string {
 		switch (category) {
 			case 'character': return '👤';
@@ -440,6 +506,7 @@
 		else if (activeTab === 'phases') loadPhases();
 		else if (activeTab === 'activities') loadActivityPrompts();
 		else if (activeTab === 'teams') loadTeams();
+		else if (activeTab === 'points') loadPoints();
 	});
 </script>
 
@@ -495,6 +562,13 @@
 				onclick={() => activeTab = 'teams'}
 			>
 				Teams
+			</button>
+			<button
+				class="win-btn px-3 py-1 text-sm"
+				class:bg-white={activeTab === 'points'}
+				onclick={() => activeTab = 'points'}
+			>
+				Points
 			</button>
 		</div>
 
@@ -865,6 +939,77 @@
 						</div>
 					</div>
 				</div>
+			{:else if activeTab === 'points'}
+				<!-- Points Tab -->
+				<div class="space-y-3">
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">Add Points</span>
+						<div class="space-y-2">
+							<select bind:value={selectedGuestId} class="win-input w-full">
+								<option value="">Select guest...</option>
+								{#each guests as guest}
+									<option value={guest.id}>{guest.nickname}</option>
+								{/each}
+							</select>
+							<input
+								type="text"
+								bind:value={pointsReason}
+								placeholder="Reason (optional)"
+								class="win-input w-full"
+							/>
+							<div class="flex gap-2 flex-wrap">
+								<button onclick={() => addPoints(-10)} class="win-btn px-3 py-1" disabled={!selectedGuestId}>-10</button>
+								<button onclick={() => addPoints(-1)} class="win-btn px-3 py-1" disabled={!selectedGuestId}>-1</button>
+								<button onclick={() => addPoints(1)} class="win-btn px-3 py-1" disabled={!selectedGuestId}>+1</button>
+								<button onclick={() => addPoints(10)} class="win-btn px-3 py-1" disabled={!selectedGuestId}>+10</button>
+							</div>
+						</div>
+					</div>
+
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">Points History ({ledgerEntries.length})</span>
+						<div class="win-inset p-2 max-h-[50vh] overflow-y-auto">
+							{#if ledgerEntries.length === 0}
+								<div class="text-center py-4 text-win-textDisabled">No point adjustments yet</div>
+							{:else}
+								<table class="w-full text-sm">
+									<thead>
+										<tr class="border-b border-win-btnShadow">
+											<th class="text-left p-1">Guest</th>
+											<th class="text-left p-1">Points</th>
+											<th class="text-left p-1">Reason</th>
+											<th class="text-left p-1">Time</th>
+											<th class="text-left p-1">Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										{#each ledgerEntries as entry}
+											<tr class="border-b border-win-btnHighlight">
+												<td class="p-1 font-bold">{entry.guest?.nickname || '?'}</td>
+												<td class="p-1 font-mono {entry.points > 0 ? 'text-green-700' : 'text-red-700'}">
+													{entry.points > 0 ? '+' : ''}{entry.points}
+												</td>
+												<td class="p-1 text-win-textDisabled">{entry.reason || '-'}</td>
+												<td class="p-1 text-xs text-win-textDisabled">
+													{new Date(entry.created_at).toLocaleString()}
+												</td>
+												<td class="p-1">
+													<button
+														onclick={() => deleteLedgerEntry(entry.id)}
+														class="win-btn px-2 py-0 text-xs"
+													>
+														Delete
+													</button>
+												</td>
+											</tr>
+										{/each}
+									</tbody>
+								</table>
+							{/if}
+						</div>
+					</div>
+				</div>
+
 			{:else if activeTab === 'teams'}
 				<!-- Teams Tab -->
 				<div class="space-y-3">
@@ -936,6 +1081,8 @@
 					{activityPrompts.length} activity prompts
 				{:else if activeTab === 'teams'}
 					{currentTeams.length} teams
+				{:else if activeTab === 'points'}
+					{ledgerEntries.length} point adjustments
 				{/if}
 			</div>
 			<div class="win-inset px-2 ml-1">

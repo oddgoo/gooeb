@@ -1,5 +1,5 @@
 import { SCORING_RULES } from './rules';
-import type { GuestPoints, LeaderboardEntry, PointBreakdown } from './types';
+import type { GuestPoints, LeaderboardEntry, LedgerEntry, PointBreakdown } from './types';
 
 type BondLike = {
 	guest_a_id: string;
@@ -109,6 +109,42 @@ export function calculateGuestPoints(bonds: BondLike[]): Map<string, GuestPoints
 	return map;
 }
 
+/**
+ * Apply manual point ledger entries to an existing points map.
+ * Mutates the map in place and returns it.
+ */
+export function applyLedgerPoints(
+	pointsMap: Map<string, GuestPoints>,
+	ledgerEntries: LedgerEntry[]
+): Map<string, GuestPoints> {
+	// Sum ledger points per guest
+	const sums = new Map<string, number>();
+	for (const entry of ledgerEntries) {
+		sums.set(entry.guest_id, (sums.get(entry.guest_id) ?? 0) + entry.points);
+	}
+
+	for (const [guestId, total] of sums) {
+		if (total === 0) continue;
+
+		let gp = pointsMap.get(guestId);
+		if (!gp) {
+			gp = { guestId, totalPoints: 0, breakdown: [] };
+			pointsMap.set(guestId, gp);
+		}
+
+		gp.breakdown.push({
+			ruleId: 'manual_adjustment',
+			label: 'Manual Adjustment',
+			count: 1,
+			pointsPerUnit: total,
+			totalPoints: total
+		});
+		gp.totalPoints += total;
+	}
+
+	return pointsMap;
+}
+
 type GuestLike = {
 	id: string;
 	nickname: string;
@@ -121,9 +157,13 @@ type GuestLike = {
 export function buildLeaderboard(
 	guests: GuestLike[],
 	bonds: BondLike[],
-	limit = 10
+	limit = 10,
+	ledgerEntries: LedgerEntry[] = []
 ): LeaderboardEntry[] {
 	const pointsMap = calculateGuestPoints(bonds);
+	if (ledgerEntries.length > 0) {
+		applyLedgerPoints(pointsMap, ledgerEntries);
+	}
 
 	// Also count raw bonds per guest for display
 	const bondCounts: Record<string, number> = {};

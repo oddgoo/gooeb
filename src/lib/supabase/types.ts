@@ -250,6 +250,36 @@ export type Database = {
 					completed_at?: string | null;
 				};
 			};
+			point_ledger: {
+				Row: {
+					id: string;
+					event_id: string | null;
+					guest_id: string;
+					points: number;
+					reason: string;
+					created_by: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					event_id?: string | null;
+					guest_id: string;
+					points: number;
+					reason?: string;
+					created_by?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					event_id?: string | null;
+					guest_id?: string;
+					points?: number;
+					reason?: string;
+					created_by?: string | null;
+					created_at?: string;
+				};
+				Relationships: [];
+			};
 		};
 	};
 };
