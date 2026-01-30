@@ -324,48 +324,46 @@
 								<span class="font-bold">{bond.partner.nickname}</span>
 							</div>
 
-							<!-- Individual Prompts -->
-							<div class="grid grid-cols-2 gap-2 mb-3">
-								<!-- My Prompt -->
-								{#if bond.myPrompt}
-									<div class="text-center py-2 bg-win-bg win-panel">
-										<div class="text-xs mb-1">Your prompt:</div>
-										<div class="text-lg font-bold text-win-title">
-											{getCategoryEmoji(bond.myPrompt.category)} {bond.myPrompt.word}
-										</div>
-										<div class="text-xs uppercase">[{bond.myPrompt.category}]</div>
-									</div>
-								{:else if bond.prompt}
-									<!-- Legacy single prompt fallback -->
-									<div class="text-center py-2 bg-win-bg win-panel col-span-2">
-										<div class="text-xs mb-1">Your prompt:</div>
-										<div class="text-lg font-bold text-win-title">
-											{getCategoryEmoji(bond.prompt.category)} {bond.prompt.word}
-										</div>
-										<div class="text-xs uppercase">[{bond.prompt.category}]</div>
-									</div>
-								{/if}
-
-								<!-- Partner's Prompt -->
-								{#if bond.partnerPrompt}
-									<div class="text-center py-2 bg-win-bg win-panel">
-										<div class="text-xs mb-1">{bond.partner.nickname}'s:</div>
-										<div class="text-lg font-bold text-win-title">
-											{getCategoryEmoji(bond.partnerPrompt.category)} {bond.partnerPrompt.word}
-										</div>
-										<div class="text-xs uppercase">[{bond.partnerPrompt.category}]</div>
-									</div>
-								{/if}
-							</div>
-
 							<!-- Shared Activity -->
 							{#if bond.activityPrompt}
-								<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3">
-									<div class="text-xs mb-1 opacity-80">Shared Activity:</div>
+								<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3 space-y-2">
 									<div class="text-base font-bold">
 										{bond.activityPrompt.description}
 									</div>
+									{#if bond.myPrompt && bond.partnerPrompt}
+										<div class="text-sm opacity-90">
+											Your words are: <strong>{bond.myPrompt.word}</strong> + <strong>{bond.partnerPrompt.word}</strong>
+										</div>
+									{:else if bond.myPrompt}
+										<div class="text-sm opacity-90">
+											Your word is: <strong>{bond.myPrompt.word}</strong>
+										</div>
+									{:else if bond.prompt}
+										<div class="text-sm opacity-90">
+											Your word is: <strong>{bond.prompt.word}</strong>
+										</div>
+									{/if}
 								</div>
+							{:else}
+								{#if bond.myPrompt && bond.partnerPrompt}
+									<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3">
+										<div class="text-sm">
+											Your words are: <strong>{bond.myPrompt.word}</strong> + <strong>{bond.partnerPrompt.word}</strong>
+										</div>
+									</div>
+								{:else if bond.myPrompt}
+									<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3">
+										<div class="text-sm">
+											Your word is: <strong>{bond.myPrompt.word}</strong>
+										</div>
+									</div>
+								{:else if bond.prompt}
+									<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3">
+										<div class="text-sm">
+											Your word is: <strong>{bond.prompt.word}</strong>
+										</div>
+									</div>
+								{/if}
 							{/if}
 
 							{#if completingBondId === bond.id}
