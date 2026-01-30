@@ -8,7 +8,7 @@
 	import { bonds, completedBonds } from '$lib/stores/bonds';
 	import type { LayoutData } from '../../$types';
 
-	let layoutData = $derived($page.data as LayoutData);
+	let layoutData = $derived($page.data as LayoutData & { guest: { intro_text?: string | null } });
 	let guest = $derived(layoutData.guest);
 	let maskCode = $derived(layoutData.maskCode);
 
@@ -140,6 +140,15 @@
 					class="win-input w-full text-lg py-2"
 				/>
 			</div>
+
+			{#if guest.intro_text}
+				<div class="win-groupbox">
+					<span class="win-groupbox-label">About You</span>
+					<div class="win-inset p-2 text-sm text-win-text">
+						{guest.intro_text}
+					</div>
+				</div>
+			{/if}
 
 			<!-- Completed Melds -->
 			<div class="win-groupbox">

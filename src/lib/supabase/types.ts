@@ -143,6 +143,7 @@ export type Database = {
 					auth_token: string;
 					is_admin: boolean;
 					team_emoji: string | null;
+					intro_text: string | null;
 					created_at: string;
 					updated_at: string;
 				};
@@ -155,6 +156,7 @@ export type Database = {
 					auth_token: string;
 					is_admin?: boolean;
 					team_emoji?: string | null;
+					intro_text?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};
@@ -167,6 +169,7 @@ export type Database = {
 					auth_token?: string;
 					is_admin?: boolean;
 					team_emoji?: string | null;
+					intro_text?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};

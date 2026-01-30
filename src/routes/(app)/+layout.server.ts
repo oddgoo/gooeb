@@ -16,6 +16,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 			nickname: guest.nickname,
 			photo_url: guest.photo_url,
 			is_admin: guest.is_admin,
+			intro_text: guest.intro_text ?? null,
 			created_at: guest.created_at
 		},
 		maskCode: guest.mask_codes?.code || null,

@@ -1,0 +1,1 @@
+ALTER TABLE guests ADD COLUMN intro_text TEXT DEFAULT NULL;

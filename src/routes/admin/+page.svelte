@@ -74,6 +74,12 @@
 	let currentTeams = $state<{ emoji: string; members: string[] }[]>([]);
 	let teamsLoading = $state(false);
 
+	// Bulk upload
+	let bulkCsvFile = $state<File | null>(null);
+	let bulkPhotoFiles = $state<FileList | null>(null);
+	let bulkUploading = $state(false);
+	let bulkResult = $state<{ created: number; skipped: number; errors: string[] } | null>(null);
+
 	async function loadGuests() {
 		loading = true;
 		try {
@@ -370,6 +376,39 @@
 		}
 	}
 
+	async function bulkUpload() {
+		if (!bulkCsvFile) return;
+		bulkUploading = true;
+		bulkResult = null;
+		error = '';
+
+		try {
+			const formData = new FormData();
+			formData.append('csv', bulkCsvFile);
+			if (bulkPhotoFiles) {
+				for (const file of bulkPhotoFiles) {
+					formData.append('photos', file);
+				}
+			}
+
+			const res = await fetch('/api/admin/guests/bulk', {
+				method: 'POST',
+				body: formData
+			});
+
+			const data = await res.json();
+			if (!res.ok) {
+				throw new Error(data.message || 'Bulk upload failed');
+			}
+			bulkResult = data;
+			loadGuests();
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Bulk upload failed';
+		} finally {
+			bulkUploading = false;
+		}
+	}
+
 	function getCategoryEmoji(category: string): string {
 		switch (category) {
 			case 'character': return '👤';
@@ -509,6 +548,60 @@
 									{/each}
 								</tbody>
 							</table>
+						{/if}
+					</div>
+				</div>
+
+				<!-- Bulk Upload -->
+				<div class="win-groupbox mt-3">
+					<span class="win-groupbox-label">Bulk Upload Guests</span>
+					<div class="space-y-2 p-1">
+						<div>
+							<label class="text-sm block mb-1">CSV file (columns: code, nickname, intro_text)</label>
+							<input
+								type="file"
+								accept=".csv"
+								onchange={(e) => {
+									const target = e.target as HTMLInputElement;
+									bulkCsvFile = target.files?.[0] || null;
+								}}
+								class="win-input w-full text-sm"
+							/>
+						</div>
+						<div>
+							<label class="text-sm block mb-1">Photo files (named {'{nickname}.png'})</label>
+							<input
+								type="file"
+								accept="image/*"
+								multiple
+								onchange={(e) => {
+									const target = e.target as HTMLInputElement;
+									bulkPhotoFiles = target.files;
+								}}
+								class="win-input w-full text-sm"
+							/>
+						</div>
+						<button
+							onclick={bulkUpload}
+							disabled={!bulkCsvFile || bulkUploading}
+							class="win-btn px-4 py-1"
+						>
+							{bulkUploading ? 'Uploading...' : 'Bulk Upload'}
+						</button>
+
+						{#if bulkResult}
+							<div class="win-inset p-2 text-sm">
+								<div class="text-green-700">Created: {bulkResult.created}</div>
+								<div class="text-yellow-700">Skipped: {bulkResult.skipped}</div>
+								{#if bulkResult.errors.length > 0}
+									<div class="text-red-700 mt-1">
+										Errors:
+										{#each bulkResult.errors as err}
+											<div class="ml-2">- {err}</div>
+										{/each}
+									</div>
+								{/if}
+							</div>
 						{/if}
 					</div>
 				</div>

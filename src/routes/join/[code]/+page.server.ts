@@ -72,10 +72,33 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		};
 	}
 
+	// Check if a pre-populated guest record exists for this mask code
+	const { data: prePopGuest } = await supabase
+		.from('guests')
+		.select('id, nickname, photo_url, intro_text')
+		.eq('mask_code_id', maskCodeResult.id)
+		.single();
+
+	if (prePopGuest) {
+		return {
+			code,
+			isClaimed: false as const,
+			prePopulated: true as const,
+			maskCodeId: maskCodeResult.id,
+			eventId: maskCodeResult.event_id,
+			prePopulatedGuest: {
+				nickname: (prePopGuest as any).nickname as string,
+				photo_url: (prePopGuest as any).photo_url as string,
+				intro_text: (prePopGuest as any).intro_text as string | null
+			}
+		};
+	}
+
 	// Valid unclaimed code - proceed to registration
 	return {
 		code,
 		isClaimed: false as const,
+		prePopulated: false as const,
 		maskCodeId: maskCodeResult.id,
 		eventId: maskCodeResult.event_id
 	};
