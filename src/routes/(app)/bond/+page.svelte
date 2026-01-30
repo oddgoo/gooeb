@@ -28,12 +28,29 @@
 	let cancellingBondId = $state<string | null>(null); // Track which bond is being cancelled
 	let confirmCancelBondId = $state<string | null>(null); // Track which bond has cancel confirmation dialog open
 
-	// Global processing state - true when ANY async operation is in progress
-	let isProcessing = $derived(isSubmitting || Object.keys(loadingBonds).length > 0 || completingBondId !== null || cancellingBondId !== null);
+	// Profile lookup modal state
+	let lookupTarget = $state<{ id: string; nickname: string; photo_url: string; intro_text: string | null; code: string } | null>(null);
+	let showProfileModal = $state(false);
+	let isLookingUp = $state(false);
 
-	// Load bonds on mount
+	// Global processing state - true when ANY async operation is in progress
+	let isProcessing = $derived(isSubmitting || Object.keys(loadingBonds).length > 0 || completingBondId !== null || cancellingBondId !== null || isLookingUp);
+
+	// Load bonds on mount + handle ?invite= param
 	onMount(() => {
 		bonds.load();
+
+		const inviteCode = $page.url.searchParams.get('invite');
+		if (inviteCode) {
+			// Clear the URL param without navigation
+			const url = new URL(window.location.href);
+			url.searchParams.delete('invite');
+			window.history.replaceState({}, '', url.toString());
+
+			// Auto-trigger lookup
+			targetCode = formatCode(inviteCode);
+			lookupGuest(inviteCode);
+		}
 	});
 
 	onDestroy(() => {
@@ -47,13 +64,53 @@
 		successMessage = '';
 	}
 
-	async function sendInvite() {
-		if (!validateCode(targetCode)) {
+	async function lookupGuest(code?: string) {
+		const codeToLookup = code || targetCode;
+
+		if (!validateCode(codeToLookup)) {
 			error = 'Please enter a valid 3-digit code';
 			return;
 		}
 
-		if (targetCode === maskCode) {
+		if (codeToLookup === maskCode) {
+			error = "That's your own code!";
+			return;
+		}
+
+		isLookingUp = true;
+		error = '';
+
+		try {
+			const response = await fetch(`/api/guest/lookup?code=${encodeURIComponent(codeToLookup)}`);
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.message || 'Guest not found');
+			}
+
+			lookupTarget = { ...result, code: codeToLookup };
+			showProfileModal = true;
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Failed to look up guest';
+		} finally {
+			isLookingUp = false;
+		}
+	}
+
+	function closeProfileModal() {
+		showProfileModal = false;
+		lookupTarget = null;
+	}
+
+	async function sendInvite(codeOverride?: string) {
+		const codeToSend = codeOverride || targetCode;
+
+		if (!validateCode(codeToSend)) {
+			error = 'Please enter a valid 3-digit code';
+			return;
+		}
+
+		if (codeToSend === maskCode) {
 			error = "That's your own code!";
 			return;
 		}
@@ -65,7 +122,7 @@
 			const response = await fetch('/api/bond/invite', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ targetCode })
+				body: JSON.stringify({ targetCode: codeToSend })
 			});
 
 			const result = await response.json();
@@ -73,6 +130,10 @@
 			if (!response.ok) {
 				throw new Error(result.message || 'Failed to send invite');
 			}
+
+			// Close modal if open
+			showProfileModal = false;
+			lookupTarget = null;
 
 			// Success - optimistic update for instant feedback
 			targetCode = '';
@@ -92,6 +153,9 @@
 			}
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to send invite';
+			// Close modal on error so user sees the error message
+			showProfileModal = false;
+			lookupTarget = null;
 		} finally {
 			isSubmitting = false;
 		}
@@ -376,7 +440,7 @@
 				<form
 					onsubmit={(e) => {
 						e.preventDefault();
-						sendInvite();
+						lookupGuest();
 					}}
 					class="space-y-3"
 				>
@@ -414,8 +478,8 @@
 						disabled={isProcessing || targetCode.length !== 3}
 						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2"
 					>
-						{#if isSubmitting}
-							<LoadingSpinner size="sm" color="white" /> Sending...
+						{#if isLookingUp}
+							<LoadingSpinner size="sm" color="white" /> Looking up...
 						{:else}
 							Send Invite
 						{/if}
@@ -455,6 +519,67 @@
 		</div>
 	</div>
 </div>
+
+<!-- Profile Preview Modal -->
+{#if showProfileModal && lookupTarget}
+	<div
+		class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+		onclick={closeProfileModal}
+		onkeydown={(e) => e.key === 'Escape' && closeProfileModal()}
+		role="dialog"
+		aria-modal="true"
+		tabindex="-1"
+		transition:fade={{ duration: 150 }}
+	>
+		<div
+			class="win-window max-w-sm w-full"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="document"
+		>
+			<div class="win-titlebar">
+				<span>Guest Profile</span>
+				<button onclick={closeProfileModal} class="win-btn px-2 py-0 min-w-0 text-xs">✕</button>
+			</div>
+			<div class="p-4 space-y-4">
+				<div class="flex flex-col items-center gap-3">
+					<div class="win-inset p-1">
+						<img
+							src={lookupTarget.photo_url}
+							alt={lookupTarget.nickname}
+							class="w-32 h-32 object-cover"
+						/>
+					</div>
+					<div class="text-center">
+						<div class="text-lg font-bold">{lookupTarget.nickname}</div>
+						{#if lookupTarget.intro_text}
+							<div class="text-sm text-win-textDisabled mt-1">{lookupTarget.intro_text}</div>
+						{/if}
+					</div>
+				</div>
+				<div class="flex gap-2">
+					<button
+						onclick={closeProfileModal}
+						class="win-btn px-4 py-1.5 flex-1"
+					>
+						Cancel
+					</button>
+					<button
+						onclick={() => lookupTarget && sendInvite(lookupTarget.code)}
+						disabled={isSubmitting}
+						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white px-4 py-1.5 flex-1"
+					>
+						{#if isSubmitting}
+							<LoadingSpinner size="sm" color="white" /> Sending...
+						{:else}
+							Send Meld Request
+						{/if}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Cancel Confirmation Dialog -->
 {#if confirmCancelBondId}
