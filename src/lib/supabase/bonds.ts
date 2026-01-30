@@ -76,9 +76,30 @@ export async function acceptBond(
 		throw new Error(`No activity prompts available for phase ${currentPhaseNumber}`);
 	}
 
-	const selectedActivity = phaseFilteredPrompts[
-		Math.floor(Math.random() * phaseFilteredPrompts.length)
+	// Weighted selection: photo activities get ~5% each, others share the rest equally
+	const PHOTO_WEIGHT = 0.05;
+	const photoPrompts = phaseFilteredPrompts.filter((p) => p.activity_category === 'photo');
+	const otherPrompts = phaseFilteredPrompts.filter((p) => p.activity_category !== 'photo');
+
+	const totalPhotoWeight = photoPrompts.length * PHOTO_WEIGHT;
+	const remainingWeight = 1 - totalPhotoWeight;
+	const otherWeight = otherPrompts.length > 0 ? remainingWeight / otherPrompts.length : 0;
+
+	const weighted: { prompt: ActivityPromptWithPhases; weight: number }[] = [
+		...photoPrompts.map((p) => ({ prompt: p, weight: PHOTO_WEIGHT })),
+		...otherPrompts.map((p) => ({ prompt: p, weight: otherWeight }))
 	];
+
+	const roll = Math.random();
+	let cumulative = 0;
+	let selectedActivity = weighted[0].prompt;
+	for (const entry of weighted) {
+		cumulative += entry.weight;
+		if (roll < cumulative) {
+			selectedActivity = entry.prompt;
+			break;
+		}
+	}
 
 	// Photo activities don't use word prompts
 	const needsWordPrompts = selectedActivity.activity_category !== 'photo';
