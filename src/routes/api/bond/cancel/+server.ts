@@ -53,15 +53,25 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	}
 
 	// Update status to cancelled
-	const { error: updateError } = await supabase
+	console.log(`[cancel] Guest ${me.id} cancelling bond ${bondId}`);
+
+	const { data: updateData, error: updateError } = await supabase
 		.from('bonds')
 		.update({ status: 'cancelled' } as never)
 		.eq('id', bondId)
-		.eq('status', 'accepted');
+		.eq('status', 'accepted')
+		.select('id');
 
 	if (updateError) {
+		console.error(`[cancel] Update error for bond ${bondId}:`, updateError);
 		error(500, { message: 'Failed to cancel meld' });
 	}
 
+	if (!updateData || updateData.length === 0) {
+		console.warn(`[cancel] No rows updated for bond ${bondId} — status may have already changed`);
+		error(409, { message: 'Meld could not be cancelled — it may have already been completed or cancelled' });
+	}
+
+	console.log(`[cancel] Bond ${bondId} cancelled successfully`);
 	return json({ success: true });
 };

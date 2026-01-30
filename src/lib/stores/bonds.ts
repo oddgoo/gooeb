@@ -24,7 +24,7 @@ export type ActivityPrompt = {
 
 export type Bond = {
 	id: string;
-	status: 'pending' | 'accepted' | 'completed';
+	status: 'pending' | 'accepted' | 'completed' | 'cancelled';
 	isInitiator: boolean;
 	partner: BondPartner;
 	prompt: BondPrompt | null; // Legacy single prompt
