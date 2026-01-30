@@ -36,6 +36,7 @@
 		id: string;
 		nickname: string;
 		photo_url: string;
+		points: number;
 		bondCount: number;
 	};
 
@@ -412,19 +413,19 @@
 				</div>
 			</div>
 
-			<!-- Leaderboard - fixed height, always shows top 5 -->
+			<!-- Leaderboard - scrollable -->
 			<div class="win-window shrink-0" style="height: 180px;">
 				<div class="win-titlebar">
 					<span>Leaderboard</span>
 				</div>
-				<div class="p-2 h-[calc(100%-28px)] overflow-hidden">
+				<div class="p-2 h-[calc(100%-28px)] overflow-y-auto">
 					{#if leaderboard.length === 0}
 						<div class="text-center text-win-textDisabled py-4">
 							No melds yet
 						</div>
 					{:else}
 						<div class="space-y-1">
-							{#each leaderboard.slice(0, 5) as entry, i}
+							{#each leaderboard as entry, i}
 								<div class="win-inset p-1 flex items-center gap-2">
 									<span class="w-5 text-center font-bold text-sm">
 										{#if i === 0}🥇{:else if i === 1}🥈{:else if i === 2}🥉{:else}{i + 1}{/if}
@@ -435,7 +436,7 @@
 										class="w-5 h-5 object-cover"
 									/>
 									<span class="flex-1 truncate text-sm">{entry.nickname}</span>
-									<span class="font-bold text-y2k-magenta text-sm">{entry.bondCount}</span>
+									<span class="font-bold text-y2k-magenta text-sm">{entry.points} pts</span>
 								</div>
 							{/each}
 						</div>

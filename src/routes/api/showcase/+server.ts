@@ -1,5 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { createServerClient } from '$lib/supabase/server';
+import { buildLeaderboard, deduplicateBonds } from '$lib/scoring';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async () => {
@@ -46,7 +47,7 @@ export const GET: RequestHandler = async () => {
 		error(500, { message: 'Failed to load bonds' });
 	}
 
-	const bonds = (bondsData || []) as {
+	const allBonds = (bondsData || []) as {
 		id: string;
 		guest_a_id: string;
 		guest_b_id: string;
@@ -59,33 +60,20 @@ export const GET: RequestHandler = async () => {
 		activity_prompt: { description: string } | null;
 	}[];
 
+	// Keep only one bond per pair (prefer completed, then earliest)
+	const bonds = deduplicateBonds(allBonds);
+
 	// Calculate stats
 	const totalGuests = guests.length;
 	const totalBonds = bonds.length;
 
-	// Max possible bonds (each pair can bond 3 times, one per category)
-	// But for simplicity, let's count unique pairs * 3
+	// Max possible bonds: one per unique pair (deduplicated)
 	const maxPossibleBonds = totalGuests > 1
-		? ((totalGuests * (totalGuests - 1)) / 2) * 3
+		? (totalGuests * (totalGuests - 1)) / 2
 		: 0;
 
-	// Leaderboard: count bonds per guest
-	const bondCounts: Record<string, number> = {};
-	for (const bond of bonds) {
-		bondCounts[bond.guest_a_id] = (bondCounts[bond.guest_a_id] || 0) + 1;
-		bondCounts[bond.guest_b_id] = (bondCounts[bond.guest_b_id] || 0) + 1;
-	}
-
-	const leaderboard = guests
-		.map((guest) => ({
-			id: guest.id,
-			nickname: guest.nickname,
-			photo_url: guest.photo_url,
-			bondCount: bondCounts[guest.id] || 0
-		}))
-		.filter((g) => g.bondCount > 0)
-		.sort((a, b) => b.bondCount - a.bondCount)
-		.slice(0, 10);
+	// Leaderboard with points
+	const leaderboard = buildLeaderboard(guests, bonds);
 
 	return json({
 		guests,

@@ -8,7 +8,8 @@
 		pendingIncoming,
 		pendingOutgoing,
 		activeBonds,
-		completedBonds
+		completedBonds,
+		myPoints
 	} from '$lib/stores/bonds';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import type { LayoutData } from '../$types';
@@ -191,9 +192,9 @@
 	}
 </script>
 
-<div class="min-h-screen flex flex-col">
+<div class="h-screen flex flex-col overflow-hidden">
 	<!-- Main Window - fills screen on mobile -->
-	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:flex-initial">
+	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:h-auto sm:max-h-[90vh]">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
 			<span>Mind Meld Manager</span>
@@ -449,7 +450,7 @@
 					Ready
 				{/if}
 			</div>
-			<div class="win-inset px-2 ml-1">{$completedBonds.length} melds</div>
+			<div class="win-inset px-2 ml-1">{$myPoints} pts</div>
 		</div>
 	</div>
 </div>

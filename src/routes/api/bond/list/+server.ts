@@ -1,5 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { createServerClient, getGuestByCode } from '$lib/supabase/server';
+import { calculateGuestPoints, deduplicateBonds } from '$lib/scoring';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {
@@ -75,8 +76,21 @@ export const GET: RequestHandler = async ({ cookies }) => {
 		};
 	});
 
+	// Calculate points from deduplicated bonds (one per pair, prefer best status)
+	const pointsMap = calculateGuestPoints(
+		deduplicateBonds(
+			(bonds || []).map((b: any) => ({
+				guest_a_id: b.guest_a_id,
+				guest_b_id: b.guest_b_id,
+				status: b.status
+			}))
+		)
+	);
+	const myPoints = pointsMap.get(me.id)?.totalPoints ?? 0;
+
 	return json({
 		myId: me.id,
+		myPoints,
 		bonds: transformedBonds
 	});
 };

@@ -39,6 +39,7 @@ export type Bond = {
 type BondsState = {
 	bonds: Bond[];
 	myId: string | null;
+	myPoints: number;
 	loading: boolean;
 	error: string | null;
 };
@@ -47,6 +48,7 @@ function createBondsStore() {
 	const { subscribe, set, update } = writable<BondsState>({
 		bonds: [],
 		myId: null,
+		myPoints: 0,
 		loading: false,
 		error: null
 	});
@@ -73,6 +75,7 @@ function createBondsStore() {
 			set({
 				bonds: data.bonds,
 				myId: data.myId,
+				myPoints: data.myPoints ?? 0,
 				loading: false,
 				error: null
 			});
@@ -246,3 +249,5 @@ export const activeBonds = derived(bonds, ($bonds) =>
 export const completedBonds = derived(bonds, ($bonds) =>
 	$bonds.bonds.filter((b) => b.status === 'completed')
 );
+
+export const myPoints = derived(bonds, ($bonds) => $bonds.myPoints);
