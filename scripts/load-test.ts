@@ -58,7 +58,7 @@ async function timedFetch(url: string, options?: RequestInit): Promise<TestResul
 
 // Simulate a user session
 async function simulateUser(userId: number): Promise<void> {
-  const userCode = String(1000 + userId).slice(-4); // Generate 4-digit codes
+  const userCode = String(100 + userId).slice(-3); // Generate 3-digit codes
 
   // 1. Load landing page
   results.push(await timedFetch(`${BASE_URL}/`));

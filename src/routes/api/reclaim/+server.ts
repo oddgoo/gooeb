@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 	const { code } = body;
 
-	if (!code || typeof code !== 'string' || !/^[0-9]{4}$/.test(code)) {
+	if (!code || typeof code !== 'string' || !/^[0-9]{3}$/.test(code)) {
 		error(400, { message: 'Invalid code format' });
 	}
 

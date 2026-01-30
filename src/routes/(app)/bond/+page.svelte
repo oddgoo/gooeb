@@ -49,7 +49,7 @@
 
 	async function sendInvite() {
 		if (!validateCode(targetCode)) {
-			error = 'Please enter a valid 4-digit code';
+			error = 'Please enter a valid 3-digit code';
 			return;
 		}
 
@@ -389,8 +389,8 @@
 							pattern="[0-9]*"
 							value={targetCode}
 							oninput={handleInput}
-							placeholder="0000"
-							maxlength="4"
+							placeholder="000"
+							maxlength="3"
 							autocomplete="off"
 							disabled={isProcessing}
 							class="win-input w-full text-center text-2xl tracking-[0.3em] font-mono font-bold py-2"
@@ -411,7 +411,7 @@
 
 					<button
 						type="submit"
-						disabled={isProcessing || targetCode.length !== 4}
+						disabled={isProcessing || targetCode.length !== 3}
 						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2"
 					>
 						{#if isSubmitting}

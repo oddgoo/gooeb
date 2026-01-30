@@ -18,7 +18,7 @@
 
 	async function handleSubmit() {
 		if (!validateCode(code)) {
-			error = 'Please enter a valid 4-digit code';
+			error = 'Please enter a valid 3-digit code';
 			return;
 		}
 
@@ -67,8 +67,8 @@
 							pattern="[0-9]*"
 							value={code}
 							oninput={handleInput}
-							placeholder="0000"
-							maxlength="4"
+							placeholder="000"
+							maxlength="3"
 							autocomplete="off"
 							disabled={isSubmitting}
 							class="win-input w-full text-center text-3xl tracking-[0.4em] font-mono font-bold py-3"
@@ -89,7 +89,7 @@
 
 					<button
 						type="submit"
-						disabled={isSubmitting || code.length !== 4}
+						disabled={isSubmitting || code.length !== 3}
 						class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2 text-lg"
 					>
 						{#if isSubmitting}
@@ -105,7 +105,7 @@
 			<div class="win-inset p-2 text-sm">
 				<div class="flex items-start gap-2">
 					<span class="text-lg">💡</span>
-					<span>Look for the 4-digit code on your mask, or tap your mask's NFC tag on your phone.</span>
+					<span>Look for the 3-digit code on your mask, or tap your mask's NFC tag on your phone.</span>
 				</div>
 			</div>
 		</div>

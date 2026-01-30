@@ -99,7 +99,7 @@ export async function ensureTestData(): Promise<void> {
 
 // Generate unique test codes to avoid conflicts
 export function generateTestCode(): string {
-	return Math.floor(1000 + Math.random() * 9000).toString();
+	return Math.floor(100 + Math.random() * 900).toString();
 }
 
 // Create a test guest and return their details

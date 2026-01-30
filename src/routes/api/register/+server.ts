@@ -11,7 +11,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		photoDataUrl?: string;
 		maskCodeId?: string;
 		eventId?: string;
-		code?: string; // The 4-digit mask code
+		code?: string; // The 3-digit mask code
 	};
 
 	try {
