@@ -674,39 +674,30 @@
 						<div class="font-bold mt-1">{guestB?.nickname}</div>
 					</div>
 				</div>
-				<!-- Dual prompts display -->
-				{#if selectedBond.prompt_a || selectedBond.prompt_b}
-					<div class="grid grid-cols-2 gap-2 mb-3">
-						{#if selectedBond.prompt_a}
-							<div class="text-center win-inset p-2">
-								<div class="text-xs mb-1">{guestA?.nickname}</div>
-								<div class="text-lg font-bold text-y2k-magenta">
-									{getCategoryEmoji(selectedBond.prompt_a.category)} {selectedBond.prompt_a.word}
-								</div>
+				{#if selectedBond.activity_prompt}
+					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded space-y-2">
+						<div class="text-base font-bold">{selectedBond.activity_prompt.description}</div>
+						{#if selectedBond.prompt_a && selectedBond.prompt_b}
+							<div class="text-sm opacity-90">
+								Their words: <strong>{selectedBond.prompt_a.word}</strong> + <strong>{selectedBond.prompt_b.word}</strong>
+							</div>
+						{:else if selectedBond.prompt}
+							<div class="text-sm opacity-90">
+								Prompt: <strong>{selectedBond.prompt.word}</strong>
 							</div>
 						{/if}
-						{#if selectedBond.prompt_b}
-							<div class="text-center win-inset p-2">
-								<div class="text-xs mb-1">{guestB?.nickname}</div>
-								<div class="text-lg font-bold text-y2k-magenta">
-									{getCategoryEmoji(selectedBond.prompt_b.category)} {selectedBond.prompt_b.word}
-								</div>
-							</div>
-						{/if}
+					</div>
+				{:else if selectedBond.prompt_a && selectedBond.prompt_b}
+					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded">
+						<div class="text-sm">
+							Their words: <strong>{selectedBond.prompt_a.word}</strong> + <strong>{selectedBond.prompt_b.word}</strong>
+						</div>
 					</div>
 				{:else if selectedBond.prompt}
-					<!-- Legacy single prompt -->
-					<div class="text-center win-inset p-3">
-						<div class="text-2xl font-bold text-y2k-magenta">
-							{getCategoryEmoji(selectedBond.prompt.category)} {selectedBond.prompt.word}
+					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded">
+						<div class="text-sm">
+							Prompt: <strong>{selectedBond.prompt.word}</strong>
 						</div>
-						<div class="text-xs mt-1 uppercase">[{selectedBond.prompt.category}]</div>
-					</div>
-				{/if}
-				{#if selectedBond.activity_prompt}
-					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-2 mt-2 rounded">
-						<div class="text-xs opacity-80">Activity:</div>
-						<div class="font-bold">{selectedBond.activity_prompt.description}</div>
 					</div>
 				{/if}
 			</div>

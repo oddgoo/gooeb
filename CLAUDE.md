@@ -20,10 +20,11 @@
 **Cuauh's Mega Mind Meld Imaginarium OS** is a real-time multiplayer party game about melding minds creatively. Played on guests' phones during a ~3 hour birthday party with 40-55 guests.
 
 ### Core Concept
-- Guests wear masks with NFC tags pre-programmed with unique 4-digit codes
+- Guests wear masks with NFC tags pre-programmed with unique 3-digit codes
 - Guests register via NFC tap, QR code, or manual code entry
 - The game has phases where guests meld with each other through prompts
 - A showcase display shows a real-time network graph of all melds
+- Guests are assigned to teams and earn points for melding
 
 ---
 
@@ -40,60 +41,102 @@
 
 - `/` - Landing page (unauthenticated) → redirects to `/bond` if authenticated
 - `/bond` - Main melding interface (authenticated)
+- `/bond/profile` - Profile editing page (nickname, photo, completed melds)
+- `/bond/[id]/complete` - Meld completion page (take photo)
 - `/showcase` - Big screen display (public)
 - `/admin` - Moderation panel (admin only)
+- `/join/[code]` - NFC/QR entry point (redirects based on auth state)
 
 ---
 
 ## Detailed Requirements
 
 ### Setup / Authentication (Simplified)
-- Guests receive masks with NFC tags containing URLs like `thegooeb.com/join/XXXX`
-- Landing page allows manual 4-digit code entry (or NFC tap, QR scan)
+- Guests receive masks with NFC tags containing URLs like `thegooeb.com/join/XXX`
+- Landing page allows manual 3-digit code entry (or NFC tap, QR scan)
 - Registration: nickname + photo upload (camera or file)
 - **Simplified auth**: Mask code stored in both localStorage AND cookie (`gooeb_code`)
   - Cookie allows server-side auth validation on page loads
   - localStorage provides client-side access
   - Both are synced by the auth store
 - API routes can use the mask code for identification - server looks up guest by code
+- **Reclaim flow**: Guests can re-login to an already-claimed code via `/api/reclaim`
 - No strict security needed - it's a party game!
 
 ### Phase 1 - Melding
 - Goal: Connect with others by tapping each other's NFC tags or entering codes
 - **Invite Flow**:
   1. Player A taps Player B's tag (or enters code)
-  2. Server checks if code is registered
-  3. Creates "meld invitation" (pending state)
+  2. Server looks up guest → shows profile modal (photo, nickname, intro text)
+  3. Player confirms → creates "meld invitation" (pending state)
   4. Player B sees invite on Meld page
-  5. Player B taps Player A's tag to confirm
-- **Word Prompt System**:
-  - On confirmation, both players receive a random **word prompt**
+  5. Player B taps Player A's tag to confirm (auto-accept)
+- **Dual Word Prompt System**:
+  - On acceptance, **each player** gets their own random word prompt from different categories
   - Three categories: **character**, **theme**, **place**
     - **Character**: Roles/archetypes (Pirate, Robot, Wizard, etc.)
     - **Theme**: Concepts/emotions (Chaos, Love, Mystery, etc.)
     - **Place**: Locations/settings (Underwater, Moon, Disco, etc.)
   - **Category non-repetition**: Between any two people, categories cannot repeat
-    - If A & B already did a "character" prompt, their next meld uses "theme" or "place"
     - Max 3 melds possible between same pair (one per category)
-- Any player submits photo of completion, other confirms
-- Server stores: completion photo, prompt word + category, participants
+  - Display shows: "Your words are: **X** + **Y**" (simplified single-row format)
+- **Activity Prompts**: Each meld also gets a shared activity prompt (e.g., "Strike a pose together!")
+  - Activity prompts are phase-aware and category-tagged
+- **Cancel**: Players can cancel accepted melds (with confirmation dialog)
+- Any player submits photo of completion
+- Server stores: completion photo, prompt words + categories, activity, participants
+
+### Phases System
+- Events have a `current_phase_id` pointing to the active phase
+- Default phases: Phase 1 (Icebreaker), Phase 2 (Creative), Phase 3 (Finale)
+- Activity prompts are filtered by phase number when assigned to melds
+- Admin switches phases via the admin panel
+
+### Teams System
+- Admin generates teams with configurable team size (default 4)
+- Guests shuffled and assigned random animal emoji teams (🦊, 🐙, 🦎, etc.)
+- Team emoji displays in the bond page title bar: "Mind Meld Manager | Team 🦊"
+- Teams can be cleared and regenerated
+
+### Points / Scoring System
+- **Automatic scoring**:
+  - Completed meld: **5 points**
+  - Accepted meld (pending completion): **1 point**
+- **Manual ledger**: Admin can add/subtract points with reasons
+- Points displayed in bond page status bar and showcase leaderboard
+- Points calculated from deduplicated bonds (one per pair, preferring completed status)
 
 ### Phase 2 - Remix (Future)
 - System assigns groups instead of 1:1 melding
 - Groups remix/reinterpret results from Phase 1 prompts
-- **Not implemented yet - focus on Phase 1 first**
+- **Not implemented yet - focus on Phase 1 being rock solid**
 
 ### Admin View
-- Manipulate and moderate the game
-- Manage guests, melds, prompts
-- Override/delete problematic content
+- **Guests tab**: View, delete guests (cascades to melds)
+- **Melds tab**: View, delete melds
+- **Prompts tab**: Add/toggle/delete word prompts by category
+- **Phases tab**: View/create/delete phases, switch active phase
+- **Activities tab**: Manage activity prompts (create, toggle, edit phase/category, delete)
+- **Teams tab**: Generate teams (set size), view current teams, clear teams
+- **Points tab**: Manual point ledger - add/subtract points with reason
+- **Bulk upload**: Upload CSV + photos for prepopulated guests
 
 ### Showcase View (Big Screen Display)
 - Real-time vis.js network graph showing all melds
-- Slideshow of submitted photos
-- Confetti when new connections appear
-- Leaderboard of most melds
+- Guest search (highlights & zooms to guest in graph)
+- Slideshow of submitted photos (click for gallery view)
+- Confetti animation + slide-in announcement when new melds complete
+- Leaderboard of most melds (includes automatic + manual points)
 - Collaborative goal tracker (melds done / all possible combinations)
+- **Meld detail modal**: Tap a meld to see photo, both guests, and simplified prompt display
+
+### Profile Page
+- Accessible via profile button (👤) in bond page title bar
+- Edit nickname and profile photo
+- View 3-digit mask code
+- "About You" section (if `intro_text` exists from prepopulated data)
+- **Completed melds list**: Tap any completed meld to open detail modal (photo, guests, prompts)
+- Sign out button
 
 ---
 
@@ -112,28 +155,76 @@
 ## Database Schema
 
 ### Tables
-- **events** - id, name, slug, is_active
-- **mask_codes** - id, event_id, code (CHAR 4), is_claimed, claimed_at
-- **guests** - id, event_id, mask_code_id, nickname, photo_url, auth_token, is_admin
-- **prompts** - id, event_id, **word**, **category** (character|theme|place), is_active, times_used
-- **bonds** - id, event_id, guest_a_id, guest_b_id, prompt_id, status, photo_url, timestamps
+- **events** - id, name, slug, is_active, current_phase_id
+- **phases** - id, event_id, phase_number, name (unique per event+number)
+- **mask_codes** - id, event_id, code (CHAR 3), is_claimed, claimed_at
+- **guests** - id, event_id, mask_code_id, nickname, photo_url, auth_token, is_admin, team_emoji, intro_text
+- **prompts** - id, event_id, word, category (character|theme|place), is_active, times_used
+- **activity_prompts** - id, event_id, description, is_active, times_used, phase_numbers[], activity_category
+- **bonds** - id, event_id, guest_a_id, guest_b_id, prompt_id (legacy), prompt_a_id, prompt_b_id, activity_prompt_id, status, photo_url, timestamps
+- **point_ledger** - id, event_id, guest_id, points (positive/negative), reason, created_by, created_at
+
+### Migrations
+1. `001_initial_schema.sql` - Base tables (events, mask_codes, guests, prompts, bonds)
+2. `002_dual_prompts.sql` - Dual prompts (prompt_a_id, prompt_b_id) + activity_prompts table
+3. `003_phases.sql` - Phases table, phase_numbers/activity_category on activity_prompts
+4. `004_teams.sql` - team_emoji column on guests
+5. `005_3digit_codes.sql` - Changed from 4-digit to 3-digit numeric codes (000-999)
+6. `006_intro_text.sql` - intro_text column on guests
+7. `007_point_ledger.sql` - Point ledger table for manual scoring
 
 ### Meld Statuses (DB column: status)
 - `pending` - Invite sent, awaiting acceptance
-- `accepted` - Both confirmed, prompt assigned
+- `accepted` - Both confirmed, prompts assigned
 - `completed` - Photo submitted and confirmed
 - `rejected` - Declined by recipient
+- `cancelled` - Cancelled by a participant
 - `expired` - Timed out
 
 ### Prompt Categories
-- `character` - Roles/archetypes to embody (15 words seeded)
-- `theme` - Abstract concepts/emotions (15 words seeded)
-- `place` - Locations/settings (15 words seeded)
+- `character` - Roles/archetypes to embody
+- `theme` - Abstract concepts/emotions
+- `place` - Locations/settings
+
+### Activity Prompt Categories
+- `general`, `drawing`, `acting`, `photo`, `music`, `physical`
 
 ### Key Constraints
 - Multiple melds allowed between same pair (up to 3, one per category)
 - Category non-repetition enforced in application logic when assigning prompts
 - Supabase Realtime enabled on `bonds` and `guests` tables (DB table name unchanged)
+- Dual prompts: each player gets a different word from different categories
+
+---
+
+## API Routes
+
+### Bond Operations
+- `POST /api/bond/invite` - Send meld invite
+- `POST /api/bond/accept` - Accept invite (assigns dual prompts + activity)
+- `POST /api/bond/reject` - Reject invite
+- `POST /api/bond/cancel` - Cancel accepted meld
+- `GET /api/bond/list` - List user's melds (returns bonds, myPoints, myTeamEmoji)
+- `POST /api/bond/[id]/complete` - Complete meld with photo
+
+### Guest / Profile
+- `POST /api/register` - Register new guest
+- `POST /api/reclaim` - Re-login with code
+- `GET /api/guest/lookup?code=XXX` - Look up guest by code (returns id, nickname, photo_url, intro_text)
+- `POST /api/profile/update` - Update nickname and/or photo
+
+### Showcase
+- `GET /api/showcase` - All data for showcase display
+
+### Admin
+- `GET/DELETE /api/admin/guests` - Manage guests
+- `POST /api/admin/guests/bulk` - Bulk upload CSV + photos
+- `GET/DELETE /api/admin/bonds` - Manage melds
+- `GET/POST/PATCH/DELETE /api/admin/prompts` - Manage word prompts
+- `GET/POST/PATCH/DELETE /api/admin/activity-prompts` - Manage activity prompts
+- `GET/POST/PATCH/DELETE /api/admin/phases` - Manage phases
+- `POST/DELETE /api/admin/teams` - Generate/clear teams
+- `GET/POST/DELETE /api/admin/points` - Manual point ledger
 
 ---
 
@@ -149,39 +240,129 @@
 │   │   ├── register/                 # Registration (photo + nickname)
 │   │   ├── api/
 │   │   │   ├── register/             # Registration API
-│   │   │   └── bond/                 # Meld APIs (route path unchanged)
-│   │   │       ├── invite/           # Send meld invite
-│   │   │       ├── accept/           # Accept invite
-│   │   │       ├── reject/           # Reject invite
-│   │   │       ├── list/             # List user's melds
-│   │   │       └── [id]/complete/    # Complete meld with photo
+│   │   │   ├── reclaim/              # Re-login API
+│   │   │   ├── guest/lookup/         # Guest lookup by code
+│   │   │   ├── profile/update/       # Profile update API
+│   │   │   ├── bond/                 # Meld APIs (route path unchanged)
+│   │   │   │   ├── invite/           # Send meld invite
+│   │   │   │   ├── accept/           # Accept invite (assigns prompts)
+│   │   │   │   ├── reject/           # Reject invite
+│   │   │   │   ├── cancel/           # Cancel accepted meld
+│   │   │   │   ├── list/             # List user's melds + points + team
+│   │   │   │   └── [id]/complete/    # Complete meld with photo
+│   │   │   ├── showcase/             # Showcase data endpoint
+│   │   │   └── admin/
+│   │   │       ├── guests/           # Guest management + bulk upload
+│   │   │       ├── bonds/            # Meld management
+│   │   │       ├── prompts/          # Word prompt management
+│   │   │       ├── activity-prompts/ # Activity prompt management
+│   │   │       ├── phases/           # Phase management
+│   │   │       ├── teams/            # Team generation
+│   │   │       └── points/           # Manual point ledger
 │   │   ├── (app)/                    # Protected routes
 │   │   │   ├── +layout.server.ts     # Auth guard
 │   │   │   ├── +layout.svelte        # App shell
 │   │   │   ├── bond/+page.svelte     # Main melding interface
+│   │   │   ├── bond/profile/         # Profile editing page
 │   │   │   └── bond/[id]/complete/   # Meld completion page
 │   │   ├── showcase/+page.svelte     # Public display (16:9 optimized)
-│   │   └── admin/                    # Admin panel (guests/melds/prompts)
+│   │   └── admin/+page.svelte        # Admin panel (tabbed)
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts             # Browser Supabase client
 │   │   │   ├── server.ts             # Server Supabase client
+│   │   │   ├── bonds.ts              # Bond logic (prompt assignment, accept, etc.)
 │   │   │   └── types.ts              # Database types
+│   │   ├── scoring/
+│   │   │   ├── index.ts              # Score calculation logic
+│   │   │   ├── rules.ts              # Scoring rules (5pts completed, 1pt accepted)
+│   │   │   └── types.ts              # Scoring types
 │   │   ├── stores/
 │   │   │   ├── auth.ts               # Auth state
-│   │   │   └── bonds.ts              # Melds state + realtime
+│   │   │   └── bonds.ts              # Melds state + realtime (Bond type, myPoints, myTeamEmoji)
 │   │   ├── components/
 │   │   │   ├── PhotoCapture.svelte   # Camera + upload
-│   │   │   └── NetworkGraph.svelte   # vis.js network graph
+│   │   │   ├── NetworkGraph.svelte   # vis.js network graph
+│   │   │   └── LoadingSpinner.svelte # Loading indicator
 │   │   └── utils/
-│   │       ├── codes.ts              # 4-digit code utilities
-│   │       └── image.ts              # Client-side resize
+│   │       ├── codes.ts              # 3-digit code utilities
+│   │       ├── image.ts              # Client-side resize
+│   │       └── teamEmojis.ts         # 30 animal emoji list for teams
 │   └── app.css                       # Tailwind + custom styles
 ├── supabase/migrations/
-│   └── 001_initial_schema.sql
+│   ├── 001_initial_schema.sql
+│   ├── 002_dual_prompts.sql
+│   ├── 003_phases.sql
+│   ├── 004_teams.sql
+│   ├── 005_3digit_codes.sql
+│   ├── 006_intro_text.sql
+│   └── 007_point_ledger.sql
+├── scripts/
+│   └── load-test.ts                  # Load testing script
 ├── .env                              # Local env vars
 └── [config files]
 ```
+
+---
+
+## Key Types
+
+### Bond (from `src/lib/stores/bonds.ts`)
+```typescript
+type Bond = {
+  id: string;
+  status: 'pending' | 'accepted' | 'completed';
+  isInitiator: boolean;
+  partner: { id: string; nickname: string; photo_url: string };
+  prompt: BondPrompt | null;           // Legacy single prompt
+  myPrompt: BondPrompt | null;         // User's individual prompt
+  partnerPrompt: BondPrompt | null;    // Partner's individual prompt
+  activityPrompt: ActivityPrompt | null; // Shared activity
+  photo_url: string | null;
+  initiated_at: string;
+  accepted_at: string | null;
+  completed_at: string | null;
+};
+
+type BondPrompt = { id: string; word: string; category: 'character' | 'theme' | 'place' };
+type ActivityPrompt = { id: string; description: string };
+```
+
+### Bond Store State
+```typescript
+type BondsState = {
+  bonds: Bond[];
+  myId: string | null;
+  myPoints: number;
+  myTeamEmoji: string | null;
+  loading: boolean;
+  error: string | null;
+};
+```
+
+### Derived Stores
+- `pendingIncoming` - Pending bonds where user is not initiator
+- `pendingOutgoing` - Pending bonds where user is initiator
+- `activeBonds` - Accepted bonds (awaiting completion)
+- `completedBonds` - Completed bonds
+- `myPoints` - User's total score
+- `myTeamEmoji` - User's team emoji
+
+---
+
+## UI Patterns
+
+### Prompt Display (Simplified)
+- **Active meld panel**: Shows activity prompt description + "Your words are: **X** + **Y**" in gradient box
+- **Meld completion page**: Same simplified "Your words are: **X** + **Y**" format
+- **Showcase detail modal**: Activity description + "Their words: **X** + **Y**"
+- **Profile meld detail modal**: Same format as showcase, using "Your words" phrasing
+- Legacy single-prompt fallback supported throughout
+
+### Meld Detail Modal (used in showcase + profile)
+- Meld photo (if exists)
+- Both guests with photos and names, handshake emoji between
+- Activity prompt + words display in gradient box
 
 ---
 
@@ -195,7 +376,8 @@
 | 2 | Melding mechanics (invite/accept/prompts) | ✅ COMPLETE |
 | 3 | Photo upload, completion flow | ✅ COMPLETE |
 | 4 | Showcase + Admin views | ✅ COMPLETE |
-| 5 | Polish + Deploy | 🟡 IN PROGRESS |
+| 5 | Polish + Deploy | ✅ COMPLETE |
+| 6+ | Features & refinements | 🟡 ONGOING |
 
 ### Session 1 - COMPLETE ✅
 
@@ -206,7 +388,7 @@
 - [x] Database schema SQL created (`supabase/migrations/001_initial_schema.sql`)
 - [x] Supabase client utilities (browser + server)
 - [x] Auth store with localStorage + cookie persistence
-- [x] Landing page with 4-digit code entry
+- [x] Landing page with code entry
 - [x] `/join/[code]` route handling NFC/QR entry
 - [x] Registration page with camera capture + file upload
 - [x] Client-side image resize utility
@@ -214,90 +396,60 @@
 - [x] Protected app routes with auth guard
 - [x] Meld page with user info header + invite form
 - [x] Authenticated users redirect from `/` to `/bond`
-- [x] Build passing, types checking
-
-**Simplified (removed/changed):**
-- ~~Tab navigation (Me, Bond, Web)~~ → Single Meld page is the main experience
-- ~~Me page~~ → User info shown in Meld page header
-- ~~Web page~~ → Network graph only in Showcase view
-- ~~Auth tokens~~ → Using mask codes directly (stored in cookie + localStorage)
-
-**Pending Setup (before Session 2):**
-- [x] Create Supabase project at supabase.com
-- [x] Run migration SQL in Supabase SQL Editor
-- [x] Create `photos` storage bucket (public)
-- [x] Update `.env` with real Supabase credentials
 
 ### Session 2 - COMPLETE ✅
 
 **Completed:**
-- [x] Melds store with realtime Supabase subscriptions (`src/lib/stores/bonds.ts`)
-- [x] Meld invite API endpoint (`/api/bond/invite`)
-- [x] Meld accept API with prompt assignment (`/api/bond/accept`)
-- [x] Meld reject API endpoint (`/api/bond/reject`)
-- [x] Meld list API endpoint (`/api/bond/list`)
+- [x] Melds store with realtime Supabase subscriptions
+- [x] Meld invite/accept/reject API endpoints
+- [x] Meld list API endpoint
 - [x] Prompt assignment with category non-repetition (max 3 melds per pair)
-- [x] Pending incoming invites with Accept/Decline buttons
-- [x] Pending outgoing invites display
-- [x] Active meld prompt view with emoji + word display
+- [x] Pending incoming/outgoing invites display
+- [x] Active meld prompt view
 - [x] Completed melds list
 - [x] Realtime updates via Supabase subscriptions
-- [x] 4-digit numeric codes (changed from alphanumeric)
 
 ### Session 3 - COMPLETE ✅
 
 **Completed:**
-- [x] Photo capture for meld completion (`/bond/[id]/complete` page)
-- [x] Meld completion API endpoint (`/api/bond/[id]/complete`)
-- [x] Meld completion page with Win3.1 retro styling
-- [x] Completed melds list on Meld page (already in Session 2)
+- [x] Photo capture for meld completion
+- [x] Meld completion API endpoint
 - [x] Photo upload to Supabase Storage (`bonds/{id}.jpg`)
 
 ### Session 4 - COMPLETE ✅
 
 **Completed:**
-- [x] NetworkGraph component with vis.js (`src/lib/components/NetworkGraph.svelte`)
-- [x] Showcase page with graph, slideshow, leaderboard (`/showcase`)
-  - Real-time network graph visualization with guest search
-  - Sliding photo carousel of recent melds (click for gallery view)
-  - Live leaderboard (top 10 connectors)
-  - Stats panel with progress bar
-  - Confetti animation + slide-in announcement on new melds
-- [x] Showcase API endpoint (`/api/showcase`)
-- [x] Admin page with guest/meld/prompt management (`/admin`)
-  - Tabbed interface: Guests, Melds, Prompts
-  - Delete guests (cascades to melds)
-  - Delete melds
-  - Add/toggle/delete prompts by category
-- [x] Admin API endpoints
-  - `/api/admin/guests` - GET, DELETE
-  - `/api/admin/bonds` - GET, DELETE
-  - `/api/admin/prompts` - GET, POST, PATCH, DELETE
+- [x] NetworkGraph component with vis.js
+- [x] Showcase page with graph, slideshow, leaderboard, stats, confetti
+- [x] Admin page with guest/meld/prompt management (tabbed)
+- [x] Showcase + Admin API endpoints
 
-### Session 5 - IN PROGRESS 🟡
+### Session 5 - COMPLETE ✅
 
 **Completed:**
-- [x] Load testing script created (`scripts/load-test.ts`)
-- [x] Pre-party checklist created (`PRE-PARTY-CHECKLIST.md`)
-- [x] `tsx` installed for running TypeScript scripts
-- [x] `npm run load-test` command added
-- [x] Showcase gallery view (click slideshow to see all meld photos in 6-column grid)
-- [x] New Meld Announcement (slide-in/out notification when melds complete)
-- [x] Guest Search in showcase (search input in Network.exe, highlights & zooms to guest)
+- [x] Load testing script (`scripts/load-test.ts`)
+- [x] Showcase gallery view + new meld announcements + guest search
 - [x] Rename: "Gooeb" → "Cuauh's Mega Mind Meld Imaginarium OS"
 - [x] Rename: "Bond/Bonding" → "Meld/Melding" throughout UI
+- [x] Vercel deployment
 
-**In Progress:**
-- [ ] Vercel deployment
-- [ ] Environment variables in Vercel
+### Post-Launch Features ✅
 
-**Remaining:**
-- [ ] Error handling polish (if needed)
-- [ ] Final testing after deployment
-- [ ] Fun gifs!
-- [ ] check admin controls
-- [ ] adjust ui, animation timings, etc.
-- [ ] maybe allow anyone to reclaim a sign-in/mask.
+**Completed:**
+- [x] **Dual prompt system** (migration 002): Each player gets their own word prompt
+- [x] **Activity prompts**: Shared activities assigned with melds, phase-aware
+- [x] **Phases system** (migration 003): Icebreaker → Creative → Finale
+- [x] **Teams system** (migration 004): Random animal emoji teams, admin-generated
+- [x] **3-digit codes** (migration 005): Changed from 4-digit alphanumeric
+- [x] **Prepopulated guests** (migration 006): Bulk CSV upload with intro_text + photos
+- [x] **Points system** (migration 007): Automatic scoring + manual admin ledger
+- [x] **Profile page**: Edit nickname/photo, view completed melds with detail modal
+- [x] **Guest lookup modal**: See guest profile before sending invite
+- [x] **Cancel meld**: Cancel accepted melds with confirmation dialog
+- [x] **Reclaim login**: Re-login to existing account via code
+- [x] **Admin expansions**: Phases, Activities, Teams, Points tabs
+- [x] **Simplified prompt display**: "Your words are: X + Y" format (replaced separate boxes)
+- [x] **Meld detail modal**: Tappable completed melds in profile + showcase
 
 ---
 
@@ -338,9 +490,9 @@ npm run load-test https://thegooeb.com       # Production
 ## Notes for Future Sessions
 
 - Phase 2 (Remix) is explicitly deferred - focus on Phase 1 being rock solid
-- Timeline: 17 days until party (as of session start)
 - Guest count: 40-55 expected
-- NFC tags will be pre-programmed with unique URLs
+- NFC tags pre-programmed with unique URLs
 - Consider QR code fallbacks for phones without NFC
 - **Simplified UI**: No tabs - Meld page is the single main experience
 - **Naming**: UI uses "Meld/Melding" but internal code/DB still uses "bond/bonds" for stability
+- **Codes**: 3-digit numeric (000-999), validated with `^[0-9]{3}$`

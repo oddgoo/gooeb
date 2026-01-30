@@ -55,19 +55,6 @@
 			isSubmitting = false;
 		}
 	}
-
-	function getCategoryEmoji(category: string): string {
-		switch (category) {
-			case 'character':
-				return '👤';
-			case 'theme':
-				return '💭';
-			case 'place':
-				return '📍';
-			default:
-				return '✨';
-		}
-	}
 </script>
 
 <div class="min-h-screen flex flex-col">
@@ -103,46 +90,23 @@
 				</div>
 			</div>
 
-			<!-- Dual Prompts Display -->
-			{#if bond.myPrompt || bond.partnerPrompt}
-				<div class="win-groupbox">
-					<span class="win-groupbox-label">Your Prompts</span>
-					<div class="grid grid-cols-2 gap-2">
-						{#if bond.myPrompt}
-							<div class="text-center py-3 win-inset">
-								<div class="text-xs mb-1">Your prompt:</div>
-								<div class="text-xl font-bold text-win-title">
-									{getCategoryEmoji(bond.myPrompt.category)} {bond.myPrompt.word}
-								</div>
-								<div class="text-xs mt-1 uppercase text-win-textDisabled">
-									[{bond.myPrompt.category}]
-								</div>
-							</div>
-						{/if}
-						{#if bond.partnerPrompt}
-							<div class="text-center py-3 win-inset">
-								<div class="text-xs mb-1">{bond.partner.nickname}'s:</div>
-								<div class="text-xl font-bold text-win-title">
-									{getCategoryEmoji(bond.partnerPrompt.category)} {bond.partnerPrompt.word}
-								</div>
-								<div class="text-xs mt-1 uppercase text-win-textDisabled">
-									[{bond.partnerPrompt.category}]
-								</div>
-							</div>
-						{/if}
+			<!-- Words Display -->
+			{#if bond.myPrompt && bond.partnerPrompt}
+				<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
+					<div class="text-sm">
+						Your words are: <strong>{bond.myPrompt.word}</strong> + <strong>{bond.partnerPrompt.word}</strong>
+					</div>
+				</div>
+			{:else if bond.myPrompt}
+				<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
+					<div class="text-sm">
+						Your word is: <strong>{bond.myPrompt.word}</strong>
 					</div>
 				</div>
 			{:else if bond.prompt}
-				<!-- Legacy single prompt fallback -->
-				<div class="win-groupbox">
-					<span class="win-groupbox-label">Your Prompt</span>
-					<div class="text-center py-4 win-inset">
-						<div class="text-3xl font-bold text-win-title">
-							{getCategoryEmoji(bond.prompt.category)} {bond.prompt.word}
-						</div>
-						<div class="text-xs mt-2 uppercase text-win-textDisabled">
-							[{bond.prompt.category}]
-						</div>
+				<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
+					<div class="text-sm">
+						Your word is: <strong>{bond.prompt.word}</strong>
 					</div>
 				</div>
 			{/if}

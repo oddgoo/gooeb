@@ -2,10 +2,11 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
-	import { fly } from 'svelte/transition';
+	import { fade, fly, scale } from 'svelte/transition';
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { bonds, completedBonds } from '$lib/stores/bonds';
+	import type { Bond } from '$lib/stores/bonds';
 	import type { LayoutData } from '../../$types';
 
 	let layoutData = $derived($page.data as LayoutData & { guest: { intro_text?: string | null } });
@@ -17,6 +18,7 @@
 	let isSubmitting = $state(false);
 	let error = $state('');
 	let successMessage = $state('');
+	let selectedBond = $state<Bond | null>(null);
 
 	// Initialize nickname from guest data
 	$effect(() => {
@@ -166,7 +168,11 @@
 				{:else}
 					<div class="win-inset p-2 max-h-60 overflow-y-auto">
 						{#each $completedBonds as bond (bond.id)}
-							<div class="flex items-center gap-2 py-2 border-b border-win-btnShadow last:border-0" transition:fly={{ x: 20, duration: 250 }}>
+							<button
+								class="flex items-center gap-2 py-2 border-b border-win-btnShadow last:border-0 w-full text-left hover:bg-win-btnFace cursor-pointer"
+								onclick={() => selectedBond = bond}
+								transition:fly={{ x: 20, duration: 250 }}
+							>
 								<div class="win-inset p-0.5">
 									<img
 										src={bond.partner.photo_url}
@@ -176,7 +182,11 @@
 								</div>
 								<div class="flex-1 min-w-0">
 									<div class="font-bold text-sm truncate">{bond.partner.nickname}</div>
-									{#if bond.prompt}
+									{#if bond.myPrompt && bond.partnerPrompt}
+										<div class="text-xs text-win-textDisabled">
+											{bond.myPrompt.word} + {bond.partnerPrompt.word}
+										</div>
+									{:else if bond.prompt}
 										<div class="text-xs text-win-textDisabled">
 											{getCategoryEmoji(bond.prompt.category)} {bond.prompt.word}
 										</div>
@@ -191,7 +201,7 @@
 										/>
 									</div>
 								{/if}
-							</div>
+							</button>
 						{/each}
 					</div>
 				{/if}
@@ -248,3 +258,78 @@
 		</div>
 	</div>
 </div>
+
+<!-- Meld Detail Modal -->
+{#if selectedBond}
+	<div
+		class="fixed inset-0 bg-black/50 flex items-center justify-center z-40"
+		onclick={() => selectedBond = null}
+		onkeydown={(e) => e.key === 'Escape' && (selectedBond = null)}
+		role="dialog"
+		aria-modal="true"
+		aria-label="Meld details"
+		tabindex="-1"
+		transition:fade={{ duration: 200 }}
+	>
+		<div
+			class="win-window max-w-lg w-full mx-4"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="presentation"
+			transition:scale={{ duration: 200, start: 0.9 }}
+		>
+			<div class="win-titlebar">
+				<span>Meld Details</span>
+				<button class="win-btn px-2 py-0 min-w-0 text-xs" onclick={() => selectedBond = null}>X</button>
+			</div>
+			<div class="p-4">
+				{#if selectedBond.photo_url}
+					<div class="aspect-square w-full mb-4 win-inset">
+						<img
+							src={selectedBond.photo_url}
+							alt="Meld photo"
+							class="w-full h-full object-cover"
+						/>
+					</div>
+				{/if}
+				<div class="flex items-center justify-around mb-4">
+					<div class="text-center">
+						<img src={guest.photo_url} alt={guest.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1" />
+						<div class="font-bold mt-1">{guest.nickname}</div>
+					</div>
+					<div class="text-3xl">🤝</div>
+					<div class="text-center">
+						<img src={selectedBond.partner.photo_url} alt={selectedBond.partner.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1" />
+						<div class="font-bold mt-1">{selectedBond.partner.nickname}</div>
+					</div>
+				</div>
+				{#if selectedBond.activityPrompt}
+					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded space-y-2">
+						<div class="text-base font-bold">{selectedBond.activityPrompt.description}</div>
+						{#if selectedBond.myPrompt && selectedBond.partnerPrompt}
+							<div class="text-sm opacity-90">
+								Your words: <strong>{selectedBond.myPrompt.word}</strong> + <strong>{selectedBond.partnerPrompt.word}</strong>
+							</div>
+						{:else if selectedBond.prompt}
+							<div class="text-sm opacity-90">
+								Prompt: <strong>{selectedBond.prompt.word}</strong>
+							</div>
+						{/if}
+					</div>
+				{:else if selectedBond.myPrompt && selectedBond.partnerPrompt}
+					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded">
+						<div class="text-sm">
+							Your words: <strong>{selectedBond.myPrompt.word}</strong> + <strong>{selectedBond.partnerPrompt.word}</strong>
+						</div>
+					</div>
+				{:else if selectedBond.prompt}
+					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded">
+						<div class="text-sm">
+							Prompt: <strong>{selectedBond.prompt.word}</strong>
+						</div>
+					</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
