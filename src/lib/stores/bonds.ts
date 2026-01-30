@@ -19,6 +19,7 @@ export type BondPrompt = {
 export type ActivityPrompt = {
 	id: string;
 	description: string;
+	activity_category: string | null;
 };
 
 export type Bond = {

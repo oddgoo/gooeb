@@ -64,10 +64,10 @@
 
 	// New activity prompt form
 	let newActivityDescription = $state('');
-	let newActivityCategory = $state('general');
+	let newActivityCategory = $state('drawing');
 	let newActivityPhases = $state<number[]>([1]);
 
-	const activityCategories = ['general', 'drawing', 'acting', 'photo', 'music', 'physical'];
+	const activityCategories = ['drawing', 'pose', 'craft', 'photo'];
 
 	// Teams
 	let teamSize = $state(4);

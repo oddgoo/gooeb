@@ -6,6 +6,7 @@
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { bonds, completedBonds } from '$lib/stores/bonds';
+	import { activityEmoji } from '$lib/utils/activityEmojis';
 	import type { Bond } from '$lib/stores/bonds';
 	import type { LayoutData } from '../../$types';
 
@@ -305,7 +306,7 @@
 				</div>
 				{#if selectedBond.activityPrompt}
 					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded space-y-2">
-						<div class="text-base font-bold">{selectedBond.activityPrompt.description}</div>
+						<div class="text-base font-bold">{selectedBond.activityPrompt.activity_category ? activityEmoji(selectedBond.activityPrompt.activity_category) + ' ' : ''}{selectedBond.activityPrompt.description}</div>
 						{#if selectedBond.myPrompt && selectedBond.partnerPrompt}
 							<div class="text-sm opacity-90">
 								Your words: <strong>{selectedBond.myPrompt.word}</strong> + <strong>{selectedBond.partnerPrompt.word}</strong>

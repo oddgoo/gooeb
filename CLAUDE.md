@@ -172,6 +172,7 @@
 5. `005_3digit_codes.sql` - Changed from 4-digit to 3-digit numeric codes (000-999)
 6. `006_intro_text.sql` - intro_text column on guests
 7. `007_point_ledger.sql` - Point ledger table for manual scoring
+8. `008_activity_categories_v2.sql` - New activity categories (drawing/pose/craft/photo), seed phase 1 prompts, clear old bonds + activity prompts
 
 ### Meld Statuses (DB column: status)
 - `pending` - Invite sent, awaiting acceptance
@@ -187,7 +188,10 @@
 - `place` - Locations/settings
 
 ### Activity Prompt Categories
-- `general`, `drawing`, `acting`, `photo`, `music`, `physical`
+- `drawing` 🎨 - Drawing activities (word prompts assigned)
+- `pose` 💃 - Posing/selfie activities (word prompts assigned)
+- `craft` 🧶 - Crafting/assembling activities (word prompts assigned)
+- `photo` 📷 - Photo activities (NO word prompts assigned)
 
 ### Key Constraints
 - Multiple melds allowed between same pair (up to 3, one per category)
@@ -287,7 +291,8 @@
 │   │   └── utils/
 │   │       ├── codes.ts              # 3-digit code utilities
 │   │       ├── image.ts              # Client-side resize
-│   │       └── teamEmojis.ts         # 30 animal emoji list for teams
+│   │       ├── teamEmojis.ts         # 30 animal emoji list for teams
+│   │       └── activityEmojis.ts     # Activity category → emoji mapping
 │   └── app.css                       # Tailwind + custom styles
 ├── supabase/migrations/
 │   ├── 001_initial_schema.sql
@@ -296,7 +301,8 @@
 │   ├── 004_teams.sql
 │   ├── 005_3digit_codes.sql
 │   ├── 006_intro_text.sql
-│   └── 007_point_ledger.sql
+│   ├── 007_point_ledger.sql
+│   └── 008_activity_categories_v2.sql
 ├── scripts/
 │   └── load-test.ts                  # Load testing script
 ├── .env                              # Local env vars
@@ -325,7 +331,7 @@ type Bond = {
 };
 
 type BondPrompt = { id: string; word: string; category: 'character' | 'theme' | 'place' };
-type ActivityPrompt = { id: string; description: string };
+type ActivityPrompt = { id: string; description: string; activity_category: string | null };
 ```
 
 ### Bond Store State
@@ -353,10 +359,11 @@ type BondsState = {
 ## UI Patterns
 
 ### Prompt Display (Simplified)
-- **Active meld panel**: Shows activity prompt description + "Your words are: **X** + **Y**" in gradient box
+- **Active meld panel**: Shows category emoji + activity prompt description + "Your words are: **X** + **Y**" in gradient box
 - **Meld completion page**: Same simplified "Your words are: **X** + **Y**" format
-- **Showcase detail modal**: Activity description + "Their words: **X** + **Y**"
+- **Showcase detail modal**: Category emoji + activity description + "Their words: **X** + **Y**"
 - **Profile meld detail modal**: Same format as showcase, using "Your words" phrasing
+- Word prompts are only shown when assigned (photo activities have no word prompts)
 - Legacy single-prompt fallback supported throughout
 
 ### Meld Detail Modal (used in showcase + profile)
@@ -450,6 +457,7 @@ type BondsState = {
 - [x] **Admin expansions**: Phases, Activities, Teams, Points tabs
 - [x] **Simplified prompt display**: "Your words are: X + Y" format (replaced separate boxes)
 - [x] **Meld detail modal**: Tappable completed melds in profile + showcase
+- [x] **Activity categories v2** (migration 008): 4 categories (drawing/pose/craft/photo) with emoji display, photo activities skip word prompts
 
 ---
 

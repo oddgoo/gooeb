@@ -4,6 +4,7 @@
 	import { fade, scale, fly } from 'svelte/transition';
 	import NetworkGraph from '$lib/components/NetworkGraph.svelte';
 	import { getSupabase } from '$lib/supabase/client';
+	import { activityEmoji } from '$lib/utils/activityEmojis';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
 
 	type Guest = {
@@ -23,7 +24,7 @@
 		prompt: { word: string; category: string } | null;
 		prompt_a: { word: string; category: string } | null;
 		prompt_b: { word: string; category: string } | null;
-		activity_prompt: { description: string } | null;
+		activity_prompt: { description: string; activity_category: string | null } | null;
 	};
 
 	type Stats = {
@@ -676,7 +677,7 @@
 				</div>
 				{#if selectedBond.activity_prompt}
 					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded space-y-2">
-						<div class="text-base font-bold">{selectedBond.activity_prompt.description}</div>
+						<div class="text-base font-bold">{selectedBond.activity_prompt.activity_category ? activityEmoji(selectedBond.activity_prompt.activity_category) + ' ' : ''}{selectedBond.activity_prompt.description}</div>
 						{#if selectedBond.prompt_a && selectedBond.prompt_b}
 							<div class="text-sm opacity-90">
 								Their words: <strong>{selectedBond.prompt_a.word}</strong> + <strong>{selectedBond.prompt_b.word}</strong>

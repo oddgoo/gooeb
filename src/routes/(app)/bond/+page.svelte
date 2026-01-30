@@ -3,6 +3,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { fade, fly, slide } from 'svelte/transition';
 	import { formatCode, validateCode } from '$lib/utils/codes';
+	import { activityEmoji } from '$lib/utils/activityEmojis';
 	import {
 		bonds,
 		pendingIncoming,
@@ -328,7 +329,7 @@
 							{#if bond.activityPrompt}
 								<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3 space-y-2">
 									<div class="text-base font-bold">
-										{bond.activityPrompt.description}
+										{bond.activityPrompt.activity_category ? activityEmoji(bond.activityPrompt.activity_category) + ' ' : ''}{bond.activityPrompt.description}
 									</div>
 									{#if bond.myPrompt && bond.partnerPrompt}
 										<div class="text-sm opacity-90">

@@ -34,7 +34,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 			prompt:prompts!bonds_prompt_id_fkey(id, word, category),
 			prompt_a:prompts!bonds_prompt_a_id_fkey(id, word, category),
 			prompt_b:prompts!bonds_prompt_b_id_fkey(id, word, category),
-			activity_prompt:activity_prompts(id, description)
+			activity_prompt:activity_prompts(id, description, activity_category)
 		`)
 		.or(`guest_a_id.eq.${me.id},guest_b_id.eq.${me.id}`)
 		.in('status', ['pending', 'accepted', 'completed'])

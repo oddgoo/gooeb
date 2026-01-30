@@ -58,7 +58,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			event_id: eventId,
 			description: description.trim(),
 			phase_numbers: phaseNumbers || [1],
-			activity_category: activityCategory || 'general',
+			activity_category: activityCategory || 'drawing',
 			is_active: true
 		} as never)
 		.select()
