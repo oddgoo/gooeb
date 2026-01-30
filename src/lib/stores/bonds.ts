@@ -40,6 +40,7 @@ type BondsState = {
 	bonds: Bond[];
 	myId: string | null;
 	myPoints: number;
+	myTeamEmoji: string | null;
 	loading: boolean;
 	error: string | null;
 };
@@ -49,6 +50,7 @@ function createBondsStore() {
 		bonds: [],
 		myId: null,
 		myPoints: 0,
+		myTeamEmoji: null,
 		loading: false,
 		error: null
 	});
@@ -76,6 +78,7 @@ function createBondsStore() {
 				bonds: data.bonds,
 				myId: data.myId,
 				myPoints: data.myPoints ?? 0,
+				myTeamEmoji: data.myTeamEmoji ?? null,
 				loading: false,
 				error: null
 			});
@@ -251,3 +254,5 @@ export const completedBonds = derived(bonds, ($bonds) =>
 );
 
 export const myPoints = derived(bonds, ($bonds) => $bonds.myPoints);
+
+export const myTeamEmoji = derived(bonds, ($bonds) => $bonds.myTeamEmoji);

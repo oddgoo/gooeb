@@ -1,0 +1,1 @@
+ALTER TABLE guests ADD COLUMN team_emoji TEXT DEFAULT NULL;

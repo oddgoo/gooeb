@@ -9,7 +9,7 @@ export const GET: RequestHandler = async () => {
 	// Get all guests with photos
 	const { data: guestsData, error: guestsError } = await supabase
 		.from('guests')
-		.select('id, nickname, photo_url')
+		.select('id, nickname, photo_url, team_emoji')
 		.order('created_at', { ascending: true });
 
 	if (guestsError) {
@@ -21,6 +21,7 @@ export const GET: RequestHandler = async () => {
 		id: string;
 		nickname: string;
 		photo_url: string;
+		team_emoji: string | null;
 	}[];
 
 	// Get all accepted and completed bonds (show edges as soon as bond is accepted)

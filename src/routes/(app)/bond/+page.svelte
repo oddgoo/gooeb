@@ -9,7 +9,8 @@
 		pendingOutgoing,
 		activeBonds,
 		completedBonds,
-		myPoints
+		myPoints,
+		myTeamEmoji
 	} from '$lib/stores/bonds';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import type { LayoutData } from '../$types';
@@ -197,7 +198,7 @@
 	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:h-auto sm:max-h-[90vh]">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
-			<span>Mind Meld Manager</span>
+			<span>Mind Meld Manager{#if $myTeamEmoji} | Team {$myTeamEmoji}{/if}</span>
 			<div class="flex items-center gap-2">
 				<span class="text-sm font-normal opacity-90">{guest.nickname}</span>
 				<span class="text-xs font-mono bg-black/20 px-1.5 py-0.5 rounded">{maskCode}</span>

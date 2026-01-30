@@ -142,6 +142,7 @@ export type Database = {
 					photo_url: string;
 					auth_token: string;
 					is_admin: boolean;
+					team_emoji: string | null;
 					created_at: string;
 					updated_at: string;
 				};
@@ -153,6 +154,7 @@ export type Database = {
 					photo_url: string;
 					auth_token: string;
 					is_admin?: boolean;
+					team_emoji?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};
@@ -164,6 +166,7 @@ export type Database = {
 					photo_url?: string;
 					auth_token?: string;
 					is_admin?: boolean;
+					team_emoji?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};

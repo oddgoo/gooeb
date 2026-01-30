@@ -91,6 +91,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	return json({
 		myId: me.id,
 		myPoints,
+		myTeamEmoji: me.team_emoji ?? null,
 		bonds: transformedBonds
 	});
 };

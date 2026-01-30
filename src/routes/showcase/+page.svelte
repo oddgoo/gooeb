@@ -10,6 +10,7 @@
 		id: string;
 		nickname: string;
 		photo_url: string;
+		team_emoji: string | null;
 	};
 
 	type Bond = {
@@ -52,6 +53,7 @@
 	let announcementQueue = $state<Bond[]>([]);
 	let searchQuery = $state('');
 	let highlightedGuestId = $state<string | null>(null);
+	let showTeams = $state(false);
 	let previousCompletedBondIds = $state<Set<string>>(new Set());
 	let networkGraphRef: { fitAll: () => void } | undefined;
 
@@ -257,6 +259,27 @@
 		const query = searchQuery.toLowerCase();
 		return guests.filter((g) => g.nickname.toLowerCase().includes(query)).slice(0, 5);
 	});
+
+	// Check if any teams exist
+	let hasTeams = $derived(guests.some((g) => g.team_emoji));
+
+	// Teams grouped by emoji
+	type TeamData = { emoji: string; members: { id: string; nickname: string; photo_url: string; points: number }[]; totalPoints: number };
+	let teams = $derived.by((): TeamData[] => {
+		const teamMap = new Map<string, TeamData>();
+		for (const g of guests) {
+			if (!g.team_emoji) continue;
+			if (!teamMap.has(g.team_emoji)) {
+				teamMap.set(g.team_emoji, { emoji: g.team_emoji, members: [], totalPoints: 0 });
+			}
+			const entry = leaderboard.find((l) => l.id === g.id);
+			const points = entry?.points ?? 0;
+			const team = teamMap.get(g.team_emoji)!;
+			team.members.push({ id: g.id, nickname: g.nickname, photo_url: g.photo_url, points });
+			team.totalPoints += points;
+		}
+		return Array.from(teamMap.values()).sort((a, b) => b.totalPoints - a.totalPoints);
+	});
 </script>
 
 <svelte:head>
@@ -327,14 +350,54 @@
 <!-- Main showcase layout - 16:9 optimized, no scrolling -->
 <div class="h-screen p-3 flex flex-col overflow-hidden">
 	<!-- Header - compact -->
-	<div class="text-center mb-2 shrink-0">
+	<div class="text-center mb-2 shrink-0 flex items-center justify-center gap-4">
 		<h1 class="text-3xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
 			style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;">
 			MEGA MIND MELD IMAGINARIUM - LIVE
 		</h1>
+		{#if hasTeams}
+			<button
+				class="win-btn px-3 py-1 text-sm"
+				class:bg-gradient-to-r={showTeams}
+				class:from-y2k-cyan={showTeams}
+				class:to-y2k-pink={showTeams}
+				class:text-white={showTeams}
+				onclick={() => showTeams = !showTeams}
+			>
+				{showTeams ? 'Network' : 'Teams'}
+			</button>
+		{/if}
 	</div>
 
 	<!-- Main content grid - fills remaining space -->
+	{#if showTeams}
+		<!-- Teams View -->
+		<div class="flex-1 min-h-0 overflow-y-auto p-2">
+			<div class="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+				{#each teams as team}
+					<div class="win-window flex flex-col">
+						<div class="win-titlebar">
+							<span class="text-lg">{team.emoji}</span>
+							<span class="text-sm font-bold ml-2">{team.totalPoints} pts</span>
+						</div>
+						<div class="p-2 space-y-1">
+							{#each team.members as member}
+								<div class="win-inset p-1 flex items-center gap-2">
+									<img
+										src={member.photo_url}
+										alt={member.nickname}
+										class="w-6 h-6 object-cover"
+									/>
+									<span class="flex-1 truncate text-sm">{member.nickname}</span>
+									<span class="text-xs font-bold text-y2k-magenta">{member.points}</span>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{:else}
 	<div class="flex-1 grid grid-cols-12 gap-3 min-h-0">
 		<!-- Network Graph - Main area -->
 		<div class="col-span-8 win-window flex flex-col min-h-0">
@@ -500,6 +563,7 @@
 			</button>
 		</div>
 	</div>
+	{/if}
 </div>
 
 <!-- Gallery modal -->

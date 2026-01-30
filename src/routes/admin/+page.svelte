@@ -7,6 +7,7 @@
 		nickname: string;
 		photo_url: string;
 		is_admin: boolean;
+		team_emoji: string | null;
 		created_at: string;
 		mask_codes: { code: string } | null;
 	};
@@ -47,7 +48,7 @@
 
 	let pageData = $derived($page.data as { guest: { id: string; nickname: string }; eventId: string | null });
 
-	let activeTab = $state<'guests' | 'bonds' | 'prompts' | 'phases' | 'activities'>('guests');
+	let activeTab = $state<'guests' | 'bonds' | 'prompts' | 'phases' | 'activities' | 'teams'>('guests');
 	let guests = $state<Guest[]>([]);
 	let bonds = $state<Bond[]>([]);
 	let prompts = $state<Prompt[]>([]);
@@ -67,6 +68,11 @@
 	let newActivityPhases = $state<number[]>([1]);
 
 	const activityCategories = ['general', 'drawing', 'acting', 'photo', 'music', 'physical'];
+
+	// Teams
+	let teamSize = $state(4);
+	let currentTeams = $state<{ emoji: string; members: string[] }[]>([]);
+	let teamsLoading = $state(false);
 
 	async function loadGuests() {
 		loading = true;
@@ -301,6 +307,69 @@
 		}
 	}
 
+	async function loadTeams() {
+		teamsLoading = true;
+		try {
+			const res = await fetch('/api/admin/guests');
+			const data = await res.json();
+			const guestsWithTeams = (data.guests || []) as Guest[];
+			// Group by team_emoji
+			const teamMap = new Map<string, string[]>();
+			for (const g of guestsWithTeams) {
+				const emoji = (g as any).team_emoji;
+				if (emoji) {
+					if (!teamMap.has(emoji)) teamMap.set(emoji, []);
+					teamMap.get(emoji)!.push(g.nickname);
+				}
+			}
+			currentTeams = Array.from(teamMap.entries()).map(([emoji, members]) => ({ emoji, members }));
+		} catch (e) {
+			error = 'Failed to load teams';
+		} finally {
+			teamsLoading = false;
+		}
+	}
+
+	async function generateTeams() {
+		teamsLoading = true;
+		error = '';
+		try {
+			const res = await fetch('/api/admin/teams', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ teamSize })
+			});
+			if (!res.ok) {
+				let msg = 'Failed to generate teams';
+				try {
+					const data = await res.json();
+					msg = data.message || msg;
+				} catch {}
+				throw new Error(msg);
+			}
+			const data = await res.json();
+			currentTeams = data.teams;
+		} catch (e) {
+			console.error('Generate teams error:', e);
+			error = e instanceof Error ? e.message : 'Failed to generate teams';
+		} finally {
+			teamsLoading = false;
+		}
+	}
+
+	async function clearTeams() {
+		if (!confirm('Clear all team assignments?')) return;
+		teamsLoading = true;
+		try {
+			await fetch('/api/admin/teams', { method: 'DELETE' });
+			currentTeams = [];
+		} catch (e) {
+			error = 'Failed to clear teams';
+		} finally {
+			teamsLoading = false;
+		}
+	}
+
 	function getCategoryEmoji(category: string): string {
 		switch (category) {
 			case 'character': return '👤';
@@ -331,6 +400,7 @@
 		else if (activeTab === 'prompts') loadPrompts();
 		else if (activeTab === 'phases') loadPhases();
 		else if (activeTab === 'activities') loadActivityPrompts();
+		else if (activeTab === 'teams') loadTeams();
 	});
 </script>
 
@@ -379,6 +449,13 @@
 				onclick={() => activeTab = 'activities'}
 			>
 				Activities
+			</button>
+			<button
+				class="win-btn px-3 py-1 text-sm"
+				class:bg-white={activeTab === 'teams'}
+				onclick={() => activeTab = 'teams'}
+			>
+				Teams
 			</button>
 		</div>
 
@@ -695,6 +772,59 @@
 						</div>
 					</div>
 				</div>
+			{:else if activeTab === 'teams'}
+				<!-- Teams Tab -->
+				<div class="space-y-3">
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">Generate Teams</span>
+						<div class="flex gap-2 items-center flex-wrap">
+							<label class="text-sm">Team size:</label>
+							<input
+								type="number"
+								bind:value={teamSize}
+								min="2"
+								max="20"
+								class="win-input w-20 text-center"
+							/>
+							<button
+								onclick={generateTeams}
+								class="win-btn px-4"
+								disabled={teamsLoading}
+							>
+								{teamsLoading ? 'Generating...' : 'Generate Teams'}
+							</button>
+							<button
+								onclick={clearTeams}
+								class="win-btn px-4"
+								disabled={teamsLoading || currentTeams.length === 0}
+							>
+								Clear Teams
+							</button>
+						</div>
+					</div>
+
+					<div class="win-groupbox">
+						<span class="win-groupbox-label">Current Teams ({currentTeams.length})</span>
+						<div class="win-inset p-2 max-h-[50vh] overflow-y-auto">
+							{#if currentTeams.length === 0}
+								<div class="text-center py-4 text-win-textDisabled">No teams assigned</div>
+							{:else}
+								<div class="grid grid-cols-2 gap-2">
+									{#each currentTeams as team}
+										<div class="win-inset p-2">
+											<div class="text-2xl text-center mb-1">{team.emoji}</div>
+											<div class="space-y-0.5">
+												{#each team.members as member}
+													<div class="text-sm text-center">{member}</div>
+												{/each}
+											</div>
+										</div>
+									{/each}
+								</div>
+							{/if}
+						</div>
+					</div>
+				</div>
 			{/if}
 		</div>
 
@@ -711,6 +841,8 @@
 					{phases.length} phases | Current: {phases.find(p => p.id === currentPhaseId)?.name || 'None'}
 				{:else if activeTab === 'activities'}
 					{activityPrompts.length} activity prompts
+				{:else if activeTab === 'teams'}
+					{currentTeams.length} teams
 				{/if}
 			</div>
 			<div class="win-inset px-2 ml-1">

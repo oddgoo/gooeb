@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 
 	const { data: guests, error: queryError } = await supabase
 		.from('guests')
-		.select('id, nickname, photo_url, is_admin, created_at, mask_codes(code)')
+		.select('id, nickname, photo_url, is_admin, team_emoji, created_at, mask_codes(code)')
 		.order('created_at', { ascending: false });
 
 	if (queryError) {
