@@ -33,11 +33,6 @@
 			return;
 		}
 
-		if (!photoDataUrl) {
-			error = 'Please take or upload a photo';
-			return;
-		}
-
 		if (!maskCodeId || !eventId) {
 			error = 'Invalid registration session. Please start over.';
 			return;
@@ -115,7 +110,6 @@
 					<span class="win-groupbox-label">Your Photo</span>
 					<PhotoCapture onCapture={handlePhotoCapture} />
 					<p class="text-xs text-win-textDisabled mt-2 text-center">
-						This will appear on the network graph
 					</p>
 				</div>
 
@@ -145,7 +139,7 @@
 				<!-- Submit button -->
 				<button
 					type="submit"
-					disabled={isSubmitting || !nickname.trim() || !photoDataUrl}
+					disabled={isSubmitting || !nickname.trim()}
 					class="win-btn bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white w-full py-2 text-lg"
 				>
 					{#if isSubmitting}

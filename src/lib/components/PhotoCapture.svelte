@@ -18,11 +18,8 @@
 	let isCapturing = $state(false);
 	let isStartingCamera = $state(false);
 
-	onMount(async () => {
-		if (browser && !initialPhoto) {
-			await startCamera();
-		}
-	});
+	// No longer auto-start camera on mount - default to file picker UI
+	// Camera can be started explicitly via the "Use Camera" button
 
 	onDestroy(() => {
 		stopCamera();
@@ -142,8 +139,8 @@
 				<input type="file" accept="image/*" class="hidden" onchange={handleFileSelect} />
 			</label>
 		</div>
-	{:else}
-		<!-- Camera view -->
+	{:else if stream}
+		<!-- Camera view (active) -->
 		<div class="relative w-full h-full">
 			<video
 				bind:this={videoElement}
@@ -179,16 +176,27 @@
 					<input type="file" accept="image/*" class="hidden" onchange={handleFileSelect} />
 				</label>
 			</div>
-
-			<!-- Loading overlay -->
-			{#if isStartingCamera}
-				<div class="absolute inset-0 flex items-center justify-center bg-win-bg">
-					<div class="text-center">
-						<div class="text-2xl animate-pulse">⏳</div>
-						<div class="text-sm mt-2">Starting camera...</div>
-					</div>
-				</div>
-			{/if}
+		</div>
+	{:else}
+		<!-- Default: file picker with option to use camera -->
+		<div class="flex flex-col items-center justify-center h-full p-4 text-center bg-win-bg gap-3">
+			<div class="text-4xl">📷</div>
+			<label class="win-btn bg-win-title text-white cursor-pointer px-4 py-2">
+				📁 Choose Photo...
+				<input type="file" accept="image/*" capture="user" class="hidden" onchange={handleFileSelect} />
+			</label>
+			<button
+				type="button"
+				onclick={startCamera}
+				disabled={isStartingCamera}
+				class="win-btn bg-win-title text-white px-4 py-2"
+			>
+				{#if isStartingCamera}
+					Starting camera...
+				{:else}
+					📸 Use Camera
+				{/if}
+			</button>
 		</div>
 	{/if}
 </div>

@@ -31,8 +31,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		error(400, { message: 'Nickname must be 20 characters or less' });
 	}
 
-	if (!photoDataUrl || typeof photoDataUrl !== 'string' || !photoDataUrl.startsWith('data:image')) {
-		error(400, { message: 'Valid photo is required' });
+	if (photoDataUrl && (typeof photoDataUrl !== 'string' || !photoDataUrl.startsWith('data:image'))) {
+		error(400, { message: 'Invalid photo format' });
 	}
 
 	if (!maskCodeId || !eventId || !code) {
@@ -64,37 +64,43 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	const authToken = uuidv4();
 	const guestId = uuidv4();
 
-	// Extract base64 data from data URL
-	const base64Match = photoDataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
-	if (!base64Match) {
-		error(400, { message: 'Invalid photo format' });
+	let publicUrl: string | null = null;
+	let photoPath: string | null = null;
+
+	if (photoDataUrl) {
+		// Extract base64 data from data URL
+		const base64Match = photoDataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+		if (!base64Match) {
+			error(400, { message: 'Invalid photo format' });
+		}
+
+		const [, imageType, base64Data] = base64Match;
+		const photoBuffer = Buffer.from(base64Data, 'base64');
+
+		// Check file size (max 2MB)
+		if (photoBuffer.length > 2 * 1024 * 1024) {
+			error(400, { message: 'Photo is too large. Please try a smaller image.' });
+		}
+
+		photoPath = `guests/${guestId}.${imageType === 'jpeg' ? 'jpg' : imageType}`;
+
+		// Upload photo to Supabase Storage
+		const { error: uploadError } = await supabase.storage.from('photos').upload(photoPath, photoBuffer, {
+			contentType: `image/${imageType}`,
+			upsert: false
+		});
+
+		if (uploadError) {
+			console.error('Photo upload error:', uploadError);
+			error(500, { message: 'Failed to upload photo. Please try again.' });
+		}
+
+		// Get public URL for the photo
+		const {
+			data: { publicUrl: url }
+		} = supabase.storage.from('photos').getPublicUrl(photoPath);
+		publicUrl = url;
 	}
-
-	const [, imageType, base64Data] = base64Match;
-	const photoBuffer = Buffer.from(base64Data, 'base64');
-
-	// Check file size (max 2MB)
-	if (photoBuffer.length > 2 * 1024 * 1024) {
-		error(400, { message: 'Photo is too large. Please try a smaller image.' });
-	}
-
-	const photoPath = `guests/${guestId}.${imageType === 'jpeg' ? 'jpg' : imageType}`;
-
-	// Upload photo to Supabase Storage
-	const { error: uploadError } = await supabase.storage.from('photos').upload(photoPath, photoBuffer, {
-		contentType: `image/${imageType}`,
-		upsert: false
-	});
-
-	if (uploadError) {
-		console.error('Photo upload error:', uploadError);
-		error(500, { message: 'Failed to upload photo. Please try again.' });
-	}
-
-	// Get public URL for the photo
-	const {
-		data: { publicUrl }
-	} = supabase.storage.from('photos').getPublicUrl(photoPath);
 
 	// Claim the mask code with optimistic locking
 	const { error: claimError, count: claimCount } = await supabase
@@ -107,8 +113,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		.eq('is_claimed', false); // Optimistic lock
 
 	if (claimError || claimCount === 0) {
-		// Rollback: delete uploaded photo
-		await supabase.storage.from('photos').remove([photoPath]);
+		// Rollback: delete uploaded photo if any
+		if (photoPath) await supabase.storage.from('photos').remove([photoPath]);
 		error(409, { message: 'This code was just claimed by someone else. Please get a new code.' });
 	}
 
@@ -125,12 +131,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	if (guestError) {
 		console.error('Guest creation error:', guestError);
 
-		// Rollback: unclaim code and delete photo
+		// Rollback: unclaim code and delete photo if any
 		await supabase
 			.from('mask_codes')
 			.update({ is_claimed: false, claimed_at: null } as never)
 			.eq('id', maskCodeId);
-		await supabase.storage.from('photos').remove([photoPath]);
+		if (photoPath) await supabase.storage.from('photos').remove([photoPath]);
 
 		error(500, { message: 'Failed to create your profile. Please try again.' });
 	}
