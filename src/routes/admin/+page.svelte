@@ -67,7 +67,7 @@
 	let newActivityCategory = $state('drawing');
 	let newActivityPhases = $state<number[]>([1]);
 
-	const activityCategories = ['drawing', 'pose', 'craft', 'photo'];
+	const activityCategories = ['drawing', 'pose', 'craft', 'photo', 'prose'];
 
 	// Teams
 	let teamSize = $state(4);

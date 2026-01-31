@@ -54,7 +54,7 @@
 					<div class="text-2xl font-bold text-win-title">MEGA MIND MELD IMAGINARIUM</div>
 					<img src="/gifs/sparkle-1.gif" alt="" class="h-8 inline-block" />
 				</div>
-				<div class="text-sm text-win-textDisabled mt-2">Mind meld with friends at the party</div>
+				<div class="text-sm text-win-textDisabled mt-2"></div>
 			</div>
 
 			<!-- Code Entry Group -->
@@ -116,7 +116,7 @@
 
 		<!-- Status Bar -->
 		<div class="bg-win-bg border-t-2 border-win-btnHighlight px-2 py-1 text-sm">
-			<div class="win-inset px-2">Ready to party</div>
+			<div class="win-inset px-2">Ready</div>
 		</div>
 	</div>
 
@@ -124,15 +124,15 @@
 	<div class="hidden sm:flex mt-8 gap-6 text-center text-white text-xs justify-center items-end">
 		<div class="flex flex-col items-center gap-1 opacity-70">
 			<div class="text-3xl">🎭</div>
-			<span>Masks</span>
+			<span></span>
 		</div>
 		<div class="flex flex-col items-center gap-1 opacity-70">
 			<div class="text-3xl">🧠</div>
-			<span>Melds</span>
+			<span></span>
 		</div>
 		<div class="flex flex-col items-center gap-1 opacity-70">
 			<div class="text-3xl">📸</div>
-			<span>Photos</span>
+			<span></span>
 		</div>
 		<img src="/gifs/welcome-3.gif" alt="" class="h-10 opacity-70" />
 	</div>
