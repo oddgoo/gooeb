@@ -322,7 +322,7 @@
 			<div class="win-titlebar mb-3">
 				<span>NEW MELD!</span>
 				{#if announcementQueue.length > 0}
-					<span class="text-xs ml-2 opacity-70">+{announcementQueue.length} more</span>
+					<span class="text-sm ml-2 opacity-70">+{announcementQueue.length} more</span>
 				{/if}
 			</div>
 			<div class="flex items-center gap-6">
@@ -360,13 +360,13 @@
 	<!-- Header - compact -->
 	<div class="text-center mb-2 shrink-0 flex items-center justify-center gap-4">
 		<img src="/gifs/party-2.gif" alt="" class="h-10" />
-		<h1 class="text-3xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
+		<h1 class="text-4xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
 			style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;">
 			MEGA MIND MELD IMAGINARIUM - LIVE
 		</h1>
 		{#if hasTeams}
 			<button
-				class="win-btn px-3 py-1 text-sm"
+				class="win-btn px-3 py-1 text-base"
 				class:bg-gradient-to-r={showTeams}
 				class:from-y2k-cyan={showTeams}
 				class:to-y2k-pink={showTeams}
@@ -386,8 +386,8 @@
 				{#each teams as team}
 					<div class="win-window flex flex-col">
 						<div class="win-titlebar">
-							<span class="text-lg">{team.emoji}</span>
-							<span class="text-sm font-bold ml-2">{team.totalPoints} pts</span>
+							<span class="text-xl">{team.emoji}</span>
+							<span class="text-base font-bold ml-2">{team.totalPoints} pts</span>
 						</div>
 						<div class="p-2 space-y-1">
 							{#each team.members as member}
@@ -397,8 +397,8 @@
 										alt={member.nickname}
 										class="w-6 h-6 object-cover"
 									/>
-									<span class="flex-1 truncate text-sm">{member.nickname}</span>
-									<span class="text-xs font-bold text-y2k-magenta">{member.points}</span>
+									<span class="flex-1 truncate text-base">{member.nickname}</span>
+									<span class="text-sm font-bold text-y2k-magenta">{member.points}</span>
 								</div>
 							{/each}
 						</div>
@@ -415,7 +415,7 @@
 				<!-- Guest Search + Fit All -->
 				<div class="relative flex items-center gap-2">
 					<button
-						class="win-btn px-2 py-0.5 text-xs"
+						class="win-btn px-2 py-0.5 text-sm"
 						onclick={() => { networkGraphRef?.fitAll(); highlightedGuestId = null; }}
 						title="Zoom to fit all"
 					>Fit All</button>
@@ -424,11 +424,11 @@
 							type="text"
 							placeholder="Search guest..."
 							bind:value={searchQuery}
-							class="px-2 py-0.5 text-xs w-32 bg-white border border-win-borderDark text-win-text"
+							class="px-2 py-0.5 text-sm w-36 bg-white border border-win-borderDark text-win-text"
 						/>
 						{#if searchQuery}
 							<button
-								class="win-btn px-1 py-0 min-w-0 text-xs"
+								class="win-btn px-1 py-0 min-w-0 text-sm"
 								onclick={() => { searchQuery = ''; highlightedGuestId = null; }}
 							>X</button>
 						{/if}
@@ -438,7 +438,7 @@
 						<div class="absolute top-full right-0 mt-1 w-48 bg-win-bg border-2 border-win-borderLight shadow-lg z-50">
 							{#each filteredGuests as guest}
 								<button
-									class="w-full px-2 py-1 text-left text-sm hover:bg-y2k-pink hover:text-white flex items-center gap-2"
+									class="w-full px-2 py-1 text-left text-base hover:bg-y2k-pink hover:text-white flex items-center gap-2"
 									onclick={() => { console.log('Selecting guest:', guest.id, guest.nickname); highlightedGuestId = guest.id; searchQuery = ''; }}
 								>
 									<img src={guest.photo_url} alt="" class="w-6 h-6 object-cover" />
@@ -461,7 +461,7 @@
 				<div class="win-titlebar">
 					<span>Statistics</span>
 				</div>
-				<div class="p-2 space-y-1 text-sm">
+				<div class="p-2 space-y-1 text-base">
 					<div class="flex justify-between">
 						<span>Guests:</span>
 						<span class="font-bold">{stats.totalGuests}</span>
@@ -471,13 +471,13 @@
 						<span class="font-bold">{stats.totalBonds}</span>
 					</div>
 					<div class="mt-1">
-						<div class="text-xs mb-1">Progress: {stats.totalBonds} out of {stats.maxPossibleBonds} Melds</div>
+						<div class="text-sm mb-1">Progress: {stats.totalBonds} out of {stats.maxPossibleBonds} Melds</div>
 						<div class="win-inset h-5 relative overflow-hidden">
 							<div
 								class="absolute inset-0 bg-gradient-to-r from-y2k-pink to-y2k-magenta transition-all duration-500"
 								style="width: {Math.min(stats.progress, 100)}%"
 							></div>
-							<div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-win-text">
+							<div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-win-text">
 								{stats.progress.toFixed(1)}%
 							</div>
 						</div>
@@ -499,16 +499,16 @@
 						<div class="space-y-1">
 							{#each leaderboard as entry, i}
 								<div class="win-inset p-1 flex items-center gap-2">
-									<span class="w-5 text-center font-bold text-sm">
+									<span class="w-6 text-center font-bold text-base">
 										{#if i === 0}🥇{:else if i === 1}🥈{:else if i === 2}🥉{:else}{i + 1}{/if}
 									</span>
 									<img
 										src={entry.photo_url}
 										alt={entry.nickname}
-										class="w-5 h-5 object-cover"
+										class="w-6 h-6 object-cover"
 									/>
-									<span class="flex-1 truncate text-sm">{entry.nickname}</span>
-									<span class="font-bold text-y2k-magenta text-sm">{entry.points} pts</span>
+									<span class="flex-1 truncate text-base">{entry.nickname}</span>
+									<span class="font-bold text-y2k-magenta text-base">{entry.points} pts</span>
 								</div>
 							{/each}
 						</div>
@@ -523,7 +523,7 @@
 			>
 				<div class="win-titlebar shrink-0">
 					<span>Recent Melds</span>
-					<span class="text-xs opacity-70 ml-2">({bondsWithPhotos.length} photos - click to view all)</span>
+					<span class="text-sm opacity-70 ml-2">({bondsWithPhotos.length} photos - click to view all)</span>
 				</div>
 				<div class="flex-1 p-2 min-h-0 overflow-hidden">
 					{#if currentSlideshowBond}
@@ -540,17 +540,17 @@
 										/>
 									</div>
 								{/if}
-								<div class="flex items-center justify-between text-sm shrink-0">
+								<div class="flex items-center justify-between text-base shrink-0">
 									<span class="font-bold truncate">{guestA?.nickname || '?'}</span>
 									<span>🤝</span>
 									<span class="font-bold truncate">{guestB?.nickname || '?'}</span>
 								</div>
 								{#if currentSlideshowBond.remix_bond_id || (currentSlideshowBond.phase_number && currentSlideshowBond.phase_number >= 2)}
-									<div class="text-center text-xs mt-1 shrink-0">
+									<div class="text-center text-sm mt-1 shrink-0">
 										<span class="bg-teal-500 text-white px-2 py-0.5 rounded font-bold">REMIX</span>
 									</div>
 								{:else if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
-									<div class="flex justify-between text-xs mt-1 text-y2k-magenta shrink-0">
+									<div class="flex justify-between text-sm mt-1 text-y2k-magenta shrink-0">
 										{#if currentSlideshowBond.prompt_a}
 											<span class="truncate">{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
 										{/if}
@@ -559,7 +559,7 @@
 										{/if}
 									</div>
 								{:else if currentSlideshowBond.prompt}
-									<div class="text-center text-xs mt-1 text-y2k-magenta shrink-0">
+									<div class="text-center text-sm mt-1 text-y2k-magenta shrink-0">
 										{getCategoryEmoji(currentSlideshowBond.prompt.category)}
 										{currentSlideshowBond.prompt.word}
 									</div>
@@ -569,7 +569,7 @@
 					{:else}
 						<div class="win-inset p-4 text-center text-win-textDisabled h-full flex flex-col items-center justify-center">
 							<div class="text-2xl mb-2">📸</div>
-							<div class="text-sm">Waiting for melds...</div>
+							<div class="text-base">Waiting for melds...</div>
 						</div>
 					{/if}
 				</div>
@@ -600,7 +600,7 @@
 		>
 			<div class="win-titlebar shrink-0">
 				<span>Meld Gallery - {bondsWithPhotos.length} Photos</span>
-				<button class="win-btn px-2 py-0 min-w-0 text-xs" onclick={() => showGallery = false}>X</button>
+				<button class="win-btn px-2 py-0 min-w-0 text-sm" onclick={() => showGallery = false}>X</button>
 			</div>
 			<div class="flex-1 p-4 overflow-y-auto">
 				{#if bondsWithPhotos.length === 0}
@@ -626,7 +626,7 @@
 										class="w-full h-full object-cover"
 									/>
 									<!-- Overlay with names on hover -->
-									<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs p-1">
+									<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-sm p-1">
 										<span class="truncate w-full text-center font-bold">{guestA?.nickname}</span>
 										<span>🤝</span>
 										<span class="truncate w-full text-center font-bold">{guestB?.nickname}</span>
@@ -664,7 +664,7 @@
 		>
 			<div class="win-titlebar">
 				<span>Meld Details</span>
-				<button class="win-btn px-2 py-0 min-w-0 text-xs" onclick={() => selectedBond = null}>X</button>
+				<button class="win-btn px-2 py-0 min-w-0 text-sm" onclick={() => selectedBond = null}>X</button>
 			</div>
 			<div class="p-4">
 				{#if selectedBond.photo_url}
@@ -690,10 +690,10 @@
 				{#if selectedBond.remix_bond_id || (selectedBond.phase_number && selectedBond.phase_number >= 2)}
 					<div class="text-center bg-gradient-to-r from-teal-500 to-cyan-500 text-white p-3 rounded space-y-2">
 						{#if selectedBond.activity_prompt}
-							<div class="text-base font-bold">{selectedBond.activity_prompt.activity_category ? activityEmoji(selectedBond.activity_prompt.activity_category) + ' ' : ''}{selectedBond.activity_prompt.description}</div>
+							<div class="text-lg font-bold">{selectedBond.activity_prompt.activity_category ? activityEmoji(selectedBond.activity_prompt.activity_category) + ' ' : ''}{selectedBond.activity_prompt.description}</div>
 						{/if}
 						{#if selectedBond.remix_source?.photo_url}
-							<div class="text-sm font-bold opacity-90">Remixed from:</div>
+							<div class="text-base font-bold opacity-90">Remixed from:</div>
 							<div class="mx-auto w-32 h-32 win-inset p-1 bg-white/20">
 								<img
 									src={selectedBond.remix_source.photo_url}
@@ -702,33 +702,33 @@
 								/>
 							</div>
 						{:else}
-							<div class="text-sm font-bold">
+							<div class="text-base font-bold">
 								<span class="bg-white/20 px-2 py-0.5 rounded">REMIX</span>
 							</div>
 						{/if}
 					</div>
 				{:else if selectedBond.activity_prompt}
 					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded space-y-2">
-						<div class="text-base font-bold">{selectedBond.activity_prompt.activity_category ? activityEmoji(selectedBond.activity_prompt.activity_category) + ' ' : ''}{selectedBond.activity_prompt.description}</div>
+						<div class="text-lg font-bold">{selectedBond.activity_prompt.activity_category ? activityEmoji(selectedBond.activity_prompt.activity_category) + ' ' : ''}{selectedBond.activity_prompt.description}</div>
 						{#if selectedBond.prompt_a && selectedBond.prompt_b}
-							<div class="text-sm opacity-90">
+							<div class="text-base opacity-90">
 								Their words: <strong>{selectedBond.prompt_a.word}</strong> + <strong>{selectedBond.prompt_b.word}</strong>
 							</div>
 						{:else if selectedBond.prompt}
-							<div class="text-sm opacity-90">
+							<div class="text-base opacity-90">
 								Prompt: <strong>{selectedBond.prompt.word}</strong>
 							</div>
 						{/if}
 					</div>
 				{:else if selectedBond.prompt_a && selectedBond.prompt_b}
 					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded">
-						<div class="text-sm">
+						<div class="text-base">
 							Their words: <strong>{selectedBond.prompt_a.word}</strong> + <strong>{selectedBond.prompt_b.word}</strong>
 						</div>
 					</div>
 				{:else if selectedBond.prompt}
 					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded">
-						<div class="text-sm">
+						<div class="text-base">
 							Prompt: <strong>{selectedBond.prompt.word}</strong>
 						</div>
 					</div>

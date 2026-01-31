@@ -7,12 +7,12 @@
 @layer base {
 	html {
 		-webkit-tap-highlight-color: transparent;
+		font-size: 20px;
 	}
 
 	body {
 		@apply bg-win-desktop text-win-text;
 		font-family: 'VT323', 'MS Sans Serif', Arial, sans-serif;
-		font-size: 16px;
 		/* Y2K gradient sky background */
 		background: linear-gradient(180deg, #B4E4FF 0%, #E8F4FF 50%, #FFE8F0 100%);
 		background-attachment: fixed;
@@ -208,7 +208,7 @@
 		color: #FF1493;
 		top: -10px;
 		left: 8px;
-		font-size: 14px;
+		font-size: 0.75rem;
 	}
 
 	/* Y2K Scrollbar styling */
