@@ -128,6 +128,7 @@
 - **Bulk upload**: Upload CSV + photos for prepopulated guests
 
 ### Showcase View (Big Screen Display)
+- 3-way toggle: **Network** / **Teams** / **Awards**
 - Real-time vis.js network graph showing all melds
 - Guest search (highlights & zooms to guest in graph)
 - Slideshow of submitted photos (click for gallery view)
@@ -135,6 +136,9 @@
 - Leaderboard of most melds (includes automatic + manual points)
 - Collaborative goal tracker (melds done / all possible combinations)
 - **Meld detail modal**: Tap a meld to see photo, both guests, and simplified prompt display
+- **Awards tab**: Auto-generated superlatives computed server-side from game data
+  - Mind Meld Champion (most points), Social Butterfly (most unique partners), Lightning Melder (fastest avg completion), Remix Master (most remixes), Dream Team (top team score)
+  - Manual left/right navigation + keyboard arrows, fly transitions, dot indicators
 
 ### Profile Page
 - Accessible via profile button (👤) in bond page title bar
@@ -469,6 +473,7 @@ type BondsState = {
 - [x] **Meld detail modal**: Tappable completed melds in profile + showcase
 - [x] **Activity categories v2** (migration 008): 4 categories (drawing/pose/craft/photo) with emoji display, photo activities skip word prompts
 - [x] **Remix phase** (migration 009): Phase 2 where players remix completed Source melds instead of getting word prompts. Remix bonds reference a random completed Source bond, display its photo, use teal/cyan UI theme, curved graph edges, max 1 remix per pair, per-phase deduplication for scoring
+- [x] **Showcase Awards tab**: Superlatives/awards ceremony view computed from game data (Champion, Social Butterfly, Lightning Melder, Remix Master, Dream Team). 3-way toggle replaces old Network/Teams toggle. Card slideshow with fly transitions, arrow nav + keyboard support
 
 ---
 

@@ -45,6 +45,17 @@
 		bondCount: number;
 	};
 
+	type Superlative = {
+		id: string;
+		emoji: string;
+		title: string;
+		description: string;
+		winner: { nickname: string; photo_url: string | null };
+		stat: string;
+	};
+
+	type ShowcaseView = 'network' | 'teams' | 'awards';
+
 	let guests = $state<Guest[]>([]);
 	let bonds = $state<Bond[]>([]);
 	let stats = $state<Stats>({ totalGuests: 0, totalBonds: 0, maxPossibleBonds: 0, progress: 0 });
@@ -57,7 +68,10 @@
 	let announcementQueue = $state<Bond[]>([]);
 	let searchQuery = $state('');
 	let highlightedGuestId = $state<string | null>(null);
-	let showTeams = $state(false);
+	let currentView = $state<ShowcaseView>('network');
+	let superlatives = $state<Superlative[]>([]);
+	let awardIndex = $state(0);
+	let awardDirection = $state<1 | -1>(1);
 	let previousCompletedBondIds = $state<Set<string>>(new Set());
 	let networkGraphRef: { fitAll: () => void } | undefined;
 
@@ -97,6 +111,7 @@
 			bonds = data.bonds;
 			stats = data.stats;
 			leaderboard = data.leaderboard;
+			superlatives = data.superlatives || [];
 
 			// Trigger confetti and announcements for all new completed bonds
 			if (previousCompletedBondIds.size > 0 && newCompletedBonds.length > 0) {
@@ -238,6 +253,7 @@
 		loadData();
 		setupRealtime();
 		startSlideshow();
+		if (browser) window.addEventListener('keydown', handleKeydown);
 		// Polling disabled - realtime is working. Uncomment if needed as fallback:
 		// startPolling();
 	});
@@ -251,6 +267,7 @@
 		if (pollInterval) clearInterval(pollInterval);
 		if (confettiTimeout) clearTimeout(confettiTimeout);
 		if (announcementTimeout) clearTimeout(announcementTimeout);
+		if (browser) window.removeEventListener('keydown', handleKeydown);
 	});
 
 	// Bonds with photos for slideshow and gallery
@@ -270,6 +287,19 @@
 
 	// Check if any teams exist
 	let hasTeams = $derived(guests.some((g) => g.team_emoji));
+	let hasAwards = $derived(superlatives.length > 0);
+
+	function navigateAward(dir: 1 | -1) {
+		if (superlatives.length === 0) return;
+		awardDirection = dir;
+		awardIndex = (awardIndex + dir + superlatives.length) % superlatives.length;
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (currentView !== 'awards') return;
+		if (e.key === 'ArrowRight') navigateAward(1);
+		if (e.key === 'ArrowLeft') navigateAward(-1);
+	}
 
 	// Teams grouped by emoji
 	type TeamData = { emoji: string; members: { id: string; nickname: string; photo_url: string; points: number }[]; totalPoints: number };
@@ -362,24 +392,48 @@
 		<img src="/gifs/party-2.gif" alt="" class="h-10" />
 		<h1 class="text-4xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
 			style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;">
-			MEGA MIND MELD IMAGINARIUM - LIVE
+			CUAUH's MEGA MIND MELD IMAGINARIUM - LIVE
 		</h1>
-		{#if hasTeams}
+		<div class="flex gap-1">
 			<button
 				class="win-btn px-3 py-1 text-base"
-				class:bg-gradient-to-r={showTeams}
-				class:from-y2k-cyan={showTeams}
-				class:to-y2k-pink={showTeams}
-				class:text-white={showTeams}
-				onclick={() => showTeams = !showTeams}
+				class:bg-gradient-to-r={currentView === 'network'}
+				class:from-y2k-cyan={currentView === 'network'}
+				class:to-y2k-pink={currentView === 'network'}
+				class:text-white={currentView === 'network'}
+				onclick={() => currentView = 'network'}
 			>
-				{showTeams ? 'Network' : 'Teams'}
+				Network
 			</button>
-		{/if}
+			{#if hasTeams}
+				<button
+					class="win-btn px-3 py-1 text-base"
+					class:bg-gradient-to-r={currentView === 'teams'}
+					class:from-y2k-cyan={currentView === 'teams'}
+					class:to-y2k-pink={currentView === 'teams'}
+					class:text-white={currentView === 'teams'}
+					onclick={() => currentView = 'teams'}
+				>
+					Teams
+				</button>
+			{/if}
+			{#if hasAwards}
+				<button
+					class="win-btn px-3 py-1 text-base"
+					class:bg-gradient-to-r={currentView === 'awards'}
+					class:from-y2k-cyan={currentView === 'awards'}
+					class:to-y2k-pink={currentView === 'awards'}
+					class:text-white={currentView === 'awards'}
+					onclick={() => currentView = 'awards'}
+				>
+					Awards
+				</button>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Main content grid - fills remaining space -->
-	{#if showTeams}
+	{#if currentView === 'teams'}
 		<!-- Teams View -->
 		<div class="flex-1 min-h-0 overflow-y-auto p-2">
 			<div class="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -405,6 +459,89 @@
 					</div>
 				{/each}
 			</div>
+		</div>
+	{:else if currentView === 'awards'}
+		<!-- Awards View -->
+		<div class="flex-1 min-h-0 flex items-center justify-center relative p-4">
+			{#if superlatives.length > 0}
+				<!-- Left arrow -->
+				<button
+					class="absolute left-6 z-10 win-btn px-4 py-3 text-2xl"
+					onclick={() => navigateAward(-1)}
+					aria-label="Previous award"
+				>&larr;</button>
+				<!-- Right arrow -->
+				<button
+					class="absolute right-6 z-10 win-btn px-4 py-3 text-2xl"
+					onclick={() => navigateAward(1)}
+					aria-label="Next award"
+				>&rarr;</button>
+
+				<!-- Award card -->
+				{#key superlatives[awardIndex]?.id}
+					<div
+						class="win-window max-w-md w-full"
+						in:fly={{ x: awardDirection * 300, duration: 350 }}
+						out:fly={{ x: awardDirection * -300, duration: 350 }}
+					>
+						<div class="win-titlebar">
+							<span>Award Ceremony</span>
+							<span class="text-sm opacity-70 ml-2">{awardIndex + 1} / {superlatives.length}</span>
+						</div>
+						<div class="p-8 flex flex-col items-center text-center space-y-4">
+							<!-- Emoji -->
+							<div class="text-7xl">{superlatives[awardIndex].emoji}</div>
+							<!-- Title -->
+							<h2
+								class="text-3xl font-bold font-['VT323'] tracking-wide"
+								style="background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+							>
+								{superlatives[awardIndex].title}
+							</h2>
+							<!-- Description -->
+							<p class="text-base text-win-textDisabled">{superlatives[awardIndex].description}</p>
+							<!-- Winner -->
+							<div class="flex flex-col items-center gap-3">
+								{#if superlatives[awardIndex].winner.photo_url}
+									<img
+										src={superlatives[awardIndex].winner.photo_url}
+										alt={superlatives[awardIndex].winner.nickname}
+										class="w-28 h-28 object-cover win-inset p-1 ring-4 ring-y2k-gold shadow-[0_0_20px_rgba(255,215,0,0.5)]"
+									/>
+								{:else}
+									<!-- Team emoji as avatar -->
+									<div class="w-28 h-28 win-inset flex items-center justify-center text-6xl">
+										{superlatives[awardIndex].winner.nickname}
+									</div>
+								{/if}
+								<div class="text-2xl font-bold text-y2k-magenta font-['VT323']">
+									{superlatives[awardIndex].winner.nickname}
+								</div>
+							</div>
+							<!-- Stat -->
+							<div class="bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white px-6 py-2 rounded text-lg font-bold">
+								{superlatives[awardIndex].stat}
+							</div>
+						</div>
+					</div>
+				{/key}
+
+				<!-- Dot indicators -->
+				<div class="absolute bottom-6 flex gap-2">
+					{#each superlatives as _, i}
+						<button
+							class="w-3 h-3 rounded-full transition-all {i === awardIndex ? 'bg-y2k-magenta scale-125' : 'bg-win-borderLight'}"
+							onclick={() => { awardDirection = i > awardIndex ? 1 : -1; awardIndex = i; }}
+							aria-label="Go to award {i + 1}"
+						></button>
+					{/each}
+				</div>
+			{:else}
+				<div class="text-center text-win-textDisabled">
+					<div class="text-4xl mb-4">🏆</div>
+					<div class="text-lg">No awards yet — start melding!</div>
+				</div>
+			{/if}
 		</div>
 	{:else}
 	<div class="flex-1 grid grid-cols-12 gap-3 min-h-0">
