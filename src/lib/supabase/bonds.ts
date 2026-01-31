@@ -14,23 +14,21 @@ type AcceptBondResult = {
 	promptA: { id: string; word: string; category: PromptCategory } | null;
 	promptB: { id: string; word: string; category: PromptCategory } | null;
 	activityPrompt: { id: string; description: string };
+	remixBondId?: string;
+	remixSourcePhoto?: string;
 };
 
 /**
- * Accept a pending bond and assign prompts
- * Each player gets a different prompt from a different category
- * Both players share an activity prompt
- * Returns the prompt info on success, or throws an error
+ * Resolve the current phase number for an event.
  */
-export async function acceptBond(
+async function resolvePhaseNumber(
 	supabase: SupabaseClient<Database>,
-	bond: BondRow
-): Promise<AcceptBondResult> {
-	// Get the current phase for the event
+	eventId: string
+): Promise<number> {
 	const { data: eventData, error: eventError } = await supabase
 		.from('events')
 		.select('current_phase_id')
-		.eq('id', bond.event_id)
+		.eq('id', eventId)
 		.single();
 
 	if (eventError) {
@@ -40,7 +38,7 @@ export async function acceptBond(
 
 	const eventWithPhase = eventData as { current_phase_id: string | null } | null;
 
-	let currentPhaseNumber = 1; // Default to phase 1
+	let currentPhaseNumber = 1;
 	if (eventWithPhase?.current_phase_id) {
 		const { data: phaseData } = await supabase
 			.from('phases')
@@ -52,6 +50,22 @@ export async function acceptBond(
 			currentPhaseNumber = phase.phase_number;
 		}
 	}
+
+	return currentPhaseNumber;
+}
+
+export { resolvePhaseNumber };
+
+/**
+ * Accept a pending bond and assign prompts.
+ * For Source phase (1): assigns word prompts + activity prompt.
+ * For Remix phase (2+): assigns activity prompt + random completed Source bond reference, no word prompts.
+ */
+export async function acceptBond(
+	supabase: SupabaseClient<Database>,
+	bond: BondRow
+): Promise<AcceptBondResult> {
+	const currentPhaseNumber = await resolvePhaseNumber(supabase, bond.event_id);
 
 	// Get a random activity prompt that's valid for the current phase
 	const { data: activityPrompts, error: activityError } = await supabase
@@ -101,7 +115,60 @@ export async function acceptBond(
 		}
 	}
 
-	// Photo activities don't use word prompts
+	// --- REMIX PHASE: skip word prompts, pick a random completed Source bond ---
+	if (currentPhaseNumber >= 2) {
+		// Find all completed Source bonds in this event
+		const { data: sourceBonds, error: sourceError } = await supabase
+			.from('bonds')
+			.select('id, photo_url')
+			.eq('event_id', bond.event_id)
+			.eq('status', 'completed')
+			.eq('phase_number', 1);
+
+		if (sourceError) {
+			console.error('Error fetching source bonds:', sourceError);
+			throw new Error('Failed to fetch source bonds for remix');
+		}
+
+		const completedSourceBonds = (sourceBonds || []) as { id: string; photo_url: string | null }[];
+		if (completedSourceBonds.length === 0) {
+			throw new Error('No completed Source melds available to remix!');
+		}
+
+		// Pick a random source bond
+		const remixSource = completedSourceBonds[Math.floor(Math.random() * completedSourceBonds.length)];
+
+		// Update the bond with activity + remix reference, no word prompts
+		const { error: updateError, count } = await supabase
+			.from('bonds')
+			.update({
+				status: 'accepted',
+				prompt_a_id: null,
+				prompt_b_id: null,
+				activity_prompt_id: selectedActivity.id,
+				remix_bond_id: remixSource.id,
+				accepted_at: new Date().toISOString()
+			} as never)
+			.eq('id', bond.id)
+			.eq('status', 'pending');
+
+		if (updateError || count === 0) {
+			throw new Error('Bond was already processed');
+		}
+
+		return {
+			promptA: null,
+			promptB: null,
+			activityPrompt: {
+				id: selectedActivity.id,
+				description: selectedActivity.description
+			},
+			remixBondId: remixSource.id,
+			remixSourcePhoto: remixSource.photo_url || undefined
+		};
+	}
+
+	// --- SOURCE PHASE: original logic with word prompts ---
 	const needsWordPrompts = selectedActivity.activity_category !== 'photo';
 
 	let selectedPromptA: { id: string; word: string; category: PromptCategory } | null = null;
@@ -115,7 +182,8 @@ export async function acceptBond(
 			.or(
 				`and(guest_a_id.eq.${bond.guest_a_id},guest_b_id.eq.${bond.guest_b_id}),and(guest_a_id.eq.${bond.guest_b_id},guest_b_id.eq.${bond.guest_a_id})`
 			)
-			.eq('status', 'completed');
+			.eq('status', 'completed')
+			.eq('phase_number', 1);
 
 		if (existingError) {
 			console.error('Error fetching existing bonds:', existingError);

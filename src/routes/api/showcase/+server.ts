@@ -35,6 +35,8 @@ export const GET: RequestHandler = async () => {
 			photo_url,
 			completed_at,
 			accepted_at,
+			remix_bond_id,
+			phase_number,
 			prompt:prompts!bonds_prompt_id_fkey(word, category),
 			prompt_a:prompts!bonds_prompt_a_id_fkey(word, category),
 			prompt_b:prompts!bonds_prompt_b_id_fkey(word, category),
@@ -55,14 +57,40 @@ export const GET: RequestHandler = async () => {
 		status: string;
 		photo_url: string | null;
 		completed_at: string;
+		remix_bond_id: string | null;
+		phase_number: number;
 		prompt: { word: string; category: string } | null;
 		prompt_a: { word: string; category: string } | null;
 		prompt_b: { word: string; category: string } | null;
 		activity_prompt: { description: string; activity_category: string | null } | null;
 	}[];
 
-	// Keep only one bond per pair (prefer completed, then earliest)
-	const bonds = deduplicateBonds(allBonds);
+	// Fetch remix source photos separately (PostgREST can't self-join)
+	const remixBondIds = allBonds
+		.map((b) => b.remix_bond_id)
+		.filter((id): id is string => !!id);
+
+	const remixSourceMap = new Map<string, string | null>();
+	if (remixBondIds.length > 0) {
+		const { data: sourceBonds } = await supabase
+			.from('bonds')
+			.select('id, photo_url')
+			.in('id', remixBondIds);
+		for (const sb of (sourceBonds || []) as { id: string; photo_url: string | null }[]) {
+			remixSourceMap.set(sb.id, sb.photo_url);
+		}
+	}
+
+	// Attach remix_source to bonds
+	const allBondsWithSource = allBonds.map((b) => ({
+		...b,
+		remix_source: b.remix_bond_id
+			? { id: b.remix_bond_id, photo_url: remixSourceMap.get(b.remix_bond_id) ?? null }
+			: null
+	}));
+
+	// Keep only one bond per pair per phase (prefer completed, then earliest)
+	const bonds = deduplicateBonds(allBondsWithSource);
 
 	// Fetch all ledger entries for leaderboard scoring
 	const { data: ledgerData } = await supabase

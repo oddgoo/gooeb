@@ -16,6 +16,8 @@
 		guest_b_id: string;
 		status: string;
 		photo_url: string | null;
+		remix_bond_id?: string | null;
+		phase_number?: number;
 	};
 
 	// Using 'any' for DataSet to avoid complex vis-network type compatibility issues
@@ -87,6 +89,29 @@
 	// Build edge data for a bond
 	function buildEdgeData(bond: Bond): EdgeData {
 		const isCompleted = bond.status === 'completed';
+		const isRemix = !!(bond.remix_bond_id || (bond.phase_number && bond.phase_number >= 2));
+
+		if (isRemix) {
+			return {
+				id: bond.id,
+				from: bond.guest_a_id,
+				to: bond.guest_b_id,
+				width: isCompleted ? 4 : 2,
+				dashes: isCompleted ? false : [5, 5],
+				color: {
+					color: '#00D4AA',
+					highlight: '#00D4AA',
+					hover: '#00D4AA',
+					opacity: isCompleted ? 1.0 : 0.7
+				},
+				smooth: {
+					enabled: true,
+					type: 'curvedCW',
+					roundness: 0.3
+				}
+			};
+		}
+
 		return {
 			id: bond.id,
 			from: bond.guest_a_id,

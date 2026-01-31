@@ -35,6 +35,9 @@ export type Bond = {
 	initiated_at: string;
 	accepted_at: string | null;
 	completed_at: string | null;
+	remixBondId: string | null;
+	remixSourcePhoto: string | null;
+	isRemix: boolean;
 };
 
 type BondsState = {
@@ -226,7 +229,10 @@ function createBondsStore() {
 						photo_url: null,
 						initiated_at: new Date().toISOString(),
 						accepted_at: null,
-						completed_at: null
+						completed_at: null,
+						remixBondId: null,
+						remixSourcePhoto: null,
+						isRemix: false
 					},
 					...s.bonds
 				]

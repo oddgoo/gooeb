@@ -21,10 +21,13 @@
 		status: string;
 		photo_url: string | null;
 		completed_at: string;
+		remix_bond_id: string | null;
+		phase_number: number;
 		prompt: { word: string; category: string } | null;
 		prompt_a: { word: string; category: string } | null;
 		prompt_b: { word: string; category: string } | null;
 		activity_prompt: { description: string; activity_category: string | null } | null;
+		remix_source: { id: string; photo_url: string | null } | null;
 	};
 
 	type Stats = {
@@ -537,7 +540,11 @@
 									<span>🤝</span>
 									<span class="font-bold truncate">{guestB?.nickname || '?'}</span>
 								</div>
-								{#if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
+								{#if currentSlideshowBond.remix_bond_id || (currentSlideshowBond.phase_number && currentSlideshowBond.phase_number >= 2)}
+									<div class="text-center text-xs mt-1 shrink-0">
+										<span class="bg-teal-500 text-white px-2 py-0.5 rounded font-bold">REMIX</span>
+									</div>
+								{:else if currentSlideshowBond.prompt_a || currentSlideshowBond.prompt_b}
 									<div class="flex justify-between text-xs mt-1 text-y2k-magenta shrink-0">
 										{#if currentSlideshowBond.prompt_a}
 											<span class="truncate">{getCategoryEmoji(currentSlideshowBond.prompt_a.category)} {currentSlideshowBond.prompt_a.word}</span>
@@ -675,7 +682,27 @@
 						<div class="font-bold mt-1">{guestB?.nickname}</div>
 					</div>
 				</div>
-				{#if selectedBond.activity_prompt}
+				{#if selectedBond.remix_bond_id || (selectedBond.phase_number && selectedBond.phase_number >= 2)}
+					<div class="text-center bg-gradient-to-r from-teal-500 to-cyan-500 text-white p-3 rounded space-y-2">
+						{#if selectedBond.activity_prompt}
+							<div class="text-base font-bold">{selectedBond.activity_prompt.activity_category ? activityEmoji(selectedBond.activity_prompt.activity_category) + ' ' : ''}{selectedBond.activity_prompt.description}</div>
+						{/if}
+						{#if selectedBond.remix_source?.photo_url}
+							<div class="text-sm font-bold opacity-90">Remixed from:</div>
+							<div class="mx-auto w-32 h-32 win-inset p-1 bg-white/20">
+								<img
+									src={selectedBond.remix_source.photo_url}
+									alt="Source meld"
+									class="w-full h-full object-cover"
+								/>
+							</div>
+						{:else}
+							<div class="text-sm font-bold">
+								<span class="bg-white/20 px-2 py-0.5 rounded">REMIX</span>
+							</div>
+						{/if}
+					</div>
+				{:else if selectedBond.activity_prompt}
 					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded space-y-2">
 						<div class="text-base font-bold">{selectedBond.activity_prompt.activity_category ? activityEmoji(selectedBond.activity_prompt.activity_category) + ' ' : ''}{selectedBond.activity_prompt.description}</div>
 						{#if selectedBond.prompt_a && selectedBond.prompt_b}

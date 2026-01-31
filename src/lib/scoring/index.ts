@@ -5,6 +5,7 @@ type BondLike = {
 	guest_a_id: string;
 	guest_b_id: string;
 	status: string;
+	phase_number?: number;
 };
 
 const STATUS_RANK: Record<string, number> = {
@@ -23,10 +24,12 @@ export function deduplicateBonds<T extends BondLike>(bonds: T[]): T[] {
 
 	for (const bond of bonds) {
 		// Normalize pair key so (A,B) and (B,A) map to the same key
-		const pairKey =
+		// Include phase so Source + Remix bonds between same pair both count
+		const normalizedPair =
 			bond.guest_a_id < bond.guest_b_id
 				? `${bond.guest_a_id}:${bond.guest_b_id}`
 				: `${bond.guest_b_id}:${bond.guest_a_id}`;
+		const pairKey = `${normalizedPair}:p${bond.phase_number ?? 1}`;
 
 		const existing = best.get(pairKey);
 		if (!existing) {

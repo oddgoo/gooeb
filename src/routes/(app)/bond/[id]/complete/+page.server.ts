@@ -26,11 +26,14 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			guest_a_id,
 			guest_b_id,
 			photo_url,
+			remix_bond_id,
+			phase_number,
 			guest_a:guests!bonds_guest_a_id_fkey(id, nickname, photo_url),
 			guest_b:guests!bonds_guest_b_id_fkey(id, nickname, photo_url),
 			prompt:prompts!bonds_prompt_id_fkey(id, word, category),
 			prompt_a:prompts!bonds_prompt_a_id_fkey(id, word, category),
-			prompt_b:prompts!bonds_prompt_b_id_fkey(id, word, category)
+			prompt_b:prompts!bonds_prompt_b_id_fkey(id, word, category),
+			activity_prompt:activity_prompts(id, description, activity_category)
 		`)
 		.eq('id', bondId)
 		.single();
@@ -45,11 +48,14 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		guest_a_id: string;
 		guest_b_id: string;
 		photo_url: string | null;
+		remix_bond_id: string | null;
+		phase_number: number;
 		guest_a: { id: string; nickname: string; photo_url: string };
 		guest_b: { id: string; nickname: string; photo_url: string };
 		prompt: { id: string; word: string; category: string } | null;
 		prompt_a: { id: string; word: string; category: string } | null;
 		prompt_b: { id: string; word: string; category: string } | null;
+		activity_prompt: { id: string; description: string; activity_category: string | null } | null;
 	} | null;
 
 	if (!bond) {
@@ -72,13 +78,29 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	const myPrompt = isGuestA ? bond.prompt_a : bond.prompt_b;
 	const partnerPrompt = isGuestA ? bond.prompt_b : bond.prompt_a;
 
+	const isRemix = !!(bond.remix_bond_id || bond.phase_number >= 2);
+
+	// Fetch remix source photo separately (PostgREST can't self-join)
+	let remixSourcePhoto: string | null = null;
+	if (bond.remix_bond_id) {
+		const { data: sourceData } = await supabase
+			.from('bonds')
+			.select('photo_url')
+			.eq('id', bond.remix_bond_id)
+			.single();
+		remixSourcePhoto = (sourceData as { photo_url: string | null } | null)?.photo_url ?? null;
+	}
+
 	return {
 		bond: {
 			id: bond.id,
 			prompt: bond.prompt, // Legacy single prompt
 			myPrompt,
 			partnerPrompt,
-			partner
+			partner,
+			activityPrompt: bond.activity_prompt,
+			remixSourcePhoto,
+			isRemix
 		}
 	};
 };

@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { createServerClient, getGuestByCode } from '$lib/supabase/server';
-import { acceptBond } from '$lib/supabase/bonds';
+import { acceptBond, resolvePhaseNumber } from '$lib/supabase/bonds';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
@@ -44,15 +44,20 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		error(404, { message: 'No guest found with that code. Are they registered?' });
 	}
 
-	// Check if there's already a pending/accepted bond between these two
+	// Resolve current phase number
+	const currentPhaseNumber = await resolvePhaseNumber(supabase, me.event_id);
+	const isRemixPhase = currentPhaseNumber >= 2;
+
+	// Check if there's already a pending/accepted bond between these two FOR THIS PHASE
 	const { data: existingBondData } = await supabase
 		.from('bonds')
-		.select('id, status, guest_a_id, guest_b_id')
+		.select('id, status, guest_a_id, guest_b_id, phase_number')
 		.or(`and(guest_a_id.eq.${me.id},guest_b_id.eq.${target.id}),and(guest_a_id.eq.${target.id},guest_b_id.eq.${me.id})`)
 		.in('status', ['pending', 'accepted'])
+		.eq('phase_number', currentPhaseNumber)
 		.single();
 
-	const existingBond = existingBondData as { id: string; status: string; guest_a_id: string; guest_b_id: string } | null;
+	const existingBond = existingBondData as { id: string; status: string; guest_a_id: string; guest_b_id: string; phase_number: number } | null;
 
 	if (existingBond) {
 		if (existingBond.status === 'accepted') {
@@ -97,15 +102,30 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 	}
 
-	// Check how many completed bonds exist between these two (max 3, one per category)
-	const { count: completedCount } = await supabase
-		.from('bonds')
-		.select('id', { count: 'exact', head: true })
-		.or(`and(guest_a_id.eq.${me.id},guest_b_id.eq.${target.id}),and(guest_a_id.eq.${target.id},guest_b_id.eq.${me.id})`)
-		.eq('status', 'completed');
+	if (isRemixPhase) {
+		// Remix phase: max 1 bond per pair (any status)
+		const { count: remixCount } = await supabase
+			.from('bonds')
+			.select('id', { count: 'exact', head: true })
+			.or(`and(guest_a_id.eq.${me.id},guest_b_id.eq.${target.id}),and(guest_a_id.eq.${target.id},guest_b_id.eq.${me.id})`)
+			.eq('phase_number', currentPhaseNumber)
+			.in('status', ['pending', 'accepted', 'completed']);
 
-	if (completedCount && completedCount >= 3) {
-		error(409, { message: "You've completed all 3 bond categories with this person!" });
+		if (remixCount && remixCount >= 1) {
+			error(409, { message: 'You already have a remix meld with this person!' });
+		}
+	} else {
+		// Source phase: max 3 completed per pair
+		const { count: completedCount } = await supabase
+			.from('bonds')
+			.select('id', { count: 'exact', head: true })
+			.or(`and(guest_a_id.eq.${me.id},guest_b_id.eq.${target.id}),and(guest_a_id.eq.${target.id},guest_b_id.eq.${me.id})`)
+			.eq('status', 'completed')
+			.eq('phase_number', 1);
+
+		if (completedCount && completedCount >= 3) {
+			error(409, { message: "You've completed all 3 bond categories with this person!" });
+		}
 	}
 
 	// Create the pending bond (guest_a is the initiator)
@@ -115,7 +135,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			event_id: me.event_id,
 			guest_a_id: me.id,
 			guest_b_id: target.id,
-			status: 'pending'
+			status: 'pending',
+			phase_number: currentPhaseNumber
 		} as never)
 		.select('id')
 		.single();

@@ -4,6 +4,8 @@
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
+	import { activityEmoji } from '$lib/utils/activityEmojis';
+
 	let pageData = $derived($page.data as {
 		bond: {
 			id: string;
@@ -11,6 +13,9 @@
 			myPrompt: { id: string; word: string; category: string } | null;
 			partnerPrompt: { id: string; word: string; category: string } | null;
 			partner: { id: string; nickname: string; photo_url: string };
+			activityPrompt: { id: string; description: string; activity_category: string | null } | null;
+			remixSourcePhoto: string | null;
+			isRemix: boolean;
 		};
 	});
 
@@ -90,25 +95,62 @@
 				</div>
 			</div>
 
-			<!-- Words Display -->
-			{#if bond.myPrompt && bond.partnerPrompt}
-				<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
-					<div class="text-sm">
-						Your words are: <strong>{bond.myPrompt.word}</strong> + <strong>{bond.partnerPrompt.word}</strong>
+			<!-- Remix / Words Display -->
+			{#if bond.isRemix && bond.remixSourcePhoto}
+				<div class="text-center py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded space-y-2">
+					{#if bond.activityPrompt}
+						<div class="text-base font-bold">
+							{bond.activityPrompt.activity_category ? activityEmoji(bond.activityPrompt.activity_category) + ' ' : ''}{bond.activityPrompt.description}
+						</div>
+					{/if}
+					<div class="text-sm font-bold opacity-90">Remix this meld:</div>
+					<div class="mx-auto w-32 h-32 win-inset p-1 bg-white/20">
+						<img
+							src={bond.remixSourcePhoto}
+							alt="Source meld to remix"
+							class="w-full h-full object-cover"
+						/>
 					</div>
 				</div>
-			{:else if bond.myPrompt}
-				<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
-					<div class="text-sm">
-						Your word is: <strong>{bond.myPrompt.word}</strong>
+			{:else}
+				{#if bond.activityPrompt}
+					<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded space-y-2">
+						<div class="text-base font-bold">
+							{bond.activityPrompt.activity_category ? activityEmoji(bond.activityPrompt.activity_category) + ' ' : ''}{bond.activityPrompt.description}
+						</div>
+						{#if bond.myPrompt && bond.partnerPrompt}
+							<div class="text-sm opacity-90">
+								Your words are: <strong>{bond.myPrompt.word}</strong> + <strong>{bond.partnerPrompt.word}</strong>
+							</div>
+						{:else if bond.myPrompt}
+							<div class="text-sm opacity-90">
+								Your word is: <strong>{bond.myPrompt.word}</strong>
+							</div>
+						{:else if bond.prompt}
+							<div class="text-sm opacity-90">
+								Your word is: <strong>{bond.prompt.word}</strong>
+							</div>
+						{/if}
 					</div>
-				</div>
-			{:else if bond.prompt}
-				<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
-					<div class="text-sm">
-						Your word is: <strong>{bond.prompt.word}</strong>
+				{:else if bond.myPrompt && bond.partnerPrompt}
+					<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
+						<div class="text-sm">
+							Your words are: <strong>{bond.myPrompt.word}</strong> + <strong>{bond.partnerPrompt.word}</strong>
+						</div>
 					</div>
-				</div>
+				{:else if bond.myPrompt}
+					<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
+						<div class="text-sm">
+							Your word is: <strong>{bond.myPrompt.word}</strong>
+						</div>
+					</div>
+				{:else if bond.prompt}
+					<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded">
+						<div class="text-sm">
+							Your word is: <strong>{bond.prompt.word}</strong>
+						</div>
+					</div>
+				{/if}
 			{/if}
 
 			<!-- Photo Capture -->

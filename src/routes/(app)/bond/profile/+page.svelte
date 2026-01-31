@@ -183,7 +183,11 @@
 								</div>
 								<div class="flex-1 min-w-0">
 									<div class="font-bold text-sm truncate">{bond.partner.nickname}</div>
-									{#if bond.myPrompt && bond.partnerPrompt}
+									{#if bond.isRemix}
+										<div class="text-xs">
+											<span class="bg-teal-500 text-white px-1.5 py-0.5 rounded font-bold">REMIX</span>
+										</div>
+									{:else if bond.myPrompt && bond.partnerPrompt}
 										<div class="text-xs text-win-textDisabled">
 											{bond.myPrompt.word} + {bond.partnerPrompt.word}
 										</div>
@@ -304,7 +308,21 @@
 						<div class="font-bold mt-1">{selectedBond.partner.nickname}</div>
 					</div>
 				</div>
-				{#if selectedBond.activityPrompt}
+				{#if selectedBond.isRemix && selectedBond.remixSourcePhoto}
+					<div class="text-center bg-gradient-to-r from-teal-500 to-cyan-500 text-white p-3 rounded space-y-2">
+						{#if selectedBond.activityPrompt}
+							<div class="text-base font-bold">{selectedBond.activityPrompt.activity_category ? activityEmoji(selectedBond.activityPrompt.activity_category) + ' ' : ''}{selectedBond.activityPrompt.description}</div>
+						{/if}
+						<div class="text-sm font-bold opacity-90">Remixed from:</div>
+						<div class="mx-auto w-32 h-32 win-inset p-1 bg-white/20">
+							<img
+								src={selectedBond.remixSourcePhoto}
+								alt="Source meld"
+								class="w-full h-full object-cover"
+							/>
+						</div>
+					</div>
+				{:else if selectedBond.activityPrompt}
 					<div class="text-center bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white p-3 rounded space-y-2">
 						<div class="text-base font-bold">{selectedBond.activityPrompt.activity_category ? activityEmoji(selectedBond.activityPrompt.activity_category) + ' ' : ''}{selectedBond.activityPrompt.description}</div>
 						{#if selectedBond.myPrompt && selectedBond.partnerPrompt}

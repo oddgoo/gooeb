@@ -325,8 +325,24 @@
 								<span class="font-bold">{bond.partner.nickname}</span>
 							</div>
 
-							<!-- Shared Activity -->
-							{#if bond.activityPrompt}
+							<!-- Shared Activity / Remix Display -->
+							{#if bond.isRemix && bond.remixSourcePhoto}
+								<div class="text-center py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded mb-3 space-y-2">
+									{#if bond.activityPrompt}
+										<div class="text-base font-bold">
+											{bond.activityPrompt.activity_category ? activityEmoji(bond.activityPrompt.activity_category) + ' ' : ''}{bond.activityPrompt.description}
+										</div>
+									{/if}
+									<div class="text-sm font-bold opacity-90">Remix this meld:</div>
+									<div class="mx-auto w-40 h-40 win-inset p-1 bg-white/20">
+										<img
+											src={bond.remixSourcePhoto}
+											alt="Source meld to remix"
+											class="w-full h-full object-cover"
+										/>
+									</div>
+								</div>
+							{:else if bond.activityPrompt}
 								<div class="text-center py-3 bg-gradient-to-r from-y2k-pink to-y2k-magenta text-white rounded mb-3 space-y-2">
 									<div class="text-base font-bold">
 										{bond.activityPrompt.activity_category ? activityEmoji(bond.activityPrompt.activity_category) + ' ' : ''}{bond.activityPrompt.description}

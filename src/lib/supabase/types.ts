@@ -213,6 +213,8 @@ export type Database = {
 					prompt_a_id: string | null;
 					prompt_b_id: string | null;
 					activity_prompt_id: string | null;
+					remix_bond_id: string | null;
+					phase_number: number;
 					status: 'pending' | 'accepted' | 'completed' | 'rejected' | 'expired';
 					photo_url: string | null;
 					initiated_at: string;
@@ -228,6 +230,8 @@ export type Database = {
 					prompt_a_id?: string | null;
 					prompt_b_id?: string | null;
 					activity_prompt_id?: string | null;
+					remix_bond_id?: string | null;
+					phase_number?: number;
 					status?: 'pending' | 'accepted' | 'completed' | 'rejected' | 'expired';
 					photo_url?: string | null;
 					initiated_at?: string;
@@ -243,6 +247,8 @@ export type Database = {
 					prompt_a_id?: string | null;
 					prompt_b_id?: string | null;
 					activity_prompt_id?: string | null;
+					remix_bond_id?: string | null;
+					phase_number?: number;
 					status?: 'pending' | 'accepted' | 'completed' | 'rejected' | 'expired';
 					photo_url?: string | null;
 					initiated_at?: string;
