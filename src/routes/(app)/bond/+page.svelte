@@ -263,9 +263,9 @@
 	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:h-auto sm:max-h-[90vh]">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
-			<span><img src="/gifs/sparkle-2.gif" alt="" class="h-4 inline-block mr-1" />Mind Meld Manager{#if $myTeamEmoji} | Team {$myTeamEmoji}{/if}</span>
+			<span><img src="/gifs/sparkle-2.gif" alt="" class="h-4 inline-block mr-1" />{guest.nickname} {#if $myTeamEmoji} | Team {$myTeamEmoji}{/if}</span>
 			<div class="flex items-center gap-2">
-				<span class="text-sm font-normal opacity-90">{guest.nickname}</span>
+				<span class="text-sm font-normal opacity-90"></span>
 				<span class="text-xs font-mono bg-black/20 px-1.5 py-0.5 rounded">{maskCode}</span>
 				<a href="/bond/profile" class="win-btn px-2 py-0 min-w-0 text-xs aspect-square flex items-center justify-center">👤</a>
 			</div>
