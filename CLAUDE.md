@@ -88,7 +88,7 @@
 
 ### Phases System
 - Events have a `current_phase_id` pointing to the active phase
-- Default phases: Phase 1 (Icebreaker), Phase 2 (Creative), Phase 3 (Finale)
+- Default phases: Phase 1 (Source), Phase 2 (Remix)
 - Activity prompts are filtered by phase number when assigned to melds
 - Admin switches phases via the admin panel
 
@@ -106,10 +106,16 @@
 - Points displayed in bond page status bar and showcase leaderboard
 - Points calculated from deduplicated bonds (one per pair, preferring completed status)
 
-### Phase 2 - Remix (Future)
-- System assigns groups instead of 1:1 melding
-- Groups remix/reinterpret results from Phase 1 prompts
-- **Not implemented yet - focus on Phase 1 being rock solid**
+### Phase 2 - Remix ✅ IMPLEMENTED
+- When admin switches to Phase 2 (Remix), melding mechanics change:
+  - No word prompts assigned — instead, each meld gets a **random completed Source meld** as reference
+  - The source meld's photo is displayed to both players as the thing to "remix"
+  - Activity prompts are still assigned (filtered to phase 2: pose/drawing/craft)
+  - Max **1 remix meld per pair** (vs 3 in Source phase)
+- Invite flow checks `phase_number` to enforce per-phase limits
+- Bond deduplication is per-pair **per-phase** for scoring
+- Network graph shows remix edges in **teal/cyan** with curved lines to distinguish from Source edges
+- UI displays "REMIX" badge and teal gradient (vs pink/magenta for Source)
 
 ### Admin View
 - **Guests tab**: View, delete guests (cascades to melds)
@@ -161,7 +167,7 @@
 - **guests** - id, event_id, mask_code_id, nickname, photo_url, auth_token, is_admin, team_emoji, intro_text
 - **prompts** - id, event_id, word, category (character|theme|place), is_active, times_used
 - **activity_prompts** - id, event_id, description, is_active, times_used, phase_numbers[], activity_category
-- **bonds** - id, event_id, guest_a_id, guest_b_id, prompt_id (legacy), prompt_a_id, prompt_b_id, activity_prompt_id, status, photo_url, timestamps
+- **bonds** - id, event_id, guest_a_id, guest_b_id, prompt_id (legacy), prompt_a_id, prompt_b_id, activity_prompt_id, remix_bond_id, phase_number, status, photo_url, timestamps
 - **point_ledger** - id, event_id, guest_id, points (positive/negative), reason, created_by, created_at
 
 ### Migrations
@@ -173,6 +179,7 @@
 6. `006_intro_text.sql` - intro_text column on guests
 7. `007_point_ledger.sql` - Point ledger table for manual scoring
 8. `008_activity_categories_v2.sql` - New activity categories (drawing/pose/craft/photo), seed phase 1 prompts, clear old bonds + activity prompts
+9. `009_remix_phase.sql` - Add remix_bond_id (FK to bonds) + phase_number (default 1) to bonds, replace placeholder phases with Source (1) and Remix (2), seed remix activity prompts
 
 ### Meld Statuses (DB column: status)
 - `pending` - Invite sent, awaiting acceptance
@@ -275,7 +282,7 @@
 │   │   ├── supabase/
 │   │   │   ├── client.ts             # Browser Supabase client
 │   │   │   ├── server.ts             # Server Supabase client
-│   │   │   ├── bonds.ts              # Bond logic (prompt assignment, accept, etc.)
+│   │   │   ├── bonds.ts              # Bond logic (prompt assignment, accept, remix, resolvePhaseNumber)
 │   │   │   └── types.ts              # Database types
 │   │   ├── scoring/
 │   │   │   ├── index.ts              # Score calculation logic
@@ -328,6 +335,9 @@ type Bond = {
   initiated_at: string;
   accepted_at: string | null;
   completed_at: string | null;
+  remixBondId: string | null;          // Reference to source bond being remixed
+  remixSourcePhoto: string | null;     // Photo from the source bond
+  isRemix: boolean;                    // True if this is a remix-phase bond
 };
 
 type BondPrompt = { id: string; word: string; category: 'character' | 'theme' | 'place' };
@@ -458,6 +468,7 @@ type BondsState = {
 - [x] **Simplified prompt display**: "Your words are: X + Y" format (replaced separate boxes)
 - [x] **Meld detail modal**: Tappable completed melds in profile + showcase
 - [x] **Activity categories v2** (migration 008): 4 categories (drawing/pose/craft/photo) with emoji display, photo activities skip word prompts
+- [x] **Remix phase** (migration 009): Phase 2 where players remix completed Source melds instead of getting word prompts. Remix bonds reference a random completed Source bond, display its photo, use teal/cyan UI theme, curved graph edges, max 1 remix per pair, per-phase deduplication for scoring
 
 ---
 
@@ -497,7 +508,7 @@ npm run load-test https://thegooeb.com       # Production
 
 ## Notes for Future Sessions
 
-- Phase 2 (Remix) is explicitly deferred - focus on Phase 1 being rock solid
+- Phase 2 (Remix) is now implemented - players remix completed Source melds
 - Guest count: 40-55 expected
 - NFC tags pre-programmed with unique URLs
 - Consider QR code fallbacks for phones without NFC
