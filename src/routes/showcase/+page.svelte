@@ -79,11 +79,13 @@
 
 	let channel: RealtimeChannel | null = null;
 	let standbyChannel: RealtimeChannel | null = null;
+	let realtimeConnected = false;
 	let slideshowInterval: ReturnType<typeof setInterval> | null = null;
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let standbyPollInterval: ReturnType<typeof setInterval> | null = null;
 	let confettiTimeout: ReturnType<typeof setTimeout> | null = null;
 	let announcementTimeout: ReturnType<typeof setTimeout> | null = null;
+	let initialLoadDone = false;
 
 	async function loadData() {
 		try {
@@ -103,29 +105,21 @@
 				(b: Bond) => !previousCompletedBondIds.has(b.id)
 			);
 
-			console.log('loadData:', {
-				totalBonds: data.bonds.length,
-				completedBonds: currentCompletedBonds.length,
-				previousCompletedSize: previousCompletedBondIds.size,
-				newCompletedBonds: newCompletedBonds.length,
-				willAnnounce: previousCompletedBondIds.size > 0 && newCompletedBonds.length > 0
-			});
-
 			guests = data.guests;
 			bonds = data.bonds;
 			stats = data.stats;
 			leaderboard = data.leaderboard;
 			superlatives = data.superlatives || [];
 
-			// Trigger confetti and announcements for all new completed bonds
-			if (previousCompletedBondIds.size > 0 && newCompletedBonds.length > 0) {
-				console.log('Triggering announcements for:', newCompletedBonds.map((b: Bond) => b.id));
+			// Only trigger announcements after initial load is done
+			// This prevents confetti spam when the showcase page is refreshed mid-party
+			if (initialLoadDone && newCompletedBonds.length > 0) {
 				triggerConfetti();
-				// Queue all new bonds for announcement
 				queueAnnouncements(newCompletedBonds);
 			}
 
 			previousCompletedBondIds = currentCompletedIds;
+			initialLoadDone = true;
 		} catch (e) {
 			console.error('Failed to load showcase data:', e);
 		}
@@ -231,13 +225,21 @@
 				}
 			)
 			.subscribe((status, err) => {
-				console.log('Realtime subscription status:', status);
 				if (err) console.error('Realtime error:', err);
 
-				// If realtime fails, fall back to polling
-				if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-					console.log('Realtime failed, starting polling fallback');
+				if (status === 'SUBSCRIBED') {
+					realtimeConnected = true;
+					// Realtime working, stop fallback polling
+					if (pollInterval) {
+						clearInterval(pollInterval);
+						pollInterval = null;
+					}
+				} else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+					realtimeConnected = false;
+					console.warn('Showcase realtime failed, starting polling fallback');
 					startPolling();
+				} else if (status === 'CLOSED') {
+					realtimeConnected = false;
 				}
 			});
 	}

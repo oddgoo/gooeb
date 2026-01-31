@@ -103,6 +103,18 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	}
 
 	if (isRemixPhase) {
+		// Check if there are any completed source bonds to remix
+		const { count: sourceCount } = await supabase
+			.from('bonds')
+			.select('id', { count: 'exact', head: true })
+			.eq('event_id', me.event_id)
+			.eq('status', 'completed')
+			.eq('phase_number', 1);
+
+		if (!sourceCount || sourceCount === 0) {
+			error(409, { message: 'No completed Source melds available to remix yet! Complete some Source melds first.' });
+		}
+
 		// Remix phase: max 1 bond per pair (any status)
 		const { count: remixCount } = await supabase
 			.from('bonds')
@@ -115,16 +127,17 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			error(409, { message: 'You already have a remix meld with this person!' });
 		}
 	} else {
-		// Source phase: max 3 completed per pair
-		const { count: completedCount } = await supabase
+		// Source phase: check how many active bonds exist (accepted + completed)
+		// This prevents creating invites that will fail at accept time due to category exhaustion
+		const { count: activeBondCount } = await supabase
 			.from('bonds')
 			.select('id', { count: 'exact', head: true })
 			.or(`and(guest_a_id.eq.${me.id},guest_b_id.eq.${target.id}),and(guest_a_id.eq.${target.id},guest_b_id.eq.${me.id})`)
-			.eq('status', 'completed')
+			.in('status', ['accepted', 'completed'])
 			.eq('phase_number', 1);
 
-		if (completedCount && completedCount >= 3) {
-			error(409, { message: "You've completed all 3 bond categories with this person!" });
+		if (activeBondCount && activeBondCount >= 3) {
+			error(409, { message: "You've used all 3 bond categories with this person!" });
 		}
 	}
 

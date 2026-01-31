@@ -62,6 +62,7 @@ function createBondsStore() {
 	let channel: RealtimeChannel | null = null;
 	let currentMyId: string | null = null;
 	let realtimeSetup = false;
+	let realtimeConnected = false;
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let visibilityCleanup: (() => void) | null = null;
 
@@ -110,7 +111,6 @@ function createBondsStore() {
 		if (myId && !realtimeSetup) {
 			setupRealtime(myId);
 			setupVisibilityHandler();
-			startPolling();
 		}
 	}
 
@@ -150,7 +150,43 @@ function createBondsStore() {
 					fetchData();
 				}
 			)
-			.subscribe();
+			.subscribe((status) => {
+				if (status === 'SUBSCRIBED') {
+					realtimeConnected = true;
+					// Realtime is working, stop polling if it was running as fallback
+					stopPolling();
+				} else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+					realtimeConnected = false;
+					console.warn('Realtime disconnected, falling back to polling');
+					// Start polling as fallback
+					startPolling();
+					// Attempt to reconnect after a delay
+					setTimeout(() => {
+						if (!realtimeConnected && currentMyId) {
+							reconnectRealtime(currentMyId);
+						}
+					}, 5000);
+				} else if (status === 'CLOSED') {
+					realtimeConnected = false;
+				}
+			});
+	}
+
+	function reconnectRealtime(myId: string) {
+		if (!browser || !myId) return;
+
+		const supabase = getSupabase();
+		if (!supabase) return;
+
+		// Remove old channel
+		if (channel) {
+			supabase.removeChannel(channel);
+			channel = null;
+		}
+
+		// Reset flag so setupRealtime can create a new channel
+		realtimeSetup = false;
+		setupRealtime(myId);
 	}
 
 	// Refetch when tab becomes visible (handles background tab issue)
@@ -169,7 +205,7 @@ function createBondsStore() {
 		};
 	}
 
-	// Polling ensures recipients see invites quickly even if realtime is flaky
+	// Polling as fallback only when realtime is not connected
 	function startPolling() {
 		if (!browser || pollInterval) return;
 
@@ -178,7 +214,7 @@ function createBondsStore() {
 			if (!document.hidden && currentMyId) {
 				fetchData();
 			}
-		}, 2000); // Poll every 2 seconds for responsive party experience
+		}, 3000); // Poll every 3 seconds as fallback
 	}
 
 	function stopPolling() {
@@ -196,6 +232,7 @@ function createBondsStore() {
 			channel = null;
 		}
 		realtimeSetup = false;
+		realtimeConnected = false;
 
 		// Clean up visibility handler
 		if (visibilityCleanup) {

@@ -80,9 +80,15 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 	}
 
 	const [, imageType, base64Data] = base64Match;
+
+	// Pre-check base64 string length before decoding (base64 is ~1.33x binary size)
+	if (base64Data.length > 2.8 * 1024 * 1024) {
+		error(400, { message: 'Photo is too large. Please try a smaller image.' });
+	}
+
 	const photoBuffer = Buffer.from(base64Data, 'base64');
 
-	// Check file size (max 2MB)
+	// Check decoded file size (max 2MB)
 	if (photoBuffer.length > 2 * 1024 * 1024) {
 		error(400, { message: 'Photo is too large. Please try a smaller image.' });
 	}

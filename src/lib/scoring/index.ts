@@ -15,6 +15,7 @@ const STATUS_RANK: Record<string, number> = {
 
 /**
  * Deduplicate bonds so only one bond per guest pair is kept.
+ * Filters out non-scoring statuses (cancelled, rejected, expired) first.
  * Prefers completed over accepted. Among equal status, keeps the
  * item that appeared first in the input array (caller controls sort order).
  * Works with any object that extends BondLike.
@@ -22,7 +23,10 @@ const STATUS_RANK: Record<string, number> = {
 export function deduplicateBonds<T extends BondLike>(bonds: T[]): T[] {
 	const best = new Map<string, T>();
 
-	for (const bond of bonds) {
+	// Only consider bonds with scoring-eligible statuses
+	const scoringBonds = bonds.filter((b) => b.status === 'completed' || b.status === 'accepted');
+
+	for (const bond of scoringBonds) {
 		// Normalize pair key so (A,B) and (B,A) map to the same key
 		// Include phase so Source + Remix bonds between same pair both count
 		const normalizedPair =

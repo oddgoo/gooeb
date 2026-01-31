@@ -37,8 +37,17 @@ function getInitialState(): AuthState {
 		return { code: null, isRegistered: false };
 	}
 
-	// Check localStorage first, then cookie as fallback
-	const code = localStorage.getItem(STORAGE_KEY) || getCookie(COOKIE_NAME);
+	// Check both sources and sync if one is missing
+	const lsCode = localStorage.getItem(STORAGE_KEY);
+	const cookieCode = getCookie(COOKIE_NAME);
+	const code = lsCode || cookieCode;
+
+	if (code) {
+		// Restore whichever is missing
+		if (!lsCode) localStorage.setItem(STORAGE_KEY, code);
+		if (!cookieCode) setCookie(COOKIE_NAME, code, 7);
+	}
+
 	return {
 		code,
 		isRegistered: !!code
