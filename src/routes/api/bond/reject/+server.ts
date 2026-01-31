@@ -50,8 +50,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		error(409, { message: 'This bond is no longer pending' });
 	}
 
-	// Update status to rejected
-	const { error: updateError } = await supabase
+	// Update status to rejected (optimistic lock via status check)
+	const { error: updateError, count } = await supabase
 		.from('bonds')
 		.update({ status: 'rejected' } as never)
 		.eq('id', bondId)
@@ -59,6 +59,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 	if (updateError) {
 		error(500, { message: 'Failed to reject bond' });
+	}
+
+	if (count === 0) {
+		error(409, { message: 'Bond status has already changed' });
 	}
 
 	return json({ success: true });

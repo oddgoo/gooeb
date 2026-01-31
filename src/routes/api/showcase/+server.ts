@@ -251,10 +251,13 @@ export const GET: RequestHandler = async () => {
 
 	const remixSourceMap = new Map<string, string | null>();
 	if (remixBondIds.length > 0) {
-		const { data: sourceBonds } = await supabase
+		const { data: sourceBonds, error: remixSourceError } = await supabase
 			.from('bonds')
 			.select('id, photo_url')
 			.in('id', remixBondIds);
+		if (remixSourceError) {
+			console.error('Showcase remix source query error:', remixSourceError);
+		}
 		for (const sb of (sourceBonds || []) as { id: string; photo_url: string | null }[]) {
 			remixSourceMap.set(sb.id, sb.photo_url);
 		}

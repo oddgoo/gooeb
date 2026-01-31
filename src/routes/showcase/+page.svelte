@@ -82,7 +82,7 @@
 	let realtimeConnected = false;
 	let slideshowInterval: ReturnType<typeof setInterval> | null = null;
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
-	let standbyPollInterval: ReturnType<typeof setInterval> | null = null;
+
 	let confettiTimeout: ReturnType<typeof setTimeout> | null = null;
 	let announcementTimeout: ReturnType<typeof setTimeout> | null = null;
 	let initialLoadDone = false;
@@ -288,7 +288,6 @@
 		startSlideshow();
 		fetchStandby();
 		setupStandbyRealtime();
-		standbyPollInterval = setInterval(fetchStandby, 5000);
 		if (browser) window.addEventListener('keydown', handleKeydown);
 		// Polling disabled - realtime is working. Uncomment if needed as fallback:
 		// startPolling();
@@ -305,7 +304,6 @@
 		}
 		if (slideshowInterval) clearInterval(slideshowInterval);
 		if (pollInterval) clearInterval(pollInterval);
-		if (standbyPollInterval) clearInterval(standbyPollInterval);
 		if (confettiTimeout) clearTimeout(confettiTimeout);
 		if (announcementTimeout) clearTimeout(announcementTimeout);
 		if (browser) window.removeEventListener('keydown', handleKeydown);

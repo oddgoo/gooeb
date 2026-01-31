@@ -1,9 +1,28 @@
 import { json, error } from '@sveltejs/kit';
-import { createServerClient } from '$lib/supabase/server';
+import { createServerClient, getGuestByCode } from '$lib/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ request }) => {
+async function requireAdmin(cookies: { get: (name: string) => string | undefined }) {
+	const code = cookies.get('gooeb_code');
+	if (!code) {
+		error(401, { message: 'Not authenticated' });
+	}
+
+	const guest = await getGuestByCode(code);
+	if (!guest) {
+		error(401, { message: 'Invalid session' });
+	}
+
+	if (!guest.is_admin) {
+		error(403, { message: 'Admin access required' });
+	}
+
+	return guest;
+}
+
+export const POST: RequestHandler = async ({ request, cookies }) => {
+	await requireAdmin(cookies);
 	const supabase = createServerClient();
 
 	const formData = await request.formData();

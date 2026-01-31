@@ -65,6 +65,9 @@ function createBondsStore() {
 	let realtimeConnected = false;
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let visibilityCleanup: (() => void) | null = null;
+	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+	let reconnectAttempts = 0;
+	const MAX_RECONNECT_ATTEMPTS = 5;
 
 	// Fetch data only (called by realtime updates)
 	async function fetchData() {
@@ -153,6 +156,7 @@ function createBondsStore() {
 			.subscribe((status) => {
 				if (status === 'SUBSCRIBED') {
 					realtimeConnected = true;
+					reconnectAttempts = 0; // Reset on successful connection
 					// Realtime is working, stop polling if it was running as fallback
 					stopPolling();
 				} else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
@@ -160,16 +164,34 @@ function createBondsStore() {
 					console.warn('Realtime disconnected, falling back to polling');
 					// Start polling as fallback
 					startPolling();
-					// Attempt to reconnect after a delay
-					setTimeout(() => {
-						if (!realtimeConnected && currentMyId) {
-							reconnectRealtime(currentMyId);
-						}
-					}, 5000);
+					// Attempt to reconnect with exponential backoff
+					scheduleReconnect();
 				} else if (status === 'CLOSED') {
 					realtimeConnected = false;
 				}
 			});
+	}
+
+	function scheduleReconnect() {
+		if (reconnectTimeout) {
+			clearTimeout(reconnectTimeout);
+			reconnectTimeout = null;
+		}
+
+		if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+			console.warn(`Realtime reconnect failed after ${MAX_RECONNECT_ATTEMPTS} attempts, staying on polling`);
+			return;
+		}
+
+		const delay = Math.min(5000 * Math.pow(2, reconnectAttempts), 60000); // 5s, 10s, 20s, 40s, 60s
+		reconnectAttempts++;
+
+		reconnectTimeout = setTimeout(() => {
+			reconnectTimeout = null;
+			if (!realtimeConnected && currentMyId) {
+				reconnectRealtime(currentMyId);
+			}
+		}, delay);
 	}
 
 	function reconnectRealtime(myId: string) {
@@ -225,6 +247,13 @@ function createBondsStore() {
 	}
 
 	function cleanup() {
+		// Clean up reconnect timeout
+		if (reconnectTimeout) {
+			clearTimeout(reconnectTimeout);
+			reconnectTimeout = null;
+		}
+		reconnectAttempts = 0;
+
 		// Clean up realtime subscription
 		const supabase = getSupabase();
 		if (channel && supabase) {

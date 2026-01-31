@@ -52,8 +52,6 @@
 	onMount(() => {
 		fetchStandby();
 		setupRealtimeStandby();
-		// Fallback polling every 5s
-		pollInterval = setInterval(fetchStandby, 5000);
 	});
 
 	onDestroy(() => {
