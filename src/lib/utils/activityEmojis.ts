@@ -4,7 +4,8 @@ const activityEmojiMap: Record<ActivityCategory, string> = {
 	drawing: '🎨',
 	pose: '💃',
 	craft: '🧶',
-	photo: '📷'
+	photo: '📷',
+	prose: '✍️'
 };
 
 export function activityEmoji(category: string): string {

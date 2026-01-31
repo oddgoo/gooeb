@@ -90,17 +90,22 @@ export async function acceptBond(
 		throw new Error(`No activity prompts available for phase ${currentPhaseNumber}`);
 	}
 
-	// Weighted selection: photo activities get ~5% each, others share the rest equally
+	// Weighted selection: photo ~5% each, prose shares 15% total, others share the rest equally
 	const PHOTO_WEIGHT = 0.05;
+	const PROSE_TOTAL_WEIGHT = 0.15;
 	const photoPrompts = phaseFilteredPrompts.filter((p) => p.activity_category === 'photo');
-	const otherPrompts = phaseFilteredPrompts.filter((p) => p.activity_category !== 'photo');
+	const prosePrompts = phaseFilteredPrompts.filter((p) => p.activity_category === 'prose');
+	const otherPrompts = phaseFilteredPrompts.filter((p) => p.activity_category !== 'photo' && p.activity_category !== 'prose');
 
 	const totalPhotoWeight = photoPrompts.length * PHOTO_WEIGHT;
-	const remainingWeight = 1 - totalPhotoWeight;
+	const totalProseWeight = prosePrompts.length > 0 ? PROSE_TOTAL_WEIGHT : 0;
+	const proseEachWeight = prosePrompts.length > 0 ? PROSE_TOTAL_WEIGHT / prosePrompts.length : 0;
+	const remainingWeight = 1 - totalPhotoWeight - totalProseWeight;
 	const otherWeight = otherPrompts.length > 0 ? remainingWeight / otherPrompts.length : 0;
 
 	const weighted: { prompt: ActivityPromptWithPhases; weight: number }[] = [
 		...photoPrompts.map((p) => ({ prompt: p, weight: PHOTO_WEIGHT })),
+		...prosePrompts.map((p) => ({ prompt: p, weight: proseEachWeight })),
 		...otherPrompts.map((p) => ({ prompt: p, weight: otherWeight }))
 	];
 

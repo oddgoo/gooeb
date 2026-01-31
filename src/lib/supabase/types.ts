@@ -2,7 +2,7 @@
 // These match the schema in supabase/migrations/001_initial_schema.sql
 
 export type PromptCategory = 'character' | 'theme' | 'place';
-export type ActivityCategory = 'drawing' | 'pose' | 'craft' | 'photo';
+export type ActivityCategory = 'drawing' | 'pose' | 'craft' | 'photo' | 'prose';
 
 export type Phase = {
 	id: string;
