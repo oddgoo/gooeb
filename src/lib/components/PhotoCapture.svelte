@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { browser } from '$app/environment';
 	import { resizeImage, captureFromVideo } from '$lib/utils/image';
 
@@ -43,6 +43,7 @@
 				}
 			});
 
+			await tick();
 			if (videoElement) {
 				videoElement.srcObject = stream;
 			}
