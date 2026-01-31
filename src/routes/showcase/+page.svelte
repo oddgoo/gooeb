@@ -361,7 +361,7 @@
 					<img
 						src={guestA?.photo_url}
 						alt={guestA?.nickname}
-						class="w-24 h-24 object-cover win-inset p-1 mx-auto ring-4 ring-y2k-pink shadow-[0_0_15px_rgba(255,105,180,0.6)]"
+						class="w-24 h-24 object-cover win-inset p-1 bg-transparent mx-auto ring-4 ring-y2k-pink shadow-[0_0_15px_rgba(255,105,180,0.6)]"
 					/>
 					<div class="text-2xl font-bold mt-2 text-y2k-magenta font-['VT323']">
 						{guestA?.nickname || '?'}
@@ -374,7 +374,7 @@
 					<img
 						src={guestB?.photo_url}
 						alt={guestB?.nickname}
-						class="w-24 h-24 object-cover win-inset p-1 mx-auto ring-4 ring-y2k-pink shadow-[0_0_15px_rgba(255,105,180,0.6)]"
+						class="w-24 h-24 object-cover win-inset p-1 bg-transparent mx-auto ring-4 ring-y2k-pink shadow-[0_0_15px_rgba(255,105,180,0.6)]"
 					/>
 					<div class="text-2xl font-bold mt-2 text-y2k-magenta font-['VT323']">
 						{guestB?.nickname || '?'}
@@ -506,11 +506,11 @@
 									<img
 										src={superlatives[awardIndex].winner.photo_url}
 										alt={superlatives[awardIndex].winner.nickname}
-										class="w-28 h-28 object-cover win-inset p-1 ring-4 ring-y2k-gold shadow-[0_0_20px_rgba(255,215,0,0.5)]"
+										class="w-28 h-28 object-cover win-inset p-1 bg-transparent ring-4 ring-y2k-gold shadow-[0_0_20px_rgba(255,215,0,0.5)]"
 									/>
 								{:else}
 									<!-- Team emoji as avatar -->
-									<div class="w-28 h-28 win-inset flex items-center justify-center text-6xl">
+									<div class="w-28 h-28 win-inset bg-transparent flex items-center justify-center text-6xl">
 										{superlatives[awardIndex].winner.nickname}
 									</div>
 								{/if}
@@ -815,12 +815,12 @@
 				{/if}
 				<div class="flex items-center justify-around mb-4">
 					<div class="text-center">
-						<img src={guestA?.photo_url} alt={guestA?.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1" />
+						<img src={guestA?.photo_url} alt={guestA?.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1 bg-transparent" />
 						<div class="font-bold mt-1">{guestA?.nickname}</div>
 					</div>
 					<div class="text-3xl">🤝</div>
 					<div class="text-center">
-						<img src={guestB?.photo_url} alt={guestB?.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1" />
+						<img src={guestB?.photo_url} alt={guestB?.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1 bg-transparent" />
 						<div class="font-bold mt-1">{guestB?.nickname}</div>
 					</div>
 				</div>

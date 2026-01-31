@@ -77,10 +77,10 @@
 			borderWidthSelected: 5,
 			color: {
 				border: '#FF69B4',
-				background: '#FFF5F8',
+				background: 'transparent',
 				highlight: {
 					border: '#FF1493',
-					background: '#ffffff'
+					background: 'transparent'
 				}
 			}
 		};

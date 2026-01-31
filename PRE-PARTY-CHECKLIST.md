@@ -4,7 +4,7 @@
 
 ### Infrastructure
 - [ ] Vercel deployment live and tested
-- [ ] Custom domain configured (thegooeb.com)
+- [ ] Custom domain configured (megamindmeld.vercel.app)
 - [ ] SSL certificate working
 - [ ] Environment variables set in Vercel
 
@@ -21,7 +21,7 @@
 - [ ] Admin account created (guest with `is_admin = true`)
 
 ### NFC Tags
-- [ ] All NFC tags programmed with unique URLs: `thegooeb.com/join/XXXX`
+- [ ] All NFC tags programmed with unique URLs: `megamindmeld.vercel.app/join/XXXX`
 - [ ] Test 3-5 tags with different phones
 - [ ] QR code fallbacks printed (for non-NFC phones)
 - [ ] Backup manual code entry process tested
@@ -31,7 +31,7 @@
 ## 3 Days Before
 
 ### Load Testing
-- [ ] Run load test: `npx tsx scripts/load-test.ts https://thegooeb.com`
+- [ ] Run load test: `npx tsx scripts/load-test.ts https://megamindmeld.vercel.app`
 - [ ] All endpoints respond under 1s at P95
 - [ ] Success rate > 99%
 - [ ] No database connection errors
@@ -87,7 +87,7 @@
 ### Monitor URLs
 - [ ] Vercel Dashboard: `vercel.com/[your-team]/gooeb`
 - [ ] Supabase Dashboard: Database & Realtime health
-- [ ] Admin Panel: `thegooeb.com/admin`
+- [ ] Admin Panel: `megamindmeld.vercel.app/admin`
 
 ---
 
@@ -133,7 +133,7 @@
 
 ```bash
 # Run load test
-npx tsx scripts/load-test.ts https://thegooeb.com
+npx tsx scripts/load-test.ts https://megamindmeld.vercel.app
 
 # Check build locally
 npm run build && npm run preview

@@ -174,7 +174,7 @@
 								onclick={() => selectedBond = bond}
 								transition:fly={{ x: 20, duration: 250 }}
 							>
-								<div class="win-inset p-0.5">
+								<div class="win-inset p-0.5 bg-transparent">
 									<img
 										src={bond.partner.photo_url}
 										alt={bond.partner.nickname}
@@ -198,7 +198,7 @@
 									{/if}
 								</div>
 								{#if bond.photo_url}
-									<div class="win-inset p-0.5 flex-shrink-0">
+									<div class="win-inset p-0.5 bg-transparent flex-shrink-0">
 										<img
 											src={bond.photo_url}
 											alt="Meld photo"
@@ -299,12 +299,12 @@
 				{/if}
 				<div class="flex items-center justify-around mb-4">
 					<div class="text-center">
-						<img src={guest.photo_url} alt={guest.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1" />
+						<img src={guest.photo_url} alt={guest.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1 bg-transparent" />
 						<div class="font-bold mt-1">{guest.nickname}</div>
 					</div>
 					<div class="text-3xl">🤝</div>
 					<div class="text-center">
-						<img src={selectedBond.partner.photo_url} alt={selectedBond.partner.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1" />
+						<img src={selectedBond.partner.photo_url} alt={selectedBond.partner.nickname} class="w-16 h-16 object-cover mx-auto win-inset p-1 bg-transparent" />
 						<div class="font-bold mt-1">{selectedBond.partner.nickname}</div>
 					</div>
 				</div>

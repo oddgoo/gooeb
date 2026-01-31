@@ -90,7 +90,7 @@
 			<div class="win-groupbox">
 				<span class="win-groupbox-label">Melding with</span>
 				<div class="flex items-center gap-3">
-					<div class="win-inset p-1">
+					<div class="win-inset p-1 bg-transparent">
 						<img
 							src={bond.partner.photo_url}
 							alt={bond.partner.nickname}

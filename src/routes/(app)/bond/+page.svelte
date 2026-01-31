@@ -315,7 +315,7 @@
 							{/if}
 
 							<div class="flex items-center gap-3 mb-3 pr-8">
-								<div class="win-inset p-1">
+								<div class="win-inset p-1 bg-transparent">
 									<img
 										src={bond.partner.photo_url}
 										alt={bond.partner.nickname}
@@ -413,7 +413,7 @@
 					<div class="space-y-2">
 						{#each $pendingIncoming as bond (bond.id)}
 							<div class="win-inset p-2 flex items-center gap-2" transition:fly={{ y: -20, duration: 250 }}>
-								<div class="win-inset p-0.5">
+								<div class="win-inset p-0.5 bg-transparent">
 									<img
 										src={bond.partner.photo_url}
 										alt={bond.partner.nickname}
@@ -558,7 +558,7 @@
 			</div>
 			<div class="p-4 space-y-4">
 				<div class="flex flex-col items-center gap-3">
-					<div class="win-inset p-1">
+					<div class="win-inset p-1 bg-transparent">
 						<img
 							src={lookupTarget.photo_url}
 							alt={lookupTarget.nickname}

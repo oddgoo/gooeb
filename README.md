@@ -130,7 +130,7 @@ Simulates 30 concurrent users making requests to various endpoints. Doesn't crea
 npx tsx scripts/load-test.ts http://localhost:5173
 
 # Production
-npx tsx scripts/load-test.ts https://thegooeb.com
+npx tsx scripts/load-test.ts https://megamindmeld.vercel.app
 ```
 
 #### Integration Load Test (Full flow)
@@ -141,7 +141,7 @@ Creates real users and bonds in the database to test the complete flow. Requires
 npx tsx scripts/integration-load-test.ts http://localhost:5173
 
 # Production
-npx tsx scripts/integration-load-test.ts https://thegooeb.com
+npx tsx scripts/integration-load-test.ts https://megamindmeld.vercel.app
 ```
 
 **Prerequisites for integration load test:**

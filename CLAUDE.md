@@ -52,7 +52,7 @@
 ## Detailed Requirements
 
 ### Setup / Authentication (Simplified)
-- Guests receive masks with NFC tags containing URLs like `thegooeb.com/join/XXX`
+- Guests receive masks with NFC tags containing URLs like `megamindmeld.vercel.app/join/XXX`
 - Landing page allows manual 3-digit code entry (or NFC tap, QR scan)
 - Registration: nickname + photo upload (camera or file)
 - **Simplified auth**: Mask code stored in both localStorage AND cookie (`gooeb_code`)
@@ -506,7 +506,7 @@ npm run preview
 
 # Load testing
 npm run load-test http://localhost:5173      # Local
-npm run load-test https://thegooeb.com       # Production
+npm run load-test https://megamindmeld.vercel.app       # Production
 ```
 
 ---
