@@ -117,10 +117,10 @@ export async function acceptBond(
 
 	// --- REMIX PHASE: skip word prompts, pick a random completed Source bond ---
 	if (currentPhaseNumber >= 2) {
-		// Find all completed Source bonds in this event
+		// Find all completed Source bonds in this event (include activity_prompt_id for category filtering)
 		const { data: sourceBonds, error: sourceError } = await supabase
 			.from('bonds')
-			.select('id, photo_url')
+			.select('id, photo_url, activity_prompt_id')
 			.eq('event_id', bond.event_id)
 			.eq('status', 'completed')
 			.eq('phase_number', 1);
@@ -130,13 +130,38 @@ export async function acceptBond(
 			throw new Error('Failed to fetch source bonds for remix');
 		}
 
-		const completedSourceBonds = (sourceBonds || []) as { id: string; photo_url: string | null }[];
+		const completedSourceBonds = (sourceBonds || []) as { id: string; photo_url: string | null; activity_prompt_id: string | null }[];
 		if (completedSourceBonds.length === 0) {
 			throw new Error('No completed Source melds available to remix!');
 		}
 
 		// Pick a random source bond
 		const remixSource = completedSourceBonds[Math.floor(Math.random() * completedSourceBonds.length)];
+
+		// Look up the source bond's activity category so we can avoid same-category remix
+		let sourceActivityCategory: string | null = null;
+		if (remixSource.activity_prompt_id) {
+			const { data: sourceActivityData } = await supabase
+				.from('activity_prompts')
+				.select('activity_category')
+				.eq('id', remixSource.activity_prompt_id)
+				.single();
+			if (sourceActivityData) {
+				sourceActivityCategory = (sourceActivityData as { activity_category: string | null }).activity_category;
+			}
+		}
+
+		// Filter out activity prompts that match the source bond's category (no drawing-of-drawing, etc.)
+		let remixActivityCandidates = phaseFilteredPrompts;
+		if (sourceActivityCategory) {
+			const filtered = phaseFilteredPrompts.filter((p) => p.activity_category !== sourceActivityCategory);
+			if (filtered.length > 0) {
+				remixActivityCandidates = filtered;
+			}
+		}
+
+		// Simple random selection (equal probability)
+		const remixSelectedActivity = remixActivityCandidates[Math.floor(Math.random() * remixActivityCandidates.length)];
 
 		// Update the bond with activity + remix reference, no word prompts
 		const { error: updateError, count } = await supabase
@@ -145,7 +170,7 @@ export async function acceptBond(
 				status: 'accepted',
 				prompt_a_id: null,
 				prompt_b_id: null,
-				activity_prompt_id: selectedActivity.id,
+				activity_prompt_id: remixSelectedActivity.id,
 				remix_bond_id: remixSource.id,
 				accepted_at: new Date().toISOString()
 			} as never)
@@ -160,8 +185,8 @@ export async function acceptBond(
 			promptA: null,
 			promptB: null,
 			activityPrompt: {
-				id: selectedActivity.id,
-				description: selectedActivity.description
+				id: remixSelectedActivity.id,
+				description: remixSelectedActivity.description
 			},
 			remixBondId: remixSource.id,
 			remixSourcePhoto: remixSource.photo_url || undefined
