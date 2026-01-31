@@ -359,6 +359,7 @@
 <div class="h-screen p-3 flex flex-col overflow-hidden">
 	<!-- Header - compact -->
 	<div class="text-center mb-2 shrink-0 flex items-center justify-center gap-4">
+		<img src="/gifs/party-2.gif" alt="" class="h-10" />
 		<h1 class="text-3xl font-bold text-y2k-magenta font-['VT323'] tracking-wider drop-shadow-lg"
 			style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;">
 			MEGA MIND MELD IMAGINARIUM - LIVE
@@ -487,7 +488,7 @@
 			<!-- Leaderboard - scrollable -->
 			<div class="win-window shrink-0" style="height: 180px;">
 				<div class="win-titlebar">
-					<span>Leaderboard</span>
+					<span><img src="/gifs/trophy-2.gif" alt="" class="h-5 inline-block mr-1" />Leaderboard</span>
 				</div>
 				<div class="p-2 h-[calc(100%-28px)] overflow-y-auto">
 					{#if leaderboard.length === 0}

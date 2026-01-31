@@ -263,7 +263,7 @@
 	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:h-auto sm:max-h-[90vh]">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
-			<span>Mind Meld Manager{#if $myTeamEmoji} | Team {$myTeamEmoji}{/if}</span>
+			<span><img src="/gifs/sparkle-2.gif" alt="" class="h-4 inline-block mr-1" />Mind Meld Manager{#if $myTeamEmoji} | Team {$myTeamEmoji}{/if}</span>
 			<div class="flex items-center gap-2">
 				<span class="text-sm font-normal opacity-90">{guest.nickname}</span>
 				<span class="text-xs font-mono bg-black/20 px-1.5 py-0.5 rounded">{maskCode}</span>
@@ -292,7 +292,7 @@
 			<!-- Active Melds -->
 			{#if $activeBonds.length > 0}
 				<div class="win-groupbox" transition:slide={{ duration: 300 }}>
-					<span class="win-groupbox-label animate-pulse-glow">!! Active Meld !!</span>
+					<span class="win-groupbox-label animate-pulse-glow"><img src="/gifs/handshake-4.gif" alt="" class="h-5 inline-block mr-1" />!! Active Meld !!</span>
 					{#each $activeBonds as bond (bond.id)}
 						<div class="win-inset p-3 animate-fade-in-scale relative">
 							<!-- Cancel button -->
@@ -409,7 +409,7 @@
 			<!-- Incoming Invites -->
 			{#if $pendingIncoming.length > 0}
 				<div class="win-groupbox" transition:slide={{ duration: 300 }}>
-					<span class="win-groupbox-label">Incoming ({$pendingIncoming.length})</span>
+					<span class="win-groupbox-label"><img src="/gifs/mail-2.gif" alt="" class="h-5 inline-block mr-1" />Incoming ({$pendingIncoming.length})</span>
 					<div class="space-y-2">
 						{#each $pendingIncoming as bond (bond.id)}
 							<div class="win-inset p-2 flex items-center gap-2" transition:fly={{ y: -20, duration: 250 }}>
@@ -451,7 +451,7 @@
 
 			<!-- Send Invite -->
 			<div class="win-groupbox">
-				<span class="win-groupbox-label">New Meld</span>
+				<span class="win-groupbox-label"><img src="/gifs/dance-2.gif" alt="" class="h-5 inline-block mr-1" />New Meld</span>
 				<form
 					onsubmit={(e) => {
 						e.preventDefault();

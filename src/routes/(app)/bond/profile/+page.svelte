@@ -110,7 +110,7 @@
 	<div class="win-window flex-1 flex flex-col m-0 sm:m-4 sm:max-w-lg sm:mx-auto sm:flex-initial">
 		<!-- Title Bar -->
 		<div class="win-titlebar">
-			<span>Profile Settings</span>
+			<span><img src="/gifs/sparkle-3.gif" alt="" class="h-5 inline-block mr-1" />Profile Settings</span>
 			<div class="flex items-center gap-2">
 				<a href="/bond" class="win-btn px-2 py-0 min-w-0 text-xs">X</a>
 			</div>
@@ -155,7 +155,7 @@
 
 			<!-- Completed Melds -->
 			<div class="win-groupbox">
-				<span class="win-groupbox-label">Completed Melds ({$completedBonds.length})</span>
+				<span class="win-groupbox-label"><img src="/gifs/camera-2.gif" alt="" class="h-5 inline-block mr-1" />Completed Melds ({$completedBonds.length})</span>
 				{#if $bonds.loading}
 					<div class="text-center py-4">
 						<LoadingSpinner size="lg" color="pink" />

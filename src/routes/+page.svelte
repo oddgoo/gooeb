@@ -49,13 +49,17 @@
 		<div class="p-4 space-y-4 flex-1 flex flex-col justify-center">
 			<!-- Logo/Title Area -->
 			<div class="text-center py-4">
-				<div class="text-2xl font-bold text-win-title mb-2">MEGA MIND MELD IMAGINARIUM</div>
-				<div class="text-sm text-win-textDisabled">Mind meld with friends at the party</div>
+				<div class="flex items-center justify-center gap-2">
+					<img src="/gifs/brain-2.gif" alt="" class="h-8 inline-block" />
+					<div class="text-2xl font-bold text-win-title">MEGA MIND MELD IMAGINARIUM</div>
+					<img src="/gifs/sparkle-1.gif" alt="" class="h-8 inline-block" />
+				</div>
+				<div class="text-sm text-win-textDisabled mt-2">Mind meld with friends at the party</div>
 			</div>
 
 			<!-- Code Entry Group -->
 			<div class="win-groupbox">
-				<span class="win-groupbox-label">Enter Code</span>
+				<span class="win-groupbox-label"><img src="/gifs/mask-3.gif" alt="" class="h-5 inline-block mr-1" />Enter Code</span>
 
 				<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 					<div>
@@ -117,7 +121,7 @@
 	</div>
 
 	<!-- Desktop Icons (decorative) - hidden on mobile -->
-	<div class="hidden sm:flex mt-8 gap-6 text-center text-white text-xs justify-center">
+	<div class="hidden sm:flex mt-8 gap-6 text-center text-white text-xs justify-center items-end">
 		<div class="flex flex-col items-center gap-1 opacity-70">
 			<div class="text-3xl">🎭</div>
 			<span>Masks</span>
@@ -130,5 +134,6 @@
 			<div class="text-3xl">📸</div>
 			<span>Photos</span>
 		</div>
+		<img src="/gifs/welcome-3.gif" alt="" class="h-10 opacity-70" />
 	</div>
 </div>

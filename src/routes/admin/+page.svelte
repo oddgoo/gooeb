@@ -734,6 +734,11 @@
 										<span>↔</span>
 										<span class="font-bold">{bond.guest_b.nickname}</span>
 										<img src={bond.guest_b.photo_url} alt="" class="w-8 h-8 object-cover" />
+										{#if bond.photo_url}
+											<div class="win-inset p-0.5 flex-shrink-0">
+												<img src={bond.photo_url} alt="Meld photo" class="w-10 h-10 object-cover" />
+											</div>
+										{/if}
 										<span class="flex-1"></span>
 										{#if bond.prompt}
 											<span class="text-xs">
