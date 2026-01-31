@@ -267,7 +267,7 @@
 			<div class="flex items-center gap-2">
 				<span class="text-sm font-normal opacity-90">{guest.nickname}</span>
 				<span class="text-xs font-mono bg-black/20 px-1.5 py-0.5 rounded">{maskCode}</span>
-				<a href="/bond/profile" class="win-btn px-2 py-0 min-w-0 text-xs">👤</a>
+				<a href="/bond/profile" class="win-btn px-2 py-0 min-w-0 text-xs aspect-square flex items-center justify-center">👤</a>
 			</div>
 		</div>
 
