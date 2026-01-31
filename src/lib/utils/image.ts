@@ -3,6 +3,7 @@
 const MAX_WIDTH = 1200;
 const MAX_HEIGHT = 1200;
 const JPEG_QUALITY = 0.85;
+const TRANSPARENCY_FILL = '#C8D8F0'; // soft cornflower blue for PNG transparency
 
 /**
  * Resize an image file/blob to max dimensions and return as data URL
@@ -35,6 +36,9 @@ export async function resizeImage(file: File | Blob): Promise<string> {
 				return;
 			}
 
+			// Fill with soft blue so PNG transparency doesn't become black
+			ctx.fillStyle = TRANSPARENCY_FILL;
+			ctx.fillRect(0, 0, width, height);
 			ctx.drawImage(img, 0, 0, width, height);
 
 			// Convert to data URL
@@ -64,6 +68,8 @@ export async function captureFromVideo(video: HTMLVideoElement): Promise<string>
 		throw new Error('Failed to get canvas context');
 	}
 
+	ctx.fillStyle = TRANSPARENCY_FILL;
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.drawImage(video, 0, 0);
 
 	// Create blob and resize

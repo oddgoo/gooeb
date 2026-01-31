@@ -12,18 +12,11 @@
 
 	let videoElement: HTMLVideoElement | null = $state(null);
 	let stream: MediaStream | null = $state(null);
-	let capturedPhoto: string | null = $state(null);
+	let capturedPhoto: string | null = $state(initialPhoto ?? null);
 	let cameraError = $state('');
 	let facingMode: 'user' | 'environment' = $state('user');
 	let isCapturing = $state(false);
 	let isStartingCamera = $state(false);
-
-	// Set initial photo if provided
-	$effect(() => {
-		if (initialPhoto && !capturedPhoto) {
-			capturedPhoto = initialPhoto;
-		}
-	});
 
 	onMount(async () => {
 		if (browser && !initialPhoto) {
