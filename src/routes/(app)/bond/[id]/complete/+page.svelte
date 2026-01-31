@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { fade, scale } from 'svelte/transition';
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
@@ -24,6 +25,7 @@
 	let photoDataUrl: string | null = $state(null);
 	let isSubmitting = $state(false);
 	let error = $state('');
+	let showCelebration = $state(false);
 
 	function handlePhotoCapture(dataUrl: string) {
 		photoDataUrl = dataUrl;
@@ -52,8 +54,12 @@
 				throw new Error(result.message || 'Failed to complete bond');
 			}
 
-			// Success! Go back to bond page
-			goto('/bond');
+			// Show celebration overlay
+			showCelebration = true;
+			try {
+				new Audio('/sounds/meld-complete.wav').play();
+			} catch {}
+			setTimeout(() => goto('/bond'), 3000);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to complete meld';
 		} finally {
@@ -208,3 +214,53 @@
 		</div>
 	</div>
 </div>
+
+<!-- Celebration Overlay -->
+{#if showCelebration}
+	<div class="fixed inset-0 z-50 flex items-center justify-center" transition:fade={{ duration: 300 }}>
+		<!-- Confetti -->
+		<div class="absolute inset-0 pointer-events-none overflow-hidden">
+			{#each Array(40) as _, i}
+				<div
+					class="confetti"
+					style="
+						left: {Math.random() * 100}%;
+						animation-delay: {Math.random() * 0.5}s;
+						background: {['#FF69B4', '#FFD700', '#00D4AA', '#FF1493', '#87CEEB', '#FFA500'][i % 6]};
+					"
+				></div>
+			{/each}
+		</div>
+		<!-- Message -->
+		<div class="text-center z-10" transition:scale={{ duration: 400, start: 0.5 }}>
+			<div class="text-6xl mb-4">🤝</div>
+			<div
+				class="text-4xl font-bold font-['VT323'] tracking-wider text-white px-8 py-4 bg-gradient-to-r from-y2k-pink to-y2k-magenta rounded-lg shadow-2xl"
+				style="text-shadow: 2px 2px 0 #FFD700, -1px -1px 0 #00D4AA;"
+			>
+				MELD COMPLETE!
+			</div>
+		</div>
+	</div>
+{/if}
+
+<style>
+	.confetti {
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		top: -10px;
+		animation: confetti-fall 3s linear forwards;
+	}
+
+	@keyframes confetti-fall {
+		0% {
+			transform: translateY(0) rotate(0deg);
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(100vh) rotate(720deg);
+			opacity: 0;
+		}
+	}
+</style>

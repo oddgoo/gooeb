@@ -118,6 +118,10 @@
 			clearTimeout(confettiTimeout);
 		}
 		showConfetti = true;
+		// Play celebration sound
+		try {
+			new Audio('/sounds/meld-complete.wav').play();
+		} catch {}
 		confettiTimeout = setTimeout(() => {
 			showConfetti = false;
 			confettiTimeout = null;
@@ -327,7 +331,7 @@
 					<img
 						src={guestA?.photo_url}
 						alt={guestA?.nickname}
-						class="w-20 h-20 object-cover win-inset p-1 mx-auto"
+						class="w-24 h-24 object-cover win-inset p-1 mx-auto ring-4 ring-y2k-pink shadow-[0_0_15px_rgba(255,105,180,0.6)]"
 					/>
 					<div class="text-2xl font-bold mt-2 text-y2k-magenta font-['VT323']">
 						{guestA?.nickname || '?'}
@@ -340,7 +344,7 @@
 					<img
 						src={guestB?.photo_url}
 						alt={guestB?.nickname}
-						class="w-20 h-20 object-cover win-inset p-1 mx-auto"
+						class="w-24 h-24 object-cover win-inset p-1 mx-auto ring-4 ring-y2k-pink shadow-[0_0_15px_rgba(255,105,180,0.6)]"
 					/>
 					<div class="text-2xl font-bold mt-2 text-y2k-magenta font-['VT323']">
 						{guestB?.nickname || '?'}

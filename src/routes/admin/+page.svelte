@@ -87,6 +87,10 @@
 	let selectedGuestId = $state('');
 	let pointsReason = $state('');
 
+	// Trigger random meld
+	let triggerMeldLoading = $state(false);
+	let triggerMeldResult = $state('');
+
 	// Bulk upload
 	let bulkCsvFile = $state<File | null>(null);
 	let bulkPhotoFiles = $state<FileList | null>(null);
@@ -475,6 +479,26 @@
 		}
 	}
 
+	async function triggerRandomMeld() {
+		triggerMeldLoading = true;
+		triggerMeldResult = '';
+		error = '';
+
+		try {
+			const res = await fetch('/api/admin/trigger-meld', { method: 'POST' });
+			const data = await res.json();
+			if (!res.ok) {
+				throw new Error(data.message || 'Failed to trigger meld');
+			}
+			triggerMeldResult = `${data.bond.guestA} 🤝 ${data.bond.guestB}`;
+			loadBonds();
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Failed to trigger meld';
+		} finally {
+			triggerMeldLoading = false;
+		}
+	}
+
 	function getCategoryEmoji(category: string): string {
 		switch (category) {
 			case 'character': return '👤';
@@ -682,6 +706,20 @@
 
 			{:else if activeTab === 'bonds'}
 				<!-- Melds Tab -->
+				<div class="flex gap-2 mb-3">
+					<button
+						onclick={triggerRandomMeld}
+						class="win-btn px-4 py-2 bg-gradient-to-r from-y2k-cyan to-y2k-pink text-white font-bold"
+						disabled={triggerMeldLoading}
+					>
+						{triggerMeldLoading ? 'Triggering...' : '🎲 Trigger Random Meld'}
+					</button>
+					{#if triggerMeldResult}
+						<div class="win-inset px-3 py-2 text-sm bg-green-100 text-green-800">
+							{triggerMeldResult}
+						</div>
+					{/if}
+				</div>
 				<div class="win-groupbox">
 					<span class="win-groupbox-label">Melds ({bonds.length})</span>
 					<div class="win-inset p-2 max-h-[60vh] overflow-y-auto">
