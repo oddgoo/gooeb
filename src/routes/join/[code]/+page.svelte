@@ -109,6 +109,11 @@
 						<div class="font-bold text-xl text-win-title">
 							{data.claimedGuest.nickname}
 						</div>
+						{#if data.claimedGuest.intro_text}
+							<div class="text-sm text-win-text mt-2">
+								{data.claimedGuest.intro_text}
+							</div>
+						{/if}
 					</div>
 				</div>
 

@@ -67,7 +67,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			claimedGuest: {
 				id: claimedGuest.id,
 				nickname: claimedGuest.nickname,
-				photo_url: claimedGuest.photo_url
+				photo_url: claimedGuest.photo_url,
+				intro_text: (claimedGuest as any).intro_text as string | null
 			}
 		};
 	}

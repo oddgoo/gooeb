@@ -13,6 +13,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 	let body: {
 		nickname?: string;
+		intro_text?: string;
 		photo?: string | null;
 	};
 
@@ -22,7 +23,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		error(400, { message: 'Invalid request body' });
 	}
 
-	const { nickname, photo } = body;
+	const { nickname, intro_text, photo } = body;
 
 	// Validate nickname
 	if (!nickname || typeof nickname !== 'string' || nickname.trim().length === 0) {
@@ -77,6 +78,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		.from('guests')
 		.update({
 			nickname: nickname.trim(),
+			intro_text: intro_text !== undefined ? (intro_text.trim() || null) : guest.intro_text,
 			photo_url: photoUrl
 		} as never)
 		.eq('id', guest.id);

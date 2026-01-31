@@ -15,6 +15,7 @@
 	let maskCode = $derived(layoutData.maskCode);
 
 	let nickname = $state('');
+	let introText = $state('');
 	let photoData = $state<string | null>(null);
 	let isSubmitting = $state(false);
 	let error = $state('');
@@ -25,6 +26,9 @@
 	$effect(() => {
 		if (guest?.nickname && !nickname) {
 			nickname = guest.nickname;
+		}
+		if (guest?.intro_text && !introText) {
+			introText = guest.intro_text;
 		}
 	});
 
@@ -82,6 +86,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					nickname: nickname.trim(),
+					intro_text: introText.trim(),
 					photo: photoData
 				})
 			});
@@ -144,14 +149,16 @@
 				/>
 			</div>
 
-			{#if guest.intro_text}
-				<div class="win-groupbox">
-					<span class="win-groupbox-label">About You</span>
-					<div class="win-inset p-2 text-sm text-win-text">
-						{guest.intro_text}
-					</div>
-				</div>
-			{/if}
+			<div class="win-groupbox">
+				<span class="win-groupbox-label">About You</span>
+				<textarea
+					bind:value={introText}
+					placeholder="Write something about yourself..."
+					maxlength="200"
+					rows="3"
+					class="win-input w-full text-sm resize-none"
+				></textarea>
+			</div>
 
 			<!-- Completed Melds -->
 			<div class="win-groupbox">
