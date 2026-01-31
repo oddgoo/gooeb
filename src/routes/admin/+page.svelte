@@ -87,6 +87,10 @@
 	let selectedGuestId = $state('');
 	let pointsReason = $state('');
 
+	// Standby mode
+	let standbyMode = $state(false);
+	let standbyLoading = $state(false);
+
 	// Trigger random meld
 	let triggerMeldLoading = $state(false);
 	let triggerMeldResult = $state('');
@@ -518,8 +522,36 @@
 		}
 	}
 
+	async function loadStandby() {
+		try {
+			const res = await fetch('/api/admin/standby');
+			const data = await res.json();
+			standbyMode = data.standby_mode;
+		} catch (e) {
+			console.error('Failed to load standby state:', e);
+		}
+	}
+
+	async function toggleStandby() {
+		standbyLoading = true;
+		try {
+			const res = await fetch('/api/admin/standby', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ standby_mode: !standbyMode })
+			});
+			const data = await res.json();
+			standbyMode = data.standby_mode;
+		} catch (e) {
+			error = 'Failed to toggle standby mode';
+		} finally {
+			standbyLoading = false;
+		}
+	}
+
 	onMount(() => {
 		loadGuests();
+		loadStandby();
 	});
 
 	// Load data when tab changes
@@ -541,6 +573,21 @@
 			<div class="flex gap-1">
 				<a href="/bond" class="win-btn px-2 py-0 min-w-0 text-xs">X</a>
 			</div>
+		</div>
+
+		<!-- Standby Mode Toggle -->
+		<div class="bg-win-bg px-3 py-2 border-b border-win-btnShadow flex items-center gap-3">
+			<button
+				onclick={toggleStandby}
+				disabled={standbyLoading}
+				class="win-btn px-4 py-2 font-bold text-sm {standbyMode ? 'bg-red-500 text-white' : ''}"
+				class:animate-pulse={standbyMode}
+			>
+				{standbyLoading ? '...' : standbyMode ? '🔴 STANDBY ON' : '⚪ Standby Off'}
+			</button>
+			<span class="text-xs text-win-textDisabled">
+				{standbyMode ? 'Players see a full-screen overlay' : 'Players can use the app normally'}
+			</span>
 		</div>
 
 		<!-- Tabs -->

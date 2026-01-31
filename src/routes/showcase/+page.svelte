@@ -75,9 +75,13 @@
 	let previousCompletedBondIds = $state<Set<string>>(new Set());
 	let networkGraphRef: { fitAll: () => void } | undefined;
 
+	let standbyMode = $state(false);
+
 	let channel: RealtimeChannel | null = null;
+	let standbyChannel: RealtimeChannel | null = null;
 	let slideshowInterval: ReturnType<typeof setInterval> | null = null;
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
+	let standbyPollInterval: ReturnType<typeof setInterval> | null = null;
 	let confettiTimeout: ReturnType<typeof setTimeout> | null = null;
 	let announcementTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -175,6 +179,33 @@
 		}, 3000);
 	}
 
+	async function fetchStandby() {
+		try {
+			const res = await fetch('/api/standby');
+			const data = await res.json();
+			standbyMode = data.standby_mode;
+		} catch (e) {
+			console.error('Failed to fetch standby state:', e);
+		}
+	}
+
+	function setupStandbyRealtime() {
+		if (!browser) return;
+		const supabase = getSupabase();
+		if (!supabase) return;
+
+		standbyChannel = supabase
+			.channel('showcase-standby')
+			.on(
+				'postgres_changes',
+				{ event: 'UPDATE', schema: 'public', table: 'events' },
+				() => {
+					fetchStandby();
+				}
+			)
+			.subscribe();
+	}
+
 	function setupRealtime() {
 		if (!browser) return;
 
@@ -253,6 +284,9 @@
 		loadData();
 		setupRealtime();
 		startSlideshow();
+		fetchStandby();
+		setupStandbyRealtime();
+		standbyPollInterval = setInterval(fetchStandby, 5000);
 		if (browser) window.addEventListener('keydown', handleKeydown);
 		// Polling disabled - realtime is working. Uncomment if needed as fallback:
 		// startPolling();
@@ -263,8 +297,13 @@
 			const supabase = getSupabase();
 			if (supabase) supabase.removeChannel(channel);
 		}
+		if (standbyChannel) {
+			const supabase = getSupabase();
+			if (supabase) supabase.removeChannel(standbyChannel);
+		}
 		if (slideshowInterval) clearInterval(slideshowInterval);
 		if (pollInterval) clearInterval(pollInterval);
+		if (standbyPollInterval) clearInterval(standbyPollInterval);
 		if (confettiTimeout) clearTimeout(confettiTimeout);
 		if (announcementTimeout) clearTimeout(announcementTimeout);
 		if (browser) window.removeEventListener('keydown', handleKeydown);
@@ -871,6 +910,25 @@
 					</div>
 				{/if}
 			</div>
+		</div>
+	</div>
+{/if}
+
+{#if standbyMode}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+		style="pointer-events: all;"
+		transition:fade={{ duration: 300 }}
+	>
+		<div class="text-center px-8">
+			<div class="text-8xl mb-6 animate-pulse">👀</div>
+			<h1
+				class="text-6xl font-bold font-['VT323'] tracking-wider text-white mb-4"
+				style="text-shadow: 2px 2px 0 #FF69B4, -1px -1px 0 #00D4AA;"
+			>
+				Heads up!
+			</h1>
+			<p class="text-4xl text-white/80 font-['VT323']">Look around you</p>
 		</div>
 	</div>
 {/if}
