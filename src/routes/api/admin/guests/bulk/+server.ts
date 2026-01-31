@@ -32,6 +32,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 
 	const created: string[] = [];
+	const updated: string[] = [];
 	const skipped: string[] = [];
 	const errors: string[] = [];
 
@@ -77,7 +78,48 @@ export const POST: RequestHandler = async ({ request }) => {
 			.single();
 
 		if (existingGuest) {
-			skipped.push(`${code} (${nickname}) - guest already exists`);
+			const eg = existingGuest as { id: string };
+			const updateObj: Record<string, string | null> = {
+				nickname,
+				intro_text: introText
+			};
+
+			// Upload photo if provided
+			const photoFile = photoFiles.get(nickname.toLowerCase());
+			if (photoFile) {
+				const ext = photoFile.name.split('.').pop() || 'png';
+				const photoPath = `guests/${eg.id}.${ext}`;
+				const buffer = Buffer.from(await photoFile.arrayBuffer());
+
+				const { error: uploadError } = await supabase.storage
+					.from('photos')
+					.upload(photoPath, buffer, {
+						contentType: photoFile.type || 'image/png',
+						upsert: true
+					});
+
+				if (uploadError) {
+					errors.push(`Line ${i + 1}: photo upload failed for ${nickname}`);
+					continue;
+				}
+
+				const {
+					data: { publicUrl }
+				} = supabase.storage.from('photos').getPublicUrl(photoPath);
+				updateObj.photo_url = publicUrl;
+			}
+
+			const { error: updateError } = await supabase
+				.from('guests')
+				.update(updateObj as never)
+				.eq('id', eg.id);
+
+			if (updateError) {
+				errors.push(`Line ${i + 1}: failed to update guest ${nickname} - ${updateError.message}`);
+				continue;
+			}
+
+			updated.push(`${code} - ${nickname}`);
 			continue;
 		}
 
@@ -130,9 +172,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	return json({
 		created: created.length,
+		updated: updated.length,
 		skipped: skipped.length,
 		errors,
-		details: { created, skipped }
+		details: { created, updated, skipped }
 	});
 };
 

@@ -99,7 +99,7 @@
 	let bulkCsvFile = $state<File | null>(null);
 	let bulkPhotoFiles = $state<FileList | null>(null);
 	let bulkUploading = $state(false);
-	let bulkResult = $state<{ created: number; skipped: number; errors: string[] } | null>(null);
+	let bulkResult = $state<{ created: number; updated: number; skipped: number; errors: string[] } | null>(null);
 
 	async function loadGuests() {
 		loading = true;
@@ -737,6 +737,7 @@
 						{#if bulkResult}
 							<div class="win-inset p-2 text-sm">
 								<div class="text-green-700">Created: {bulkResult.created}</div>
+								<div class="text-blue-700">Updated: {bulkResult.updated}</div>
 								<div class="text-yellow-700">Skipped: {bulkResult.skipped}</div>
 								{#if bulkResult.errors.length > 0}
 									<div class="text-red-700 mt-1">
