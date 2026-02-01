@@ -271,8 +271,13 @@ export const GET: RequestHandler = async () => {
 			: null
 	}));
 
-	// Keep only one bond per pair per phase (prefer completed, then earliest)
-	const bonds = deduplicateBonds(allBondsWithSource);
+	// Deduplicated bonds for graph display and stats (one per pair per phase)
+	const displayBonds = deduplicateBonds(allBondsWithSource);
+
+	// All scoring-eligible bonds (no dedup — each meld is a distinct bond worth points)
+	const scoringBonds = allBondsWithSource.filter(
+		(b) => b.status === 'completed' || b.status === 'accepted'
+	);
 
 	// Fetch all ledger entries for leaderboard scoring
 	const { data: ledgerData } = await supabase
@@ -281,24 +286,24 @@ export const GET: RequestHandler = async () => {
 
 	const ledgerEntries = (ledgerData || []) as { id: string; guest_id: string; points: number; reason: string; created_at: string }[];
 
-	// Calculate stats
+	// Calculate stats from deduplicated bonds (for progress display)
 	const totalGuests = guests.length;
-	const totalBonds = bonds.length;
+	const totalBonds = displayBonds.length;
 
 	// Max possible bonds: one per unique pair (deduplicated)
 	const maxPossibleBonds = totalGuests > 1
 		? (totalGuests * (totalGuests - 1)) / 2
 		: 0;
 
-	// Leaderboard with points (including manual ledger adjustments)
-	const leaderboard = buildLeaderboard(guests, bonds, 10, ledgerEntries);
+	// Leaderboard with points from all scoring bonds (no dedup, no cap)
+	const leaderboard = buildLeaderboard(guests, scoringBonds, Infinity, ledgerEntries);
 
-	// Compute superlatives/awards from existing data
-	const superlatives = computeSuperlatives(guests, allBondsWithSource, leaderboard, ledgerEntries);
+	// Compute superlatives/awards using same scoring bonds for consistency
+	const superlatives = computeSuperlatives(guests, scoringBonds, leaderboard, ledgerEntries);
 
 	return json({
 		guests,
-		bonds,
+		bonds: displayBonds,
 		stats: {
 			totalGuests,
 			totalBonds,

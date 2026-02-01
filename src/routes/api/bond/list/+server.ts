@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { createServerClient, getGuestByCode } from '$lib/supabase/server';
-import { calculateGuestPoints, deduplicateBonds, applyLedgerPoints } from '$lib/scoring';
+import { calculateGuestPoints, applyLedgerPoints } from '$lib/scoring';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {
@@ -105,17 +105,16 @@ export const GET: RequestHandler = async ({ cookies }) => {
 		.select('id, guest_id, points, reason, created_at')
 		.eq('guest_id', me.id);
 
-	// Calculate points from deduplicated bonds (one per pair per phase, prefer best status)
-	const pointsMap = calculateGuestPoints(
-		deduplicateBonds(
-			(bonds || []).map((b: any) => ({
-				guest_a_id: b.guest_a_id,
-				guest_b_id: b.guest_b_id,
-				status: b.status,
-				phase_number: b.phase_number ?? 1
-			}))
-		)
-	);
+	// Calculate points from all scoring-eligible bonds (each bond is a distinct meld)
+	const scoringBonds = (bonds || [])
+		.filter((b: any) => b.status === 'completed' || b.status === 'accepted')
+		.map((b: any) => ({
+			guest_a_id: b.guest_a_id,
+			guest_b_id: b.guest_b_id,
+			status: b.status,
+			phase_number: b.phase_number ?? 1
+		}));
+	const pointsMap = calculateGuestPoints(scoringBonds);
 	if (ledgerEntries && ledgerEntries.length > 0) {
 		applyLedgerPoints(pointsMap, ledgerEntries);
 	}
