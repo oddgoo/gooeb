@@ -104,7 +104,7 @@
 				No melds yet
 			</div>
 		{:else}
-			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+			<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
 				{#each bonds as bond}
 					{@const partner = getPartner(bond)}
 					{@const myPrompt = getMyPrompt(bond)}
