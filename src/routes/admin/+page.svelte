@@ -109,14 +109,16 @@
 	async function fetchImageAsBase64(url: string): Promise<[string, string]> {
 		try {
 			const res = await fetch(url);
+			if (!res.ok) return [url, ''];
 			const blob = await res.blob();
 			return new Promise((resolve) => {
 				const reader = new FileReader();
 				reader.onloadend = () => resolve([url, reader.result as string]);
+				reader.onerror = () => resolve([url, '']);
 				reader.readAsDataURL(blob);
 			});
 		} catch {
-			return [url, url];
+			return [url, ''];
 		}
 	}
 
@@ -185,14 +187,34 @@
 				}
 			});
 
-			// Wait for images to load in the DOM
-			await new Promise((resolve) => setTimeout(resolve, 200));
+			// Wait for all images in the DOM to finish loading
+			const cardEl = container.firstElementChild as HTMLElement;
+			const imgs = cardEl.querySelectorAll('img');
+			await Promise.all(
+				Array.from(imgs).map(
+					(img) =>
+						new Promise<void>((resolve) => {
+							if (img.complete) return resolve();
+							img.onload = () => resolve();
+							img.onerror = () => resolve(); // skip broken images
+						})
+				)
+			);
+
+			// Remove any img elements that still failed to load (broken images crash html-to-image)
+			const allImgs = cardEl.querySelectorAll('img');
+			for (const img of allImgs) {
+				if (!img.src || img.src === '' || img.src === window.location.href) {
+					img.remove();
+				}
+			}
 
 			// Capture as PNG (skipFonts avoids "font is undefined" bug in html-to-image)
-			const cardEl = container.firstElementChild as HTMLElement;
 			const dataUrl = await toPng(cardEl, {
 				pixelRatio: 2,
-				skipFonts: true
+				skipFonts: true,
+				// Transparent 1x1 png as placeholder for any images that fail during clone
+				imagePlaceholder: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRUEFTkSuQmCC'
 			});
 
 			// Trigger download

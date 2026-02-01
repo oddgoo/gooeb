@@ -137,10 +137,10 @@
 			enabled: true,
 			solver: 'barnesHut',
 			barnesHut: {
-				gravitationalConstant: -3000,
-				centralGravity: 0.3,
-				springLength: 150,
-				springConstant: 0.04,
+				gravitationalConstant: -5000,
+				centralGravity: 0.2,
+				springLength: 250,
+				springConstant: 0.03,
 				damping: 0.09
 			},
 			stabilization: {

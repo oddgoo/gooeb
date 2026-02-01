@@ -25,9 +25,13 @@
 
 	let { guest, bonds, guestMap, imageCache }: Props = $props();
 
+	/** Returns a base64 data URL from cache, or empty string if unavailable */
 	function cachedSrc(url: string | null | undefined): string {
 		if (!url) return '';
-		return imageCache.get(url) || url;
+		const cached = imageCache.get(url);
+		if (cached !== undefined) return cached || '';
+		// Don't fall back to original URL — html-to-image can't handle cross-origin
+		return '';
 	}
 
 	function activityEmoji(category: string | null | undefined): string {
@@ -65,12 +69,11 @@
 	<div
 		style="background: white; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
 	>
-		{#if guest.photo_url}
+		{#if cachedSrc(guest.photo_url)}
 			<img
 				src={cachedSrc(guest.photo_url)}
 				alt={guest.nickname}
 				style="width: 120px; height: 120px; border-radius: 12px; object-fit: cover; border: 3px solid #e5e7eb;"
-				crossorigin="anonymous"
 			/>
 		{:else}
 			<div style="width: 120px; height: 120px; border-radius: 12px; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 48px;">
@@ -111,12 +114,11 @@
 						style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.08); border: 2px solid {remix ? '#99f6e4' : '#fce7f3'};"
 					>
 						<!-- Meld Photo -->
-						{#if bond.photo_url}
+						{#if cachedSrc(bond.photo_url)}
 							<img
 								src={cachedSrc(bond.photo_url)}
 								alt="Meld"
-								style="width: 100%; height: 200px; object-fit: cover;"
-								crossorigin="anonymous"
+								style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover;"
 							/>
 						{:else}
 							<div style="width: 100%; height: 80px; background: {remix ? 'linear-gradient(135deg, #ccfbf1, #a5f3fc)' : 'linear-gradient(135deg, #fce7f3, #ede9fe)'}; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px;">
@@ -127,23 +129,29 @@
 						<div style="padding: 12px;">
 							<!-- Participants -->
 							<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-								<img
-									src={cachedSrc(guest.photo_url)}
-									alt={guest.nickname}
-									style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;"
-									crossorigin="anonymous"
-								/>
+								{#if cachedSrc(guest.photo_url)}
+									<img
+										src={cachedSrc(guest.photo_url)}
+										alt={guest.nickname}
+										style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;"
+									/>
+								{:else}
+									<div style="width: 32px; height: 32px; border-radius: 6px; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 14px;">👤</div>
+								{/if}
 								<span style="font-size: 13px; font-weight: 600; color: #374151; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 									{guest.nickname}
 								</span>
 								<span style="font-size: 16px;">🤝</span>
 								{#if partner}
-									<img
-										src={cachedSrc(partner.photo_url)}
-										alt={partner.nickname}
-										style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;"
-										crossorigin="anonymous"
-									/>
+									{#if cachedSrc(partner.photo_url)}
+										<img
+											src={cachedSrc(partner.photo_url)}
+											alt={partner.nickname}
+											style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;"
+										/>
+									{:else}
+										<div style="width: 32px; height: 32px; border-radius: 6px; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 14px;">👤</div>
+									{/if}
 									<span style="font-size: 13px; font-weight: 600; color: #374151; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 										{partner.nickname}
 									</span>
@@ -164,13 +172,12 @@
 								>
 									REMIX
 								</div>
-								{#if bond.remix_source?.photo_url}
+								{#if cachedSrc(bond.remix_source?.photo_url)}
 									<div style="margin-top: 6px;">
 										<img
-											src={cachedSrc(bond.remix_source.photo_url)}
+											src={cachedSrc(bond.remix_source?.photo_url)}
 											alt="Source"
 											style="width: 60px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;"
-											crossorigin="anonymous"
 										/>
 									</div>
 								{/if}
