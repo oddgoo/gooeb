@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, mount, unmount } from 'svelte';
+	import { toPng } from 'html-to-image';
+	import GuestExportCard from '$lib/components/GuestExportCard.svelte';
 
 	type Guest = {
 		id: string;
@@ -100,6 +102,115 @@
 	let bulkPhotoFiles = $state<FileList | null>(null);
 	let bulkUploading = $state(false);
 	let bulkResult = $state<{ created: number; updated: number; skipped: number; errors: string[] } | null>(null);
+
+	// PNG export
+	let exportingGuestId = $state<string | null>(null);
+
+	async function fetchImageAsBase64(url: string): Promise<[string, string]> {
+		try {
+			const res = await fetch(url);
+			const blob = await res.blob();
+			return new Promise((resolve) => {
+				const reader = new FileReader();
+				reader.onloadend = () => resolve([url, reader.result as string]);
+				reader.readAsDataURL(blob);
+			});
+		} catch {
+			return [url, url];
+		}
+	}
+
+	async function exportGuestPng(guest: Guest) {
+		exportingGuestId = guest.id;
+		error = '';
+
+		try {
+			// Fetch showcase data for bonds
+			const res = await fetch('/api/showcase');
+			const data = await res.json();
+
+			const allBonds = data.bonds as any[];
+			const allGuests = data.guests as { id: string; nickname: string; photo_url: string }[];
+
+			// Filter bonds for this guest
+			const guestBonds = allBonds.filter(
+				(b: any) => b.guest_a_id === guest.id || b.guest_b_id === guest.id
+			);
+
+			// Build guest map
+			const guestMap = new Map<string, { id: string; nickname: string; photo_url: string }>();
+			for (const g of allGuests) {
+				guestMap.set(g.id, g);
+			}
+
+			// Collect all image URLs to pre-fetch
+			const imageUrls = new Set<string>();
+			if (guest.photo_url) imageUrls.add(guest.photo_url);
+			for (const b of guestBonds) {
+				if (b.photo_url) imageUrls.add(b.photo_url);
+				if (b.remix_source?.photo_url) imageUrls.add(b.remix_source.photo_url);
+				const partnerId = b.guest_a_id === guest.id ? b.guest_b_id : b.guest_a_id;
+				const partner = guestMap.get(partnerId);
+				if (partner?.photo_url) imageUrls.add(partner.photo_url);
+			}
+
+			// Pre-fetch all images as base64
+			const imageEntries = await Promise.all(
+				Array.from(imageUrls).map(fetchImageAsBase64)
+			);
+			const imageCache = new Map<string, string>(imageEntries);
+
+			// Create offscreen container with explicit font to avoid html-to-image bug
+			const container = document.createElement('div');
+			container.style.position = 'fixed';
+			container.style.left = '-9999px';
+			container.style.top = '0';
+			container.style.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+			document.body.appendChild(container);
+
+			// Mount the export card component
+			const component = mount(GuestExportCard, {
+				target: container,
+				props: {
+					guest: {
+						id: guest.id,
+						nickname: guest.nickname,
+						photo_url: guest.photo_url,
+						team_emoji: guest.team_emoji,
+						code: guest.mask_codes?.code || '???'
+					},
+					bonds: guestBonds,
+					guestMap,
+					imageCache
+				}
+			});
+
+			// Wait for images to load in the DOM
+			await new Promise((resolve) => setTimeout(resolve, 200));
+
+			// Capture as PNG (skipFonts avoids "font is undefined" bug in html-to-image)
+			const cardEl = container.firstElementChild as HTMLElement;
+			const dataUrl = await toPng(cardEl, {
+				pixelRatio: 2,
+				skipFonts: true
+			});
+
+			// Trigger download
+			const link = document.createElement('a');
+			link.download = `${guest.nickname}-melds.png`;
+			link.href = dataUrl;
+			link.click();
+
+			// Cleanup
+			unmount(component);
+			document.body.removeChild(container);
+		} catch (e) {
+			console.error('PNG export error:', e);
+			error = 'Failed to export PNG: ' + (e instanceof Error ? e.message : String(e));
+		} finally {
+			exportingGuestId = null;
+		}
+	}
 
 	async function loadGuests() {
 		loading = true;
@@ -680,7 +791,14 @@
 											<td class="p-1 font-bold">{guest.nickname}</td>
 											<td class="p-1 font-mono">{guest.mask_codes?.code || '-'}</td>
 											<td class="p-1">{guest.is_admin ? '✓' : ''}</td>
-											<td class="p-1">
+											<td class="p-1 flex gap-1">
+												<button
+													onclick={() => exportGuestPng(guest)}
+													class="win-btn px-2 py-0 text-xs"
+													disabled={exportingGuestId === guest.id}
+												>
+													{exportingGuestId === guest.id ? '...' : 'PNG'}
+												</button>
 												<button
 													onclick={() => deleteGuest(guest.id)}
 													class="win-btn px-2 py-0 text-xs"
